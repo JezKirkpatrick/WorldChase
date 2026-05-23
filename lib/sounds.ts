@@ -39,8 +39,8 @@ class SoundSystem {
     try {
       const ctx = this.ctx_()
       // Ascending C-E-G arpeggio
-      [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.35]].forEach(([f, t]) =>
-        this.tone(f, 'sine', 0.18, t, 0.4, ctx))
+      const notes: [number, number][] = [[523, 0], [659, 0.1], [784, 0.2], [1047, 0.35]]
+      notes.forEach(([f, t]) => this.tone(f, 'sine', 0.18, t, 0.4, ctx))
     } catch {}
   }
 
@@ -57,8 +57,8 @@ class SoundSystem {
     if (this.muted) return
     try {
       const ctx = this.ctx_()
-      [[1200, 0], [1400, 0.07], [1600, 0.14]].forEach(([f, t]) =>
-        this.tone(f, 'sine', 0.12, t, 0.15, ctx))
+      const tokenNotes: [number, number][] = [[1200, 0], [1400, 0.07], [1600, 0.14]]
+      tokenNotes.forEach(([f, t]) => this.tone(f, 'sine', 0.12, t, 0.15, ctx))
     } catch {}
   }
 
@@ -84,8 +84,8 @@ class SoundSystem {
     if (this.muted) return
     try {
       const ctx = this.ctx_()
-      [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.36], [1319, 0.5]].forEach(([f, t]) =>
-        this.tone(f, 'sine', 0.2, t, 0.35, ctx))
+      const levelNotes: [number, number][] = [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.36], [1319, 0.5]]
+      levelNotes.forEach(([f, t]) => this.tone(f, 'sine', 0.2, t, 0.35, ctx))
     } catch {}
   }
 }

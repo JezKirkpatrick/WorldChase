@@ -140,7 +140,7 @@ export default function ShopPage() {
                   <div className={`text-xs font-head ${RARITY_COLOR[c.rarity].split(' ')[0]}`}>{RARITY_LABEL[c.rarity]}</div>
                 </div>
 
-                {flash_this ? (
+                {flash_this && flash ? (
                   <div className={`w-full py-1.5 text-center text-xs font-head font-bold ${flash.success ? 'text-success' : 'text-danger'}`}>
                     {flash.msg}
                   </div>

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-interface RadarBlip {
+export interface RadarBlip {
   bearing: number
   distance: number
   intensity: number

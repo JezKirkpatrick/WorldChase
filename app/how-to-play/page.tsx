@@ -25,7 +25,7 @@ const SPEND = [
 ]
 
 export default function HowToPlayPage() {
-  const groups = [...new Set(KEYBOARD_SHORTCUTS.map(s => s.group))]
+  const groups = Array.from(new Set(KEYBOARD_SHORTCUTS.map(s => s.group)))
 
   return (
     <div className="min-h-screen bg-navy text-text">

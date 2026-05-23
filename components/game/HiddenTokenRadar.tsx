@@ -42,7 +42,7 @@ export default function HiddenTokenRadar({ blips, isScanning }: HiddenTokenRadar
       // Sweep
       if (isScanning) {
         sweepAngle.current = (sweepAngle.current + 0.03) % (Math.PI * 2)
-        const sweepGrad = ctx.createConicalGradient ? null : null
+        const sweepGrad = (ctx as any).createConicGradient ? null : null
         ctx.save()
         ctx.translate(cx, cy)
         ctx.rotate(sweepAngle.current)

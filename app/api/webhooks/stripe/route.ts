@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.CheckoutSession
+    const session = event.data.object as Stripe.Checkout.Session
     const { userId, tokens } = session.metadata ?? {}
     if (!userId || !tokens) return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
 

@@ -3,7 +3,9 @@
     "allow": [
       "PowerShell(vercel *)",
       "PowerShell(Get-Content *)",
-      "PowerShell(Get-ChildItem *)"
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(gh auth *)",
+      "PowerShell(npm run *)"
     ]
   }
 }
