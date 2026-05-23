@@ -6,12 +6,13 @@ import {
   getArenaChallengeDifficulty, DIFFICULTY_CONFIG,
 } from '@/lib/arenas'
 
-const service = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()

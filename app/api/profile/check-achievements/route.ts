@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase-server'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(_req: Request) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

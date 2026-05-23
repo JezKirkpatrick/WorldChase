@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 const STEP_TOKENS: Record<string, number> = {
   avatar:       5,
   first_round:  10,

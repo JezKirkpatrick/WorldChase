@@ -3,12 +3,13 @@ import { createClient } from '@/lib/supabase-server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { ARENA_WAGERS } from '@/lib/arenas'
 
-const service = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
+  const service = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   try {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
 
     if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
     if (match.status !== 'waiting') {
-      return NextResponse.json({ error: 'Match already started — cannot cancel' }, { status: 400 })
+      return NextResponse.json({ error: 'Match already started â€” cannot cancel' }, { status: 400 })
     }
 
     // Remove this player
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       user_id: user.id,
       type: 'ranked_refund',
       amount: wager,
-      description: `Ranked queue cancelled — refund`,
+      description: `Ranked queue cancelled â€” refund`,
     })
 
     // Cancel match if no players remain
