@@ -3,10 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { anthropic } from '@/lib/anthropic'
 import { calculateScore } from '@/lib/scoring'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const dynamic = 'force-dynamic'
 
 function keywordMatch(guess: string, keywords: string[]): boolean {
   const g = guess.toLowerCase().trim()
@@ -17,6 +14,10 @@ function keywordMatch(guess: string, keywords: string[]): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   try {
     const { guessText, challengeId, userId } = await req.json()
     if (!guessText || !challengeId || !userId) {

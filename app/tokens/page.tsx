@@ -1,11 +1,11 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { TOKEN_PACKAGES } from '@/lib/stripe'
 
-export default function TokensPage() {
+function TokensContent() {
   const [tokens, setTokens] = useState(0)
   const [loading, setLoading] = useState<string | null>(null)
   const searchParams = useSearchParams()
@@ -92,5 +92,13 @@ export default function TokensPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function TokensPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-navy" />}>
+      <TokensContent />
+    </Suspense>
   )
 }
