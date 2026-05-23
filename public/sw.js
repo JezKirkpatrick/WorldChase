@@ -1,0 +1,81 @@
+// World Chase Service Worker
+const CACHE = 'worldchase-v1'
+
+// Assets to pre-cache on install
+const PRECACHE = [
+  '/',
+  '/dashboard',
+  '/how-to-play',
+  '/offline',
+]
+
+// Install: pre-cache shell routes
+self.addEventListener('install', event => {
+  self.skipWaiting()
+  event.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(PRECACHE).catch(() => {}))
+  )
+})
+
+// Activate: clear old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  )
+})
+
+// Fetch strategy:
+//   - API calls: network-only (never cache)
+//   - _next/static: cache-first (immutable hashed assets)
+//   - Pages: network-first, fallback to cache, fallback to /offline
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url)
+
+  // Skip non-GET, non-same-origin, and supabase/stripe requests
+  if (
+    event.request.method !== 'GET' ||
+    !url.origin.includes(self.location.origin.split('//')[1]?.split(':')[0] ?? 'worldchase') &&
+    !event.request.url.startsWith(self.location.origin)
+  ) return
+
+  // API routes — always network-only
+  if (url.pathname.startsWith('/api/')) return
+
+  // Hashed static assets (_next/static) — cache-first, never expire
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached
+        return fetch(event.request).then(res => {
+          const clone = res.clone()
+          caches.open(CACHE).then(c => c.put(event.request, clone))
+          return res
+        })
+      })
+    )
+    return
+  }
+
+  // All other requests — network-first
+  event.respondWith(
+    fetch(event.request)
+      .then(res => {
+        // Cache successful HTML/JSON responses
+        if (res.ok && (res.headers.get('content-type') || '').includes('text/html')) {
+          const clone = res.clone()
+          caches.open(CACHE).then(c => c.put(event.request, clone))
+        }
+        return res
+      })
+      .catch(() =>
+        caches.match(event.request).then(cached => {
+          if (cached) return cached
+          // Offline fallback for navigation requests
+          if (event.request.mode === 'navigate') return caches.match('/offline')
+          return new Response('Offline', { status: 503 })
+        })
+      )
+  )
+})

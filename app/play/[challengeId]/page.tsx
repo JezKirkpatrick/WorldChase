@@ -23,7 +23,7 @@ export default function GamePage({ params }: PageProps) {
   const router = useRouter()
   const supabase = createClient()
   const mapRef = useRef<google.maps.Map | null>(null)
-  const { challenge, progress, guesses, revealedClues, timeElapsed, loading, reload } = useGameState(params.challengeId)
+  const { challenge, progress, guesses, revealedClues, timeElapsed, loading, loadError, reload } = useGameState(params.challengeId)
 
   const [userId, setUserId] = useState<string | null>(null)
   const [tokens, setTokens] = useState(0)
@@ -53,33 +53,19 @@ export default function GamePage({ params }: PageProps) {
     document.head.appendChild(script)
   }, [])
 
-  // Load user and profile
+  // Load user profile data (tokens, rank) — runs once challenge is ready
   useEffect(() => {
+    if (!challenge) return
+    const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return router.push('/auth/login')
+      if (!user) { router.push('/auth/login'); return }
       setUserId(user.id)
-      supabase.from('profiles').select('tokens').eq('id', user.id).single().then(({ data }) => {
-        if (data) setTokens(data.tokens)
-      })
-      if (challenge) {
-        supabase.from('leaderboard').select('rank').eq('user_id', user.id).eq('event_id', challenge.event_id).maybeSingle()
-          .then(({ data }) => data?.rank && setRank(data.rank))
-      }
+      supabase.from('profiles').select('tokens').eq('id', user.id).single()
+        .then(({ data }) => { if (data) setTokens(data.tokens) })
+      supabase.from('leaderboard').select('rank').eq('user_id', user.id).eq('event_id', challenge.event_id).maybeSingle()
+        .then(({ data }) => { if (data?.rank) setRank(data.rank) })
     })
-  }, [supabase, router, challenge])
-
-  // Start challenge on mount
-  useEffect(() => {
-    if (!userId || !challenge || !progress) {
-      if (userId && challenge && !progress) {
-        fetch('/api/game/start-challenge', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ challengeId: challenge.id, userId, eventId: challenge.event_id }),
-        }).then(() => reload())
-      }
-    }
-  }, [userId, challenge, progress, reload])
+  }, [challenge, router])
 
   const handleRevealClue = useCallback(async (index: number) => {
     if (!userId || !challenge) return
@@ -162,6 +148,16 @@ export default function GamePage({ params }: PageProps) {
     show_keyboard_shortcuts: () => setShortcutsOpen(true),
     close_modal: () => setShortcutsOpen(false),
   })
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-navy flex flex-col items-center justify-center gap-4">
+        <div className="text-danger font-head font-bold tracking-widest">{loadError}</div>
+        <button onClick={reload} className="px-6 py-2 bg-gold text-navy font-head font-bold text-sm tracking-widest">RETRY</button>
+        <a href="/play" className="text-text-muted font-head text-sm underline">← Back to rounds</a>
+      </div>
+    )
+  }
 
   if (loading || !challenge || !progress) {
     return (

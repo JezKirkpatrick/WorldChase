@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { Challenge, PlayerProgress, Guess, Clue } from '@/types/game'
 
@@ -10,41 +10,99 @@ export function useGameState(challengeId: string) {
   const [revealedClues, setRevealedClues] = useState<Clue[]>([])
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [loading, setLoading] = useState(true)
-  const loadingRef = useRef(false)
-  const supabase = createClient()
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!loadingRef.current) setLoading(true)
-    const [challengeRes, progressRes, guessesRes] = await Promise.all([
-      supabase.from('challenges').select('*').eq('id', challengeId).single(),
-      supabase.from('player_progress').select('*').eq('challenge_id', challengeId).maybeSingle(),
-      supabase.from('guesses').select('*').eq('challenge_id', challengeId).order('created_at'),
-    ])
+    setLoading(true)
+    setLoadError(null)
+    const supabase = createClient()
 
-    if (challengeRes.data) setChallenge(challengeRes.data)
-    if (progressRes.data) {
-      setProgress(progressRes.data)
-      const p = progressRes.data
-      const clues = challengeRes.data?.clues ?? []
-      setRevealedClues(clues.slice(0, Math.min(p.clues_revealed + 1, clues.length)))
-    } else if (challengeRes.data) {
-      setRevealedClues([challengeRes.data.clues[0]])
+    try {
+      // 1. Get authenticated user — must happen before any RLS-gated query
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user) {
+        setLoadError('Not authenticated — please log in again.')
+        setLoading(false)
+        return
+      }
+
+      // 2. Load challenge + user's guesses in parallel
+      const [challengeRes, guessesRes] = await Promise.all([
+        supabase.from('challenges').select('*').eq('id', challengeId).single(),
+        supabase.from('guesses').select('*').eq('challenge_id', challengeId).eq('user_id', user.id).order('created_at'),
+      ])
+
+      if (challengeRes.error || !challengeRes.data) {
+        setLoadError('Challenge not found.')
+        setLoading(false)
+        return
+      }
+      const ch = challengeRes.data as Challenge
+      setChallenge(ch)
+      setGuesses(guessesRes.data ?? [])
+
+      // 3. Load this user's progress (filtered by user_id)
+      const { data: progressData } = await supabase
+        .from('player_progress')
+        .select('*')
+        .eq('challenge_id', challengeId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      let finalProgress = progressData as PlayerProgress | null
+
+      // 4. Auto-start if no progress row exists yet
+      if (!finalProgress) {
+        const { data: newProgress } = await supabase
+          .from('player_progress')
+          .insert({
+            user_id: user.id,
+            event_id: ch.event_id,
+            challenge_id: challengeId,
+            status: 'active',
+            started_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        // Ensure leaderboard entry exists
+        await supabase.from('leaderboard').upsert(
+          { user_id: user.id, event_id: ch.event_id, total_score: 0 },
+          { onConflict: 'user_id,event_id', ignoreDuplicates: true }
+        )
+
+        finalProgress = newProgress as PlayerProgress | null
+      }
+
+      // 5. Set progress and resolve revealed clues
+      if (finalProgress) {
+        setProgress(finalProgress)
+        const clues: Clue[] = ch.clues ?? []
+        const revealCount = Math.min((finalProgress.clues_revealed ?? 0) + 1, clues.length)
+        setRevealedClues(clues.slice(0, revealCount))
+      } else {
+        // Fallback: show first clue even if progress insert failed
+        setRevealedClues(ch.clues ? [ch.clues[0]] : [])
+      }
+    } catch (err: any) {
+      setLoadError(err?.message ?? 'Failed to load game data.')
     }
-    if (guessesRes.data) setGuesses(guessesRes.data)
-    setLoading(false)
-    loadingRef.current = true
-  }, [challengeId, supabase])
 
+    setLoading(false)
+  }, [challengeId])
+
+  // Initial load
   useEffect(() => { load() }, [load])
 
+  // Timer
   useEffect(() => {
     if (!progress?.started_at || progress.status === 'completed') return
+    const start = new Date(progress.started_at).getTime()
     const timer = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - new Date(progress.started_at!).getTime()) / 1000)
-      setTimeElapsed(elapsed)
+      setTimeElapsed(Math.floor((Date.now() - start) / 1000))
     }, 1000)
     return () => clearInterval(timer)
-  }, [progress])
+  }, [progress?.started_at, progress?.status])
 
-  return { challenge, progress, guesses, revealedClues, timeElapsed, loading, reload: load }
+  return { challenge, progress, guesses, revealedClues, timeElapsed, loading, loadError, reload: load }
 }
