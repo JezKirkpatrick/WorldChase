@@ -1,0 +1,6 @@
+{
+  "crons": [
+    { "path": "/api/cron/monthly-reset", "schedule": "0 0 1 * *" },
+    { "path": "/api/cron/daily-bonus",   "schedule": "0 8 * * *" }
+  ]
+}

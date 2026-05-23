@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(vercel *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Get-ChildItem *)"
+    ]
+  }
+}
