@@ -47,7 +47,8 @@ async function judgeAnswer(
 }
 
 async function completeMatch(
-  service: ReturnType<typeof createServiceClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  service: any,
   matchId: string,
   format: string,
   arenaLevel: number,

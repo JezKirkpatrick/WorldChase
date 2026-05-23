@@ -5,7 +5,8 @@
       "PowerShell(Get-Content *)",
       "PowerShell(Get-ChildItem *)",
       "PowerShell(gh auth *)",
-      "PowerShell(npm run *)"
+      "PowerShell(npm run *)",
+      "PowerShell(cd \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match 'error TS|^\\\\s+' } | Select-Object -First 80)"
     ]
   }
 }
