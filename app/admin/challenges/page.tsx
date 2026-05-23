@@ -45,7 +45,7 @@ export default function AdminChallengesPage() {
   return (
     <div className="min-h-screen bg-navy text-text">
       <nav className="h-14 bg-navy-light border-b border-white/8 flex items-center gap-4 px-6">
-        <Link href="/admin" className="text-text-muted font-head text-sm">â† ADMIN</Link>
+        <Link href="/admin" className="text-text-muted font-head text-sm">← ADMIN</Link>
         <span className="font-head font-bold text-gold tracking-widest">CHALLENGES</span>
       </nav>
 
@@ -74,7 +74,7 @@ export default function AdminChallengesPage() {
           </div>
           <button onClick={handleGenerate} disabled={generating || !selectedEvent}
             className="px-6 py-2 bg-electric text-navy font-head font-bold text-sm tracking-wider hover:bg-electric-dim disabled:opacity-50">
-            {generating ? 'âš¡ GENERATING...' : 'âš¡ GENERATE WITH AI'}
+            {generating ? '⚡ GENERATING...' : '⚡ GENERATE WITH AI'}
           </button>
         </div>
 

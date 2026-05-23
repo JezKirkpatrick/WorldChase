@@ -25,7 +25,7 @@ async function judgeAnswer(
   locationCountry: string,
   keywords: string[]
 ): Promise<{ correct: boolean; feedback: string }> {
-  if (!answer.trim()) return { correct: false, feedback: 'Time\'s up â€” no answer submitted.' }
+  if (!answer.trim()) return { correct: false, feedback: 'Time\'s up — no answer submitted.' }
 
   if (keywordMatch(answer, keywords)) {
     return { correct: true, feedback: 'Confirmed! Razor-sharp instincts.' }
@@ -36,7 +36,7 @@ async function judgeAnswer(
     max_tokens: 120,
     messages: [{
       role: 'user',
-      content: `Geography game judge. Correct location: "${locationName}, ${locationCountry}". Keywords: ${JSON.stringify(keywords)}. Player answered: "${answer}". Is this correct? Be generous with spelling/transliterations. Reply ONLY valid JSON: {"is_correct":true,"feedback":"one energetic sentence â€” congratulate if correct, tiny non-spoiler nudge if wrong, never reveal answer"}`,
+      content: `Geography game judge. Correct location: "${locationName}, ${locationCountry}". Keywords: ${JSON.stringify(keywords)}. Player answered: "${answer}". Is this correct? Be generous with spelling/transliterations. Reply ONLY valid JSON: {"is_correct":true,"feedback":"one energetic sentence — congratulate if correct, tiny non-spoiler nudge if wrong, never reveal answer"}`,
     }],
   })
 
@@ -56,7 +56,7 @@ async function completeMatch(
 ) {
   const wager = ARENA_WAGERS[arenaLevel]
 
-  // â”€â”€ Determine results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Determine results ────────────────────────────────────────
   type PlayerResult = {
     entryId: string
     userId: string
@@ -122,7 +122,7 @@ async function completeMatch(
     }
 
   } else {
-    // ffa5 â€” sort by score, then by submission time (earlier = better on tie)
+    // ffa5 — sort by score, then by submission time (earlier = better on tie)
     const sorted = [...players].sort((a, b) =>
       (b.score ?? -1) - (a.score ?? -1) ||
       ((a.submitted_at ?? '9') < (b.submitted_at ?? '9') ? -1 : 1)
@@ -134,7 +134,7 @@ async function completeMatch(
     })
   }
 
-  // â”€â”€ Apply results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Apply results ────────────────────────────────────────────
   await Promise.all(results.map(async r => {
     // Trophy update (uses DB function)
     const { data: trophyData } = await service.rpc('update_trophies_after_match', {
@@ -163,7 +163,7 @@ async function completeMatch(
       type: r.result === 'win' ? 'ranked_win' : r.result === 'loss' ? 'ranked_loss' : 'ranked_refund',
       amount: r.netTokenChange,
       reference_id: matchId,
-      description: `Ranked ${format} â€” ${r.result}`,
+      description: `Ranked ${format} — ${r.result}`,
     })
   }))
 

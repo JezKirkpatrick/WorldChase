@@ -65,7 +65,7 @@ export default async function ProfilePage() {
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold/0 via-gold/50 to-gold/0" />
           <div className="relative flex items-center gap-5">
             <div className="animate-float">
-              <Avatar emoji={profile?.equipped_avatar ?? 'ðŸŒ'} border={profile?.equipped_border ?? 'none'} size="xl" />
+              <Avatar emoji={profile?.equipped_avatar ?? '🌍'} border={profile?.equipped_border ?? 'none'} size="xl" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -75,7 +75,7 @@ export default async function ProfilePage() {
                 {featuredAchievement && (
                   <div className="badge-wrap">
                     <span className="text-xl">{featuredAchievement.emoji}</span>
-                    <div className="badge-tip">{featuredAchievement.label} â€” {featuredAchievement.desc}</div>
+                    <div className="badge-tip">{featuredAchievement.label} — {featuredAchievement.desc}</div>
                   </div>
                 )}
               </div>
@@ -84,14 +84,14 @@ export default async function ProfilePage() {
                 <div className="text-gold font-head text-sm font-bold mt-1">{profile.equipped_title}</div>
               )}
               <div className="flex items-center gap-3 mt-2">
-                <span className="text-gold font-mono text-sm font-bold">ðŸª™ {profile?.tokens ?? 0} tokens</span>
-                <span className="text-text-muted font-head text-xs">Â·</span>
+                <span className="text-gold font-mono text-sm font-bold">🪙 {profile?.tokens ?? 0} tokens</span>
+                <span className="text-text-muted font-head text-xs">·</span>
                 <span className="text-electric font-head text-xs">{earnedCount}/{ACHIEVEMENTS.length} badges</span>
               </div>
             </div>
             <Link href="/shop"
               className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 transition-all">
-              CUSTOMISE â†’
+              CUSTOMISE →
             </Link>
           </div>
         </div>
@@ -101,7 +101,7 @@ export default async function ProfilePage() {
           {[
             { label: 'ROUNDS WON', value: completed, color: 'text-gold' },
             { label: 'TOTAL SCORE', value: totalScore.toLocaleString(), color: 'text-electric' },
-            { label: 'BEST TIME', value: bestTime === Infinity ? 'â€”' : `${Math.floor(bestTime / 60)}m ${(bestTime % 60).toString().padStart(2,'0')}s`, color: 'text-white' },
+            { label: 'BEST TIME', value: bestTime === Infinity ? '—' : `${Math.floor(bestTime / 60)}m ${(bestTime % 60).toString().padStart(2,'0')}s`, color: 'text-white' },
           ].map(s => (
             <div key={s.label} className="bg-navy-light border border-white/10 p-4 text-center card-gradient-gold">
               <div className="text-xs font-head text-text-muted tracking-widest mb-1">{s.label}</div>
@@ -129,15 +129,15 @@ export default async function ProfilePage() {
 
         {/* Streak */}
         <div className="bg-navy-light border border-white/10 p-4 flex items-center gap-4 mb-5 animate-fade-up stagger-3 card-gradient-danger">
-          <span className="text-3xl">ðŸ”¥</span>
+          <span className="text-3xl">🔥</span>
           <div className="flex-1">
             <div className="font-mono font-bold text-white text-xl">{profile?.current_streak ?? 0} day streak</div>
-            <div className="text-text-muted font-head text-xs">Log in daily to keep your streak â€” milestones grant bonus tokens</div>
+            <div className="text-text-muted font-head text-xs">Log in daily to keep your streak — milestones grant bonus tokens</div>
           </div>
           <div className="text-right shrink-0">
             <div className="text-xs text-text-muted font-head">NEXT BONUS</div>
             <div className="text-gold font-mono text-sm font-bold">
-              {(profile?.current_streak ?? 0) < 3 ? 'Day 3 (+2ðŸª™)' : (profile?.current_streak ?? 0) < 7 ? 'Day 7 (+5ðŸª™)' : 'Day 30 (+20ðŸª™)'}
+              {(profile?.current_streak ?? 0) < 3 ? 'Day 3 (+2🪙)' : (profile?.current_streak ?? 0) < 7 ? 'Day 7 (+5🪙)' : 'Day 30 (+20🪙)'}
             </div>
           </div>
         </div>
@@ -146,19 +146,19 @@ export default async function ProfilePage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-up stagger-4">
           <Link href="/shop"
             className="border border-gold/30 py-3 text-center font-head font-bold text-xs tracking-widest text-gold hover:bg-gold/10 transition-all">
-            ðŸ› SHOP
+            🛍 SHOP
           </Link>
           <Link href="/leaderboard"
             className="border border-white/10 py-3 text-center font-head font-bold text-xs tracking-widest text-text-muted hover:border-gold/30 hover:text-gold transition-all">
-            ðŸ† RANKINGS
+            🏆 RANKINGS
           </Link>
           <Link href="/settings"
             className="border border-white/10 py-3 text-center font-head font-bold text-xs tracking-widest text-text-muted hover:border-white/30 hover:text-white transition-all">
-            âš™ SETTINGS
+            ⚙ SETTINGS
           </Link>
           <Link href="/support"
             className="border border-white/10 py-3 text-center font-head font-bold text-xs tracking-widest text-text-muted hover:border-electric/30 hover:text-electric transition-all">
-            ðŸ†˜ SUPPORT
+            🆘 SUPPORT
           </Link>
         </div>
       </div>

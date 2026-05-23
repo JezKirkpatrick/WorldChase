@@ -22,15 +22,15 @@ export default async function AdminPage() {
 
   const stats = [
     { label: 'TOTAL HUNTERS', value: profileCountRes.count ?? 0 },
-    { label: 'TOKEN REVENUE', value: `ðŸª™ ${totalRevenue.toLocaleString()}` },
+    { label: 'TOKEN REVENUE', value: `🪙 ${totalRevenue.toLocaleString()}` },
     { label: 'ACTIVE EVENT', value: eventRes.data?.name ?? 'None' },
   ]
 
   return (
     <div className="min-h-screen bg-navy text-text">
       <nav className="h-14 bg-navy-light border-b border-white/8 flex items-center justify-between px-6">
-        <span className="font-head font-bold text-gold tracking-widest">WORLD CHASE â€” ADMIN</span>
-        <Link href="/dashboard" className="text-sm font-head text-text-muted hover:text-white">â† BACK</Link>
+        <span className="font-head font-bold text-gold tracking-widest">WORLD CHASE — ADMIN</span>
+        <Link href="/dashboard" className="text-sm font-head text-text-muted hover:text-white">← BACK</Link>
       </nav>
 
       <div className="max-w-4xl mx-auto px-6 py-10">

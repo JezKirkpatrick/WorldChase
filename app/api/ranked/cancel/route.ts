@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     if (!match) return NextResponse.json({ error: 'Match not found' }, { status: 404 })
     if (match.status !== 'waiting') {
-      return NextResponse.json({ error: 'Match already started â€” cannot cancel' }, { status: 400 })
+      return NextResponse.json({ error: 'Match already started — cannot cancel' }, { status: 400 })
     }
 
     // Remove this player
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       user_id: user.id,
       type: 'ranked_refund',
       amount: wager,
-      description: `Ranked queue cancelled â€” refund`,
+      description: `Ranked queue cancelled — refund`,
     })
 
     // Cancel match if no players remain

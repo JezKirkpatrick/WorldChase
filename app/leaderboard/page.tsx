@@ -22,7 +22,7 @@ export default async function LeaderboardPage() {
         <div className="mb-8">
           <div className="text-xs text-gold font-head tracking-[0.3em] mb-1">GLOBAL STANDINGS</div>
           <h1 className="font-head font-bold text-3xl text-white">
-            {event ? `${event.name.toUpperCase()} â€” LEADERBOARD` : 'LEADERBOARD'}
+            {event ? `${event.name.toUpperCase()} — LEADERBOARD` : 'LEADERBOARD'}
           </h1>
           {event && (
             <p className="text-text-muted font-head text-sm mt-1">

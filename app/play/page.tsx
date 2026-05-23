@@ -71,7 +71,7 @@ export default async function PlayPage() {
                     </Link>
                   ) : (
                     <div className="w-16 text-center text-text-muted font-head text-xs">
-                      {isCompleted ? 'âœ“' : isSkipped ? 'â€”' : 'ðŸ”’'}
+                      {isCompleted ? '✓' : isSkipped ? '—' : '🔒'}
                     </div>
                   )}
                 </div>

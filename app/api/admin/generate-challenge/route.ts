@@ -15,11 +15,11 @@ function buildStreetViewPrompt(roundNumber: number, difficulty: string, existing
     hard: 'How many fishing boats are moored at this dock?',
     extreme: 'What animal is depicted on the sign above the entrance?',
   }
-  return `You are the game master for "World Chase" â€” a competitive geography game.
+  return `You are the game master for "World Chase" — a competitive geography game.
 
 Generate ONE Street View Observation challenge for Round ${roundNumber}, difficulty: ${difficulty.toUpperCase()}.
 
-Pick a REAL, visually interesting street, square, market, or landmark that has OFFICIAL Google Street View car coverage (blue lines on Google Maps) â€” NOT user-contributed 360Â° photos. The location must have navigable street-level imagery with road arrows so players can walk along the street.
+Pick a REAL, visually interesting street, square, market, or landmark that has OFFICIAL Google Street View car coverage (blue lines on Google Maps) — NOT user-contributed 360° photos. The location must have navigable street-level imagery with road arrows so players can walk along the street.
 The observation question must be answerable by carefully looking at the Street View imagery.
 Questions should be specific and have a clear, unambiguous answer.
 
@@ -33,7 +33,7 @@ Example question for ${difficulty}: "${examples[difficulty]}"
 
 DO NOT use any of these already-used locations: ${existingLocations.join(', ')}
 
-Respond with ONLY valid JSON â€” no markdown:
+Respond with ONLY valid JSON — no markdown:
 {
   "round_number": ${roundNumber},
   "difficulty": "${difficulty}",
@@ -62,25 +62,25 @@ Respond with ONLY valid JSON â€” no markdown:
 
 function buildPrompt(roundNumber: number, difficulty: string, existingLocations: string[]): string {
   const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000 }
-  return `You are the game master for "World Chase" â€” a brutal monthly geography competition where players pay real money for extra clues and race for a global leaderboard.
+  return `You are the game master for "World Chase" — a brutal monthly geography competition where players pay real money for extra clues and race for a global leaderboard.
 
 Generate ONE unique, extraordinary challenge for Round ${roundNumber}, difficulty: ${difficulty.toUpperCase()}.
 
 DIFFICULTY GUIDE:
 - EASY: Iconic global landmarks. Everyone knows them.
 - MEDIUM: Remarkable but less globally-famous destinations.
-- HARD: Genuinely obscure â€” remote towns, unusual geological features, niche cultural sites.
+- HARD: Genuinely obscure — remote towns, unusual geological features, niche cultural sites.
 - EXTREME: The most forgotten, bizarre, inhospitable, or absurdly remote locations on Earth.
 
 WRITING RULES:
 - Riddle text must be literary, dramatic, poetic.
 - NEVER name the location, country, or any direct identifier in the riddle.
 - Clues must progress from HARDEST (1) to EASIEST (4).
-- Map start distance from answer: easy=2â€“5km, medium=10â€“30km, hard=50â€“150km, extreme=200â€“500km
-- The map_start must reflect the difficulty â€” hard and extreme should start in a completely different region or country.
+- Map start distance from answer: easy=2–5km, medium=10–30km, hard=50–150km, extreme=200–500km
+- The map_start must reflect the difficulty — hard and extreme should start in a completely different region or country.
 - DO NOT use any of these already-used locations: ${existingLocations.join(', ')}
 
-Respond with ONLY valid JSON â€” no markdown:
+Respond with ONLY valid JSON — no markdown:
 {
   "round_number": ${roundNumber},
   "difficulty": "${difficulty}",
@@ -100,7 +100,7 @@ Respond with ONLY valid JSON â€” no markdown:
     {"order":1,"text":"hardest clue"},
     {"order":2,"text":"medium clue"},
     {"order":3,"text":"easier clue"},
-    {"order":4,"text":"easiest clue â€” almost explicit"}
+    {"order":4,"text":"easiest clue — almost explicit"}
   ],
   "answer_keywords": ["primary","alternate spelling","landmark name"],
   "fun_fact": "One astonishing fact about this location."
