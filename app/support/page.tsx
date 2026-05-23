@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import GlobalNav from '@/components/ui/GlobalNav'
 import SupportForm from '@/components/support/SupportForm'
@@ -24,11 +26,11 @@ export default function SupportPage() {
           <div className="grid grid-cols-2 gap-2">
             <Link href="/how-to-play"
               className="flex items-center gap-2 p-3 border border-white/10 text-text-muted hover:border-white/25 hover:text-white transition-all font-head text-xs font-bold">
-              <span>📖</span> HOW TO PLAY
+              <span>ðŸ“–</span> HOW TO PLAY
             </Link>
             <Link href="/tokens"
               className="flex items-center gap-2 p-3 border border-white/10 text-text-muted hover:border-gold/30 hover:text-gold transition-all font-head text-xs font-bold">
-              <span>🪙</span> TOKEN INFO
+              <span>ðŸª™</span> TOKEN INFO
             </Link>
           </div>
         </div>

@@ -1,4 +1,6 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -37,18 +39,18 @@ function TokensContent() {
     <div className="min-h-screen bg-navy text-text">
       <nav className="h-14 bg-navy-light border-b border-white/8 flex items-center justify-between px-6">
         <Link href="/dashboard" className="font-head font-bold text-gold text-lg tracking-widest">WORLD CHASE</Link>
-        <span className="font-mono text-gold font-bold">🪙 {tokens} TOKENS</span>
+        <span className="font-mono text-gold font-bold">ðŸª™ {tokens} TOKENS</span>
       </nav>
 
       <div className="max-w-3xl mx-auto px-6 py-12">
         {success && (
           <div className="mb-6 border border-success/40 bg-success/10 p-4 text-success font-head text-center">
-            🪙 {searchParams.get('tokens')} TOKENS DEPLOYED TO YOUR ACCOUNT. HUNT WELL.
+            ðŸª™ {searchParams.get('tokens')} TOKENS DEPLOYED TO YOUR ACCOUNT. HUNT WELL.
           </div>
         )}
         {cancelled && (
           <div className="mb-6 border border-warning/40 bg-warning/10 p-4 text-warning font-head text-center">
-            PAYMENT CANCELLED — No tokens charged.
+            PAYMENT CANCELLED â€” No tokens charged.
           </div>
         )}
 
@@ -67,7 +69,7 @@ function TokensContent() {
                 </div>
               )}
               <div className="font-head font-bold text-white text-lg mb-1">{pkg.name}</div>
-              <div className="font-mono text-gold text-3xl font-bold mb-1">🪙 {pkg.tokens}</div>
+              <div className="font-mono text-gold text-3xl font-bold mb-1">ðŸª™ {pkg.tokens}</div>
               <div className="text-text-muted font-head text-sm mb-1">{pkg.description}</div>
               <div className="text-text-muted font-mono text-xs mb-5">
                 ${(pkg.price_nzd / 100).toFixed(2)} NZD
@@ -88,7 +90,7 @@ function TokensContent() {
         </div>
 
         <div className="mt-8 text-center text-xs text-text-muted font-head">
-          Secure payment via Stripe · Tokens credited instantly · No subscription
+          Secure payment via Stripe Â· Tokens credited instantly Â· No subscription
         </div>
       </div>
     </div>

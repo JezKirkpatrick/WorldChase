@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
@@ -8,7 +10,7 @@ import { ACHIEVEMENTS } from '@/lib/achievements'
 import OnboardingGuide from '@/components/ui/OnboardingGuide'
 
 const RANK_STYLE = ['text-gold', 'text-slate-300', 'text-amber-600']
-const RANK_EMOJI = ['👑', '🥈', '🥉']
+const RANK_EMOJI = ['ðŸ‘‘', 'ðŸ¥ˆ', 'ðŸ¥‰']
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -67,12 +69,12 @@ export default async function DashboardPage() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 relative">
 
-        {/* ── TOP HERO ROW ── */}
+        {/* â”€â”€ TOP HERO ROW â”€â”€ */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
           <div className="lg:col-span-2 animate-fade-up stagger-1 bg-navy-light border border-white/10 p-5 flex items-center gap-4 card-hover"
             style={{ background: 'linear-gradient(135deg, #0f1535 0%, #111830 100%)' }}>
             <div className="animate-float">
-              <Avatar emoji={profile?.equipped_avatar ?? '🌍'} border={profile?.equipped_border ?? 'none'} size="lg" />
+              <Avatar emoji={profile?.equipped_avatar ?? 'ðŸŒ'} border={profile?.equipped_border ?? 'none'} size="lg" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-text-muted font-head text-xs tracking-widest mb-0.5">WELCOME BACK, HUNTER</div>
@@ -83,18 +85,18 @@ export default async function DashboardPage() {
                   return badge ? (
                     <span className="badge-wrap shrink-0">
                       <span className="text-lg">{badge.emoji}</span>
-                      <span className="badge-tip">{badge.label} — {badge.desc}</span>
+                      <span className="badge-tip">{badge.label} â€” {badge.desc}</span>
                     </span>
                   ) : null
                 })()}
               </div>
               {profile?.equipped_title && <div className="text-gold font-head text-xs font-bold mt-0.5">{profile.equipped_title}</div>}
               {leaderboardEntry?.rank && (
-                <div className="text-gold font-mono font-bold text-sm mt-1">#{leaderboardEntry.rank} · {leaderboardEntry.total_score?.toLocaleString()} PTS</div>
+                <div className="text-gold font-mono font-bold text-sm mt-1">#{leaderboardEntry.rank} Â· {leaderboardEntry.total_score?.toLocaleString()} PTS</div>
               )}
             </div>
             <Link href="/shop" className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 hover:border-gold transition-all hidden sm:block">
-              SHOP →
+              SHOP â†’
             </Link>
           </div>
           <div className="animate-fade-up stagger-2">
@@ -102,7 +104,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── STATS ROW ── */}
+        {/* â”€â”€ STATS ROW â”€â”€ */}
         <div className="grid grid-cols-4 gap-3 mb-5">
           {[
             { label: 'TOKENS', value: profile?.tokens ?? 0, color: 'text-gold', href: '/tokens', glow: 'hover:shadow-[0_0_20px_rgba(245,197,24,0.15)]' },
@@ -127,15 +129,15 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        {/* ── ONBOARDING ── */}
+        {/* â”€â”€ ONBOARDING â”€â”€ */}
         <OnboardingGuide
           completedCount={completedCount}
-          hasAvatar={(profile?.equipped_avatar ?? '🌍') !== '🌍'}
+          hasAvatar={(profile?.equipped_avatar ?? 'ðŸŒ') !== 'ðŸŒ'}
           hasLeaderboardRank={!!leaderboardEntry?.rank}
           userId={user.id}
         />
 
-        {/* ── HUNT + LIVE LEADERBOARD ── */}
+        {/* â”€â”€ HUNT + LIVE LEADERBOARD â”€â”€ */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-5">
 
           <div className="lg:col-span-3 animate-fade-up stagger-3">
@@ -149,7 +151,7 @@ export default async function DashboardPage() {
                   <span className="live-badge text-xs text-danger font-head font-bold tracking-widest">LIVE HUNT</span>
                 </div>
                 <h2 className="font-head font-bold text-2xl text-white mb-1">{event.name}</h2>
-                <p className="text-text-muted font-head text-sm mb-4">{completedCount} of 20 rounds · {daysLeft} days left</p>
+                <p className="text-text-muted font-head text-sm mb-4">{completedCount} of 20 rounds Â· {daysLeft} days left</p>
 
                 <div className="relative h-2 bg-white/10 overflow-hidden mb-1">
                   <div className="h-full transition-all duration-1000"
@@ -159,18 +161,18 @@ export default async function DashboardPage() {
 
                 {isNewUser && (
                   <div className="text-text-muted font-head text-xs mb-4 border border-electric/20 bg-electric/5 p-3">
-                    🌍 Each round drops you somewhere on Earth — crack the riddle, explore the map, name the location.
+                    ðŸŒ Each round drops you somewhere on Earth â€” crack the riddle, explore the map, name the location.
                   </div>
                 )}
 
                 <Link href="/play" className="mt-auto inline-block w-full py-4 text-navy font-head font-bold text-sm tracking-widest text-center transition-all hover:scale-[1.02]"
                   style={{ background: 'linear-gradient(90deg, #f5c518, #ffd700)', boxShadow: '0 0 30px rgba(245,197,24,0.35)' }}>
-                  {isNewUser ? 'START THE CHASE →' : 'CONTINUE THE CHASE →'}
+                  {isNewUser ? 'START THE CHASE â†’' : 'CONTINUE THE CHASE â†’'}
                 </Link>
               </div>
             ) : (
               <div className="bg-navy-light border border-white/10 p-8 h-full flex flex-col items-center justify-center text-center">
-                <div className="text-5xl mb-3 animate-float">🌍</div>
+                <div className="text-5xl mb-3 animate-float">ðŸŒ</div>
                 <div className="text-white font-head font-bold text-lg mb-2">No Active Hunt</div>
                 <div className="text-text-muted font-head text-sm">The next chase begins on the 1st.</div>
               </div>
@@ -181,10 +183,10 @@ export default async function DashboardPage() {
             style={{ background: 'linear-gradient(180deg, #0f1535 0%, #0d1228 100%)' }}>
             <div className="text-xs font-head text-text-muted tracking-widest mb-3 flex items-center justify-between">
               <span className="live-badge text-text-muted">LIVE STANDINGS</span>
-              <Link href="/leaderboard" className="text-gold hover:text-gold-dim text-xs transition-colors">SEE ALL →</Link>
+              <Link href="/leaderboard" className="text-gold hover:text-gold-dim text-xs transition-colors">SEE ALL â†’</Link>
             </div>
             {top5.length === 0 && (
-              <div className="text-center text-text-muted font-head text-xs py-6">No hunters yet — be first!</div>
+              <div className="text-center text-text-muted font-head text-xs py-6">No hunters yet â€” be first!</div>
             )}
             <div className="space-y-1.5">
               {top5.map((entry: any, i: number) => {
@@ -196,7 +198,7 @@ export default async function DashboardPage() {
                     <span className={`font-mono font-bold text-sm w-6 text-center shrink-0 ${RANK_STYLE[i] ?? 'text-text-muted'}`}>
                       {RANK_EMOJI[i] ?? `#${entry.rank}`}
                     </span>
-                    <span className="text-base shrink-0">{p?.equipped_avatar ?? '🌍'}</span>
+                    <span className="text-base shrink-0">{p?.equipped_avatar ?? 'ðŸŒ'}</span>
                     <div className="flex-1 min-w-0">
                       <div className={`flex items-center gap-1 font-head text-xs font-bold ${isMe ? 'text-gold' : 'text-white'}`}>
                         <span className="truncate">{p?.username ?? 'Hunter'}{isMe ? ' (you)' : ''}</span>
@@ -220,7 +222,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* ── PAST EVENTS ── */}
+        {/* â”€â”€ PAST EVENTS â”€â”€ */}
         {pastWithPodiums.length > 0 && (
           <div className="mb-5 animate-fade-up stagger-5">
             <div className="text-xs font-head text-text-muted tracking-widest mb-3 flex items-center gap-3">
@@ -238,8 +240,8 @@ export default async function DashboardPage() {
                   <div className="flex items-end justify-center gap-2 mb-3">
                     {e.podium[1] && (
                       <div className="flex flex-col items-center gap-1">
-                        <Avatar emoji={e.podium[1].profiles?.equipped_avatar ?? '🌍'} border={e.podium[1].profiles?.equipped_border ?? 'none'} size="sm" />
-                        <div className="text-xs">🥈</div>
+                        <Avatar emoji={e.podium[1].profiles?.equipped_avatar ?? 'ðŸŒ'} border={e.podium[1].profiles?.equipped_border ?? 'none'} size="sm" />
+                        <div className="text-xs">ðŸ¥ˆ</div>
                         <div className="w-12 h-8 bg-slate-500/20 border-t border-slate-400/30 flex items-end justify-center pb-1">
                           <span className="text-slate-300 font-mono text-xs font-bold">2</span>
                         </div>
@@ -247,8 +249,8 @@ export default async function DashboardPage() {
                     )}
                     {e.podium[0] && (
                       <div className="flex flex-col items-center gap-1 -mb-2">
-                        <Avatar emoji={e.podium[0].profiles?.equipped_avatar ?? '🌍'} border={e.podium[0].profiles?.equipped_border ?? 'none'} size="md" />
-                        <div className="text-base">👑</div>
+                        <Avatar emoji={e.podium[0].profiles?.equipped_avatar ?? 'ðŸŒ'} border={e.podium[0].profiles?.equipped_border ?? 'none'} size="md" />
+                        <div className="text-base">ðŸ‘‘</div>
                         <div className="w-12 h-12 border-t-2 border-gold bg-gold/10 flex items-end justify-center pb-1">
                           <span className="text-gold font-mono text-sm font-bold">1</span>
                         </div>
@@ -256,8 +258,8 @@ export default async function DashboardPage() {
                     )}
                     {e.podium[2] && (
                       <div className="flex flex-col items-center gap-1">
-                        <Avatar emoji={e.podium[2].profiles?.equipped_avatar ?? '🌍'} border={e.podium[2].profiles?.equipped_border ?? 'none'} size="sm" />
-                        <div className="text-xs">🥉</div>
+                        <Avatar emoji={e.podium[2].profiles?.equipped_avatar ?? 'ðŸŒ'} border={e.podium[2].profiles?.equipped_border ?? 'none'} size="sm" />
+                        <div className="text-xs">ðŸ¥‰</div>
                         <div className="w-12 h-6 bg-amber-800/20 border-t border-amber-600/30 flex items-end justify-center pb-1">
                           <span className="text-amber-600 font-mono text-xs font-bold">3</span>
                         </div>
@@ -277,14 +279,14 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* ── QUICK LINKS ── */}
+        {/* â”€â”€ QUICK LINKS â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 animate-fade-up" style={{ animationDelay: '0.4s', opacity: 0, animationFillMode: 'forwards' }}>
           {[
-            { href: '/leaderboard', label: '🏆 LEADERBOARD', border: 'hover:border-gold/40 hover:text-gold' },
-            { href: '/shop',        label: '🛍 SHOP',        border: 'hover:border-electric/40 hover:text-electric' },
-            { href: '/how-to-play', label: '📖 HOW TO PLAY', border: 'hover:border-white/30 hover:text-white' },
-            { href: '/profile',     label: '👤 MY PROFILE',  border: 'hover:border-gold/40 hover:text-gold' },
-            { href: '/support',     label: '🆘 SUPPORT',     border: 'hover:border-electric/30 hover:text-electric' },
+            { href: '/leaderboard', label: 'ðŸ† LEADERBOARD', border: 'hover:border-gold/40 hover:text-gold' },
+            { href: '/shop',        label: 'ðŸ› SHOP',        border: 'hover:border-electric/40 hover:text-electric' },
+            { href: '/how-to-play', label: 'ðŸ“– HOW TO PLAY', border: 'hover:border-white/30 hover:text-white' },
+            { href: '/profile',     label: 'ðŸ‘¤ MY PROFILE',  border: 'hover:border-gold/40 hover:text-gold' },
+            { href: '/support',     label: 'ðŸ†˜ SUPPORT',     border: 'hover:border-electric/30 hover:text-electric' },
           ].map(l => (
             <Link key={l.href} href={l.href} className={`border border-white/10 py-3 text-center font-head font-bold text-xs tracking-widest text-text-muted transition-all ${l.border}`}>
               {l.label}

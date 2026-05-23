@@ -1,4 +1,6 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -61,7 +63,7 @@ export default function AdminEventsPage() {
   return (
     <div className="min-h-screen bg-navy text-text">
       <nav className="h-14 bg-navy-light border-b border-white/8 flex items-center gap-4 px-6">
-        <Link href="/admin" className="text-text-muted font-head text-sm">← ADMIN</Link>
+        <Link href="/admin" className="text-text-muted font-head text-sm">â† ADMIN</Link>
         <span className="font-head font-bold text-gold tracking-widest">EVENTS</span>
       </nav>
       <div className="max-w-3xl mx-auto px-6 py-10">
@@ -83,7 +85,7 @@ export default function AdminEventsPage() {
             {creating ? 'CREATING...' : 'CREATE EVENT'}
           </button>
           {genProgress && (
-            <div className="text-electric font-head text-sm animate-pulse">⚡ {genProgress}</div>
+            <div className="text-electric font-head text-sm animate-pulse">âš¡ {genProgress}</div>
           )}
         </form>
         <div className="space-y-2">
@@ -91,7 +93,7 @@ export default function AdminEventsPage() {
             <div key={ev.id} className="flex items-center justify-between border border-white/10 px-4 py-3">
               <div>
                 <div className="font-head font-bold text-white">{ev.name}</div>
-                <div className="text-text-muted font-head text-xs">{new Date(ev.starts_at).toLocaleDateString()} → {new Date(ev.ends_at).toLocaleDateString()}</div>
+                <div className="text-text-muted font-head text-xs">{new Date(ev.starts_at).toLocaleDateString()} â†’ {new Date(ev.ends_at).toLocaleDateString()}</div>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-head font-bold px-2 py-0.5 ${ev.status === 'active' ? 'text-success bg-success/10' : ev.status === 'completed' ? 'text-text-muted bg-white/5' : 'text-warning bg-warning/10'}`}>

@@ -1,4 +1,6 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -35,7 +37,7 @@ export default function ShopPage() {
         .then(({ data }) => {
           if (data) {
             setTokens(data.tokens ?? 0)
-            setEquipped({ avatar: data.equipped_avatar ?? '🌍', border: data.equipped_border ?? 'none', title: data.equipped_title ?? '' })
+            setEquipped({ avatar: data.equipped_avatar ?? 'ðŸŒ', border: data.equipped_border ?? 'none', title: data.equipped_title ?? '' })
           }
         })
       supabase.from('cosmetics').select('*').order('token_cost').then(({ data }) => setCosmetics(data ?? []))
@@ -85,11 +87,11 @@ export default function ShopPage() {
     <div className="min-h-screen bg-navy text-text">
       {/* Nav */}
       <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-6 sticky top-0 z-30">
-        <a href="/dashboard" className="font-head font-bold text-gold tracking-widest hover:text-gold-dim transition-colors">≡ WORLD CHASE</a>
+        <a href="/dashboard" className="font-head font-bold text-gold tracking-widest hover:text-gold-dim transition-colors">â‰¡ WORLD CHASE</a>
         <div className="flex items-center gap-4">
           <a href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LEADERBOARD</a>
           <a href="/play" className="text-xs font-head text-text-muted hover:text-white">PLAY</a>
-          <span className="font-mono font-bold text-gold">🪙 {tokens}</span>
+          <span className="font-mono font-bold text-gold">ðŸª™ {tokens}</span>
         </div>
       </nav>
 
@@ -104,7 +106,7 @@ export default function ShopPage() {
         <div className="bg-navy-light border border-white/10 p-6 mb-8 flex items-center gap-6">
           <Avatar emoji={equipped.avatar} border={equipped.border} size="xl" />
           <div>
-            <div className="text-white font-head font-bold text-lg">{userId ? 'Your Avatar' : '—'}</div>
+            <div className="text-white font-head font-bold text-lg">{userId ? 'Your Avatar' : 'â€”'}</div>
             {equipped.title && <div className="text-gold font-head text-sm mt-1">{equipped.title}</div>}
             <div className="text-text-muted font-head text-xs mt-2">Changes apply instantly across the game</div>
           </div>
@@ -129,10 +131,10 @@ export default function ShopPage() {
             return (
               <div key={c.id} className={`bg-navy-light border p-4 flex flex-col items-center gap-3 transition-all ${equip ? 'border-gold/60' : RARITY_COLOR[c.rarity]}`}>
                 {c.type === 'avatar' && <Avatar emoji={c.value} border="none" size="lg" />}
-                {c.type === 'border' && <Avatar emoji="🌍" border={c.value} size="lg" />}
+                {c.type === 'border' && <Avatar emoji="ðŸŒ" border={c.value} size="lg" />}
                 {c.type === 'title' && (
                   <div className="h-16 flex items-center justify-center">
-                    <span className={`font-head font-bold text-sm ${RARITY_COLOR[c.rarity].split(' ')[0]}`}>{c.value || '—'}</span>
+                    <span className={`font-head font-bold text-sm ${RARITY_COLOR[c.rarity].split(' ')[0]}`}>{c.value || 'â€”'}</span>
                   </div>
                 )}
                 <div className="text-center w-full">
@@ -154,7 +156,7 @@ export default function ShopPage() {
                 ) : (
                   <button onClick={() => handleBuy(c)} disabled={tokens < c.token_cost || buying === c.id}
                     className="w-full py-1.5 text-xs font-head font-bold bg-gold text-navy hover:bg-gold-dim transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                    {buying === c.id ? '...' : `🪙 ${c.token_cost}`}
+                    {buying === c.id ? '...' : `ðŸª™ ${c.token_cost}`}
                   </button>
                 )}
               </div>
@@ -171,7 +173,7 @@ export default function ShopPage() {
           <div className="text-gold font-head font-bold tracking-widest mb-1">NEED MORE TOKENS?</div>
           <p className="text-text-muted font-head text-sm mb-4">Earn 1 token per completed round, or grab a bundle to unlock exclusive cosmetics.</p>
           <a href="/tokens" className="inline-block px-8 py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-all">
-            GET TOKENS →
+            GET TOKENS â†’
           </a>
         </div>
       </div>

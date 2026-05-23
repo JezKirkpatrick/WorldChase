@@ -1,4 +1,6 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -46,7 +48,7 @@ export default function LoginPage() {
             <div>
               <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">PASSWORD</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
-                className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head" placeholder="••••••••" />
+                className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors disabled:opacity-50">

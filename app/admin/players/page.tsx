@@ -1,4 +1,6 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
@@ -40,7 +42,7 @@ export default function AdminPlayersPage() {
   return (
     <div className="min-h-screen bg-navy text-text">
       <nav className="h-14 bg-navy-light border-b border-white/8 flex items-center gap-4 px-6">
-        <Link href="/admin" className="text-text-muted font-head text-sm">← ADMIN</Link>
+        <Link href="/admin" className="text-text-muted font-head text-sm">â† ADMIN</Link>
         <span className="font-head font-bold text-gold tracking-widest">PLAYERS</span>
       </nav>
 
@@ -62,10 +64,10 @@ export default function AdminPlayersPage() {
               className={`flex items-center justify-between border px-4 py-3 cursor-pointer transition-all ${selected?.id === player.id ? 'border-gold/40' : 'border-white/10 hover:border-white/20'}`}>
               <div>
                 <div className="font-head font-bold text-white">{player.username}</div>
-                <div className="text-text-muted font-head text-xs">{player.country ?? '—'}</div>
+                <div className="text-text-muted font-head text-xs">{player.country ?? 'â€”'}</div>
               </div>
               <div className="text-right">
-                <div className="font-mono text-gold text-sm">🪙 {player.tokens}</div>
+                <div className="font-mono text-gold text-sm">ðŸª™ {player.tokens}</div>
                 {player.is_banned && <div className="text-danger text-xs font-head">BANNED</div>}
               </div>
             </div>
@@ -75,7 +77,7 @@ export default function AdminPlayersPage() {
         {selected && (
           <div className="mt-8 bg-navy-light border border-gold/30 p-6 space-y-4">
             <h2 className="font-head font-bold text-gold tracking-wider">{selected.username}</h2>
-            <div className="text-text-muted font-head text-sm">Tokens: <span className="text-gold font-bold">{selected.tokens}</span> · Score: {selected.total_score_alltime.toLocaleString()}</div>
+            <div className="text-text-muted font-head text-sm">Tokens: <span className="text-gold font-bold">{selected.tokens}</span> Â· Score: {selected.total_score_alltime.toLocaleString()}</div>
             <div className="flex gap-3">
               <input type="number" value={grantAmount} onChange={e => setGrantAmount(e.target.value)}
                 placeholder="Token amount (neg to remove)"

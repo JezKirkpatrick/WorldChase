@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
@@ -69,7 +71,7 @@ export default async function PlayPage() {
                     </Link>
                   ) : (
                     <div className="w-16 text-center text-text-muted font-head text-xs">
-                      {isCompleted ? '✓' : isSkipped ? '—' : '🔒'}
+                      {isCompleted ? 'âœ“' : isSkipped ? 'â€”' : 'ðŸ”’'}
                     </div>
                   )}
                 </div>

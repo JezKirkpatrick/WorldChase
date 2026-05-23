@@ -1,8 +1,20 @@
 import Stripe from 'stripe'
 import type { TokenPackage } from '@/types/user'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+// Lazy-initialize so server secret is never accessed at module load time
+let _stripe: Stripe | null = null
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' })
+  }
+  return _stripe
+}
+
+// Keep backward-compat export used in API routes
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    return (getStripe() as any)[prop]
+  },
 })
 
 export const TOKEN_PACKAGES: TokenPackage[] = [

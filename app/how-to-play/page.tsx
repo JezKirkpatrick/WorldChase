@@ -1,19 +1,21 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { KEYBOARD_SHORTCUTS } from '@/hooks/useKeyboard'
 
 const SCORING = [
-  { diff: 'Easy', base: '500', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
-  { diff: 'Medium', base: '1,000', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
-  { diff: 'Hard', base: '2,500', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
-  { diff: 'Extreme', base: '5,000', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
+  { diff: 'Easy', base: '500', clue: 'âˆ’20% each', wrong: 'âˆ’5% each', speed: '+10% under 10min' },
+  { diff: 'Medium', base: '1,000', clue: 'âˆ’20% each', wrong: 'âˆ’5% each', speed: '+10% under 10min' },
+  { diff: 'Hard', base: '2,500', clue: 'âˆ’20% each', wrong: 'âˆ’5% each', speed: '+10% under 10min' },
+  { diff: 'Extreme', base: '5,000', clue: 'âˆ’20% each', wrong: 'âˆ’5% each', speed: '+10% under 10min' },
 ]
 
 const EARN = [
   { action: 'Complete any round', amount: '+1 token' },
   { action: 'Daily login bonus', amount: '+1 token' },
   { action: '7-day consecutive streak', amount: '+5 tokens' },
-  { action: 'Find a hidden token on map', amount: '+1–2 tokens' },
+  { action: 'Find a hidden token on map', amount: '+1â€“2 tokens' },
   { action: 'Refer a friend who joins', amount: '+3 tokens' },
 ]
 
@@ -104,7 +106,7 @@ export default function HowToPlayPage() {
         <section>
           <h2 className="font-head font-bold text-xl text-gold tracking-wider mb-4">HIDDEN TOKEN CACHES</h2>
           <div className="border border-white/10 p-5 font-head text-text-muted leading-relaxed space-y-3">
-            <p>Each round hides 2–4 token caches somewhere in the map region. They are <span className="text-white font-bold">NOT</span> at the answer location — you must explore to find them.</p>
+            <p>Each round hides 2â€“4 token caches somewhere in the map region. They are <span className="text-white font-bold">NOT</span> at the answer location â€” you must explore to find them.</p>
             <ol className="list-decimal list-inside space-y-1.5 text-sm">
               <li>Press <kbd className="bg-white/10 px-1.5 font-mono text-xs text-gold">[H]</kbd> to activate your token radar</li>
               <li>Navigate your map view around the region</li>
@@ -138,7 +140,7 @@ export default function HowToPlayPage() {
 
         <div className="text-center pt-4">
           <Link href="/auth/signup" className="inline-block px-10 py-4 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-all gold-glow">
-            START HUNTING — FREE
+            START HUNTING â€” FREE
           </Link>
         </div>
       </div>

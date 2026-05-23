@@ -1,4 +1,6 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -43,12 +45,12 @@ export default function SignupPage() {
     return (
       <div className="min-h-screen bg-navy flex items-center justify-center px-4 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="text-5xl mb-6">📬</div>
+          <div className="text-5xl mb-6">ðŸ“¬</div>
           <div className="text-gold font-head font-bold text-2xl tracking-widest mb-4">CHECK YOUR EMAIL</div>
           <p className="text-text-muted font-head mb-2">Confirmation sent to <span className="text-white">{email}</span></p>
           <p className="text-text-muted font-head text-sm">Click the link in the email to activate your hunter account.</p>
           <Link href="/auth/login" className="inline-block mt-6 text-gold font-head text-sm hover:text-gold-dim">
-            Already confirmed? Sign in →
+            Already confirmed? Sign in â†’
           </Link>
         </motion.div>
       </div>
@@ -63,7 +65,7 @@ export default function SignupPage() {
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-sm relative">
         <div className="text-center mb-8">
           <Link href="/" className="font-head font-bold text-gold text-2xl tracking-widest hover:text-gold-dim transition-colors">WORLD CHASE</Link>
-          <p className="text-text-muted font-head text-sm mt-2 tracking-wider">JOIN THE HUNT — FREE</p>
+          <p className="text-text-muted font-head text-sm mt-2 tracking-wider">JOIN THE HUNT â€” FREE</p>
         </div>
 
         <div className="bg-navy-light border border-white/10 p-8" style={{ boxShadow: '0 0 40px rgba(245,197,24,0.05)' }}>
@@ -100,10 +102,10 @@ export default function SignupPage() {
             <button type="submit" disabled={loading}
               className="w-full py-3.5 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={loading ? {} : { boxShadow: '0 0 20px rgba(245,197,24,0.3)' }}>
-              {loading ? 'CREATING ACCOUNT...' : 'START HUNTING — FREE'}
+              {loading ? 'CREATING ACCOUNT...' : 'START HUNTING â€” FREE'}
             </button>
 
-            <p className="text-xs text-text-muted font-head text-center">🪙 Your first 3 tokens are free on signup</p>
+            <p className="text-xs text-text-muted font-head text-center">ðŸª™ Your first 3 tokens are free on signup</p>
           </form>
         </div>
 
