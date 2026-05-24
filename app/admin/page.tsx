@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import SeedShopButton from '@/components/admin/SeedShopButton'
 
 export default async function AdminPage() {
   const supabase = createClient()
@@ -56,6 +57,13 @@ export default async function AdminPage() {
               <div className="text-text-muted font-head text-xs">{l.desc}</div>
             </Link>
           ))}
+        </div>
+
+        {/* ── Shop tools ── */}
+        <div className="mt-6 border border-electric/20 p-6">
+          <div className="text-xs font-head text-electric tracking-widest mb-1">SHOP TOOLS</div>
+          <div className="text-text-muted font-head text-xs mb-4">Seed the shop with avatars, borders and titles. Safe to run once — skips if already seeded.</div>
+          <SeedShopButton />
         </div>
       </div>
     </div>
