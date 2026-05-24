@@ -1,12 +1,24 @@
 'use client'
 
 const BORDER_STYLES: Record<string, string> = {
-  none:      '',
-  default:   '',
-  gold:      'ring-2 ring-gold shadow-md shadow-gold/40',
-  electric:  'ring-2 ring-electric shadow-md shadow-electric/40',
-  diamond:   'ring-2 ring-white shadow-md shadow-white/30',
-  legendary: 'ring-2 ring-purple-400 shadow-md shadow-purple-400/50',
+  // ── None / default ─────────────────────────────────────────────
+  none:        '',
+  default:     '',
+
+  // ── Arena progression borders ───────────────────────────────────
+  bronze:      'ring-2 ring-amber-600 shadow-lg shadow-amber-600/50',
+  'bronze-ii': 'ring-[3px] ring-amber-500 shadow-lg shadow-amber-500/60',
+  silver:      'ring-2 ring-slate-300 shadow-lg shadow-slate-300/50',
+  'silver-ii': 'ring-[3px] ring-slate-200 shadow-xl shadow-slate-200/60',
+  'gold-ii':   'ring-[3px] ring-yellow-300 shadow-xl shadow-yellow-300/70',
+  platinum:    'ring-[3px] ring-white shadow-xl shadow-white/55',
+  champion:    'ring-[3px] ring-purple-400 shadow-xl shadow-purple-400/65',
+
+  // ── Shop borders ───────────────────────────────────────────────
+  electric:    'ring-2 ring-electric shadow-lg shadow-electric/55',
+  gold:        'ring-2 ring-gold shadow-lg shadow-gold/55',
+  diamond:     'ring-[3px] ring-cyan-200 shadow-xl shadow-cyan-200/60',
+  legendary:   'ring-[3px] ring-purple-500 shadow-xl shadow-purple-500/65',
 }
 
 const SIZE: Record<string, string> = {
