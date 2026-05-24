@@ -1,0 +1,29 @@
+<svg width="800" height="240" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+  <title>WorldChase Wordmark</title>
+  <rect width="800" height="240" rx="20" fill="#0a0f1e"/>
+  <!-- Globe icon -->
+  <circle cx="110" cy="120" r="75" fill="#0d1a3a" stroke="#1e6fff" stroke-width="3"/>
+  <!-- Latitude lines -->
+  <ellipse cx="110" cy="120" rx="75" ry="23" fill="none" stroke="#1e6fff" stroke-width="1.5" opacity="0.5"/>
+  <ellipse cx="110" cy="98" rx="65" ry="14" fill="none" stroke="#1e6fff" stroke-width="1.2" opacity="0.3"/>
+  <ellipse cx="110" cy="142" rx="65" ry="14" fill="none" stroke="#1e6fff" stroke-width="1.2" opacity="0.3"/>
+  <!-- Longitude line -->
+  <ellipse cx="110" cy="120" rx="26" ry="75" fill="none" stroke="#1e6fff" stroke-width="1.5" opacity="0.5"/>
+  <!-- Crosshair lines -->
+  <line x1="28" y1="120" x2="90" y2="120" stroke="#ff6b2b" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="130" y1="120" x2="192" y2="120" stroke="#ff6b2b" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="110" y1="38" x2="110" y2="100" stroke="#ff6b2b" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="110" y1="140" x2="110" y2="202" stroke="#ff6b2b" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- Crosshair circle -->
+  <circle cx="110" cy="120" r="18" fill="none" stroke="#ff6b2b" stroke-width="3"/>
+  <!-- Center dot -->
+  <circle cx="110" cy="120" r="5" fill="#ff6b2b"/>
+  <!-- Token dots -->
+  <circle cx="96" cy="111" r="3.5" fill="#ffd700" opacity="0.9"/>
+  <circle cx="122" cy="128" r="3.5" fill="#ffd700" opacity="0.9"/>
+  <!-- Wordmark text -->
+  <text x="210" y="105" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#ffffff" letter-spacing="6">WORLD</text>
+  <text x="210" y="182" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#ff6b2b" letter-spacing="6">CHASE</text>
+  <!-- Tagline -->
+  <text x="213" y="210" font-family="Arial, sans-serif" font-size="16" font-weight="400" fill="#4a6fa5" letter-spacing="8">HUNT THE WORLD</text>
+</svg>

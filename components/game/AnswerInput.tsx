@@ -28,6 +28,13 @@ export default function AnswerInput({
   const [confirmSkip, setConfirmSkip] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Auto-focus the input when the game loads for the first time
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 300)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Re-focus when externally triggered (Tab key shortcut)
   useEffect(() => {
     if (focusTrigger > 0) inputRef.current?.focus()
   }, [focusTrigger])
@@ -35,11 +42,17 @@ export default function AnswerInput({
   useEffect(() => { sounds.init() }, [])
 
   useEffect(() => {
-    if (lastCorrect === true) sounds.correct()
+    if (lastCorrect === true) {
+      sounds.correct()
+    }
     if (lastCorrect === false) {
       sounds.wrong()
       setShake(true)
-      setTimeout(() => setShake(false), 500)
+      setTimeout(() => {
+        setShake(false)
+        // Re-focus after shake so user can type the next attempt immediately
+        inputRef.current?.focus()
+      }, 500)
     }
   }, [lastCorrect, lastFeedback])
 
@@ -50,10 +63,13 @@ export default function AnswerInput({
     await onSubmit(answer.trim())
     setSubmitting(false)
     setAnswer('')
+    // Focus is handled by the lastCorrect useEffect above
   }
 
   const remaining = maxAttempts - attempts
-  const previewScore = getPreviewScore(difficulty, cluesRevealed, Math.max(0, attempts - (lastCorrect ? 0 : 0)))
+  const wrongAttempts = Math.max(0, attempts - (lastCorrect ? 1 : 0))
+  const previewScore = getPreviewScore(difficulty, cluesRevealed, wrongAttempts)
+  const isExhausted = attempts >= maxAttempts
 
   return (
     <div className="space-y-3">
@@ -63,22 +79,29 @@ export default function AnswerInput({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-2">
-        <motion.div animate={shake ? { x: [-8, 8, -6, 6, 0] } : {}} transition={{ duration: 0.4 }}>
+        <motion.div animate={shake ? { x: [-8, 8, -6, 6, -4, 4, 0] } : {}} transition={{ duration: 0.4 }}>
           <input
             ref={inputRef}
             value={answer}
             onChange={e => setAnswer(e.target.value)}
-            placeholder="Name the location..."
-            disabled={attempts >= maxAttempts || submitting}
+            placeholder={isExhausted ? 'No attempts remaining' : 'Name the location...'}
+            disabled={isExhausted || submitting}
+            autoComplete="off"
+            spellCheck={false}
             className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head text-base placeholder-text-muted/50 transition-colors disabled:opacity-50"
           />
         </motion.div>
 
         {lastFeedback && (
           <motion.div
+            key={lastFeedback}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`text-sm font-head px-3 py-2 border ${lastCorrect ? 'text-success border-success/30 bg-success/10' : 'text-danger border-danger/30 bg-danger/10'}`}
+            className={`text-sm font-head px-3 py-2 border ${
+              lastCorrect
+                ? 'text-success border-success/30 bg-success/10'
+                : 'text-danger border-danger/30 bg-danger/10'
+            }`}
           >
             {lastFeedback}
           </motion.div>
@@ -86,21 +109,39 @@ export default function AnswerInput({
 
         <button
           type="submit"
-          disabled={!answer.trim() || submitting || attempts >= maxAttempts}
-          className="w-full py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          disabled={!answer.trim() || submitting || isExhausted}
+          className="w-full py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {submitting ? 'CHECKING...' : 'CONFIRM LOCATION  [ENTER ↵]'}
+          {submitting ? (
+            <>
+              <span className="w-3 h-3 border-2 border-navy/40 border-t-navy rounded-full animate-spin" />
+              CHECKING...
+            </>
+          ) : (
+            'CONFIRM LOCATION  [ENTER ↵]'
+          )}
         </button>
       </form>
 
-      {/* Attempts tracker */}
+      {/* Attempt dots */}
       <div className="flex items-center gap-2">
         <div className="flex gap-1">
           {Array.from({ length: maxAttempts }).map((_, i) => (
-            <div key={i} className={`w-4 h-4 border ${i < attempts ? 'bg-danger/60 border-danger/60' : 'border-white/20'}`} />
+            <div
+              key={i}
+              className={`w-4 h-4 border transition-all ${
+                i < attempts
+                  ? lastCorrect && i === attempts - 1
+                    ? 'bg-success/60 border-success/60'
+                    : 'bg-danger/60 border-danger/60'
+                  : 'border-white/20'
+              }`}
+            />
           ))}
         </div>
-        <span className="text-xs font-mono text-text-muted">{remaining} ATTEMPT{remaining !== 1 ? 'S' : ''} REMAINING</span>
+        <span className="text-xs font-mono text-text-muted">
+          {isExhausted ? 'MAX ATTEMPTS REACHED' : `${remaining} ATTEMPT${remaining !== 1 ? 'S' : ''} LEFT`}
+        </span>
       </div>
 
       <div className="text-xs font-mono text-text-muted">
@@ -112,7 +153,7 @@ export default function AnswerInput({
         {confirmSkip ? (
           <div className="space-y-2">
             <p className="text-xs text-text-muted font-head">
-              ABORT THIS ROUND? Costs 2 tokens. Awards 0 points. Cannot be undone.
+              ABORT ROUND? Costs 2 tokens. Awards 0 points. Cannot be undone.
             </p>
             <div className="flex gap-2">
               <button
@@ -122,8 +163,11 @@ export default function AnswerInput({
               >
                 SKIP ROUND (−2 TOKENS)
               </button>
-              <button onClick={() => setConfirmSkip(false)} className="px-3 py-1 border border-white/20 text-text-muted text-xs font-head hover:text-white">
-                CONTINUE HUNTING
+              <button
+                onClick={() => setConfirmSkip(false)}
+                className="px-3 py-1 border border-white/20 text-text-muted text-xs font-head hover:text-white"
+              >
+                KEEP HUNTING
               </button>
             </div>
           </div>
@@ -131,9 +175,9 @@ export default function AnswerInput({
           <button
             onClick={() => setConfirmSkip(true)}
             disabled={tokens < 2}
-            className="text-xs font-head text-text-muted hover:text-danger transition-colors disabled:opacity-40"
+            className="text-xs font-head text-text-muted hover:text-danger transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            SKIP ROUND (2 tokens) →
+            {tokens < 2 ? '⚠ NOT ENOUGH TOKENS TO SKIP' : 'SKIP ROUND (2 tokens) →'}
           </button>
         )}
       </div>

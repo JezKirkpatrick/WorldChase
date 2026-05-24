@@ -6,7 +6,17 @@
       "PowerShell(Get-ChildItem *)",
       "PowerShell(gh auth *)",
       "PowerShell(npm run *)",
-      "PowerShell(cd \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match 'error TS|^\\\\s+' } | Select-Object -First 80)"
+      "PowerShell(cd \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\"; npx tsc --noEmit 2>&1 | Where-Object { $_ -match 'error TS|^\\\\s+' } | Select-Object -First 80)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(vercel env *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(py *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }

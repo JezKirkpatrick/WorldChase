@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-server'
+import { getUser, getProfile } from '@/lib/auth'
 
 const BORDER_RING: Record<string, string> = {
   gold:      'ring-2 ring-gold shadow-gold/40',
@@ -11,14 +11,8 @@ const BORDER_RING: Record<string, string> = {
 }
 
 export default async function GlobalNav() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  let profile: any = null
-  if (user) {
-    const { data } = await supabase.from('profiles').select('username,tokens,equipped_avatar,equipped_border,is_admin').eq('id', user.id).single()
-    profile = data
-  }
+  const user = await getUser()
+  const profile = user ? await getProfile(user.id) : null
 
   const avatar = profile?.equipped_avatar ?? '🌍'
   const border = profile?.equipped_border ?? 'none'
@@ -33,11 +27,11 @@ export default async function GlobalNav() {
 
       {/* Centre — links */}
       <div className="hidden sm:flex items-center gap-6">
-        <Link href="/play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
+        <Link href="/play"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
         <Link href="/leaderboard" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
-        <Link href="/shop" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
+        <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
         <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
-        <Link href="/support" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
+        <Link href="/support"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
         {profile?.is_admin && (
           <Link href="/admin" className="text-xs font-head font-bold tracking-widest text-danger hover:text-danger/70 transition-colors">ADMIN</Link>
         )}
@@ -52,11 +46,11 @@ export default async function GlobalNav() {
         <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg ${ring} transition-all hover:scale-105`}>
           {avatar}
         </Link>
-        {/* Mobile menu links */}
+        {/* Mobile links */}
         <div className="sm:hidden flex items-center gap-3">
-          <Link href="/play" className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
+          <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
           <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
-          <Link href="/shop" className="text-xs font-head text-gold">SHOP</Link>
+          <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
         </div>
       </div>
     </nav>

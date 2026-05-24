@@ -5,44 +5,68 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
-import type { Profile } from '@/types/user'
+import { sounds } from '@/lib/sounds'
+import { useToast } from '@/components/ui/Toast'
 
 export default function SettingsPage() {
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [soundEnabled, setSoundEnabled] = useState(false)
   const [keyboardControls, setKeyboardControls] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+  const { toast } = useToast()
 
   useEffect(() => {
+    sounds.init()
+    // Read actual current sound state from localStorage (not just DB)
+    setSoundEnabled(!sounds.isMuted())
+
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return router.push('/auth/login')
-      supabase.from('profiles').select('*').eq('id', user.id).single().then(({ data }) => {
+      if (!user) { router.push('/auth/login'); return }
+      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle().then(({ data }) => {
+        setLoading(false)
         if (data) {
           setProfile(data)
-          setUsername(data.username)
+          setUsername(data.username ?? '')
           setDisplayName(data.display_name ?? '')
-          setSoundEnabled(data.sound_enabled)
-          setKeyboardControls(data.keyboard_controls)
+          setKeyboardControls(data.keyboard_controls ?? true)
+          // Sound: DB value takes precedence over localStorage on first load
+          if (data.sound_enabled !== null && data.sound_enabled !== undefined) {
+            setSoundEnabled(data.sound_enabled)
+            sounds.setMuted(!data.sound_enabled)
+          }
         }
       })
     })
-  }, [supabase, router])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleSoundToggle() {
+    const next = !soundEnabled
+    setSoundEnabled(next)
+    sounds.setMuted(!next) // update live immediately
+    if (next) sounds.click()
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!profile) return
     setSaving(true)
     const { error } = await supabase.from('profiles').update({
-      username, display_name: displayName, sound_enabled: soundEnabled, keyboard_controls: keyboardControls,
+      username: username.trim(),
+      display_name: displayName.trim() || null,
+      sound_enabled: soundEnabled,
+      keyboard_controls: keyboardControls,
     }).eq('id', profile.id)
     setSaving(false)
-    setMessage(error ? `Error: ${error.message}` : 'Settings saved.')
-    setTimeout(() => setMessage(''), 3000)
+    if (error) {
+      toast(`Error: ${error.message}`, 'error')
+    } else {
+      toast('Settings saved!', 'success')
+    }
   }
 
   async function handleSignOut() {
@@ -50,16 +74,17 @@ export default function SettingsPage() {
     router.push('/')
   }
 
-  if (!profile) return (
+  if (loading) return (
     <div className="min-h-screen bg-navy flex items-center justify-center">
-      <div className="text-gold font-head animate-pulse tracking-widest">LOADING...</div>
+      <div className="w-6 h-6 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
     </div>
   )
 
   return (
     <div className="min-h-screen bg-navy text-text">
-      <nav className="h-14 bg-navy-light border-b border-white/8 flex items-center justify-between px-6">
-        <Link href="/dashboard" className="font-head font-bold text-gold text-lg tracking-widest">WORLD CHASE</Link>
+      <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-6 sticky top-0 z-30">
+        <Link href="/dashboard" className="font-head font-bold text-gold text-base tracking-widest hover:text-gold-dim transition-colors">≡ WORLD CHASE</Link>
+        <Link href="/dashboard" className="text-xs font-head text-text-muted hover:text-white transition-colors">← DASHBOARD</Link>
       </nav>
 
       <div className="max-w-xl mx-auto px-6 py-12">
@@ -68,51 +93,91 @@ export default function SettingsPage() {
         <form onSubmit={handleSave} className="space-y-5">
           <div>
             <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">HUNTER NAME</label>
-            <input value={username} onChange={e => setUsername(e.target.value)}
-              className="w-full bg-navy-light border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head" />
+            <input
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              maxLength={30}
+              className="w-full bg-navy-light border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head transition-colors"
+            />
+            <p className="text-xs text-text-muted font-head mt-1">Shown on leaderboards and your public profile</p>
           </div>
+
           <div>
-            <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">DISPLAY NAME</label>
-            <input value={displayName} onChange={e => setDisplayName(e.target.value)}
-              className="w-full bg-navy-light border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head" />
+            <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">DISPLAY NAME <span className="text-text-muted/50 normal-case">(optional)</span></label>
+            <input
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={40}
+              placeholder="Your real name or alias"
+              className="w-full bg-navy-light border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head placeholder-text-muted/40 transition-colors"
+            />
           </div>
 
-          <div className="flex items-center justify-between py-3 border-b border-white/10">
-            <div>
-              <div className="font-head font-bold text-sm text-white">Keyboard Controls</div>
-              <div className="text-xs text-text-muted font-head">Enable keyboard shortcuts in game</div>
-            </div>
-            <button type="button" onClick={() => setKeyboardControls(k => !k)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${keyboardControls ? 'bg-gold' : 'bg-white/20'}`}>
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${keyboardControls ? 'left-7' : 'left-1'}`} />
-            </button>
+          <div className="space-y-0 border border-white/10">
+            <Toggle
+              label="Keyboard Controls"
+              desc="Arrow keys, shortcuts, and hotkeys in-game"
+              value={keyboardControls}
+              onChange={setKeyboardControls}
+            />
+            <Toggle
+              label="Sound Effects"
+              desc={soundEnabled ? 'Sound is ON — hear feedback when you answer' : 'Sound is OFF — silent mode'}
+              value={soundEnabled}
+              onChange={handleSoundToggle}
+              accent={soundEnabled ? 'gold' : undefined}
+            />
           </div>
 
-          <div className="flex items-center justify-between py-3 border-b border-white/10">
-            <div>
-              <div className="font-head font-bold text-sm text-white">Sound Effects</div>
-              <div className="text-xs text-text-muted font-head">Game audio (muted by default)</div>
-            </div>
-            <button type="button" onClick={() => setSoundEnabled(s => !s)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${soundEnabled ? 'bg-gold' : 'bg-white/20'}`}>
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${soundEnabled ? 'left-7' : 'left-1'}`} />
-            </button>
-          </div>
-
-          {message && <div className="text-success font-head text-sm">{message}</div>}
-
-          <button type="submit" disabled={saving}
-            className="w-full py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors disabled:opacity-50">
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {saving && <span className="w-3 h-3 border-2 border-navy/40 border-t-navy rounded-full animate-spin" />}
             {saving ? 'SAVING...' : 'SAVE SETTINGS'}
           </button>
         </form>
 
-        <div className="mt-8 pt-8 border-t border-white/10">
-          <button onClick={handleSignOut} className="text-sm font-head text-danger hover:text-white transition-colors">
+        <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
+          <div>
+            <div className="text-sm font-head text-white font-bold">Sign Out</div>
+            <div className="text-xs font-head text-text-muted">You'll need to log back in to play</div>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="px-4 py-2 text-sm font-head text-danger border border-danger/30 hover:bg-danger/10 transition-colors"
+          >
             SIGN OUT
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function Toggle({
+  label, desc, value, onChange, accent,
+}: {
+  label: string
+  desc: string
+  value: boolean
+  onChange: (v: boolean) => void
+  accent?: string
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/10 last:border-b-0">
+      <div>
+        <div className="font-head font-bold text-sm text-white">{label}</div>
+        <div className="text-xs text-text-muted font-head mt-0.5">{desc}</div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(!value)}
+        className={`w-12 h-6 rounded-full transition-colors relative shrink-0 ml-4 ${value ? 'bg-gold' : 'bg-white/20'}`}
+      >
+        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${value ? 'translate-x-7' : 'translate-x-1'}`} />
+      </button>
     </div>
   )
 }

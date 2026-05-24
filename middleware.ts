@@ -26,17 +26,20 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedPaths = ['/dashboard', '/play', '/settings', '/profile']
-  const adminPaths = ['/admin']
-  const authPaths = ['/auth/login', '/auth/signup']
-
   const path = request.nextUrl.pathname
+
+  // Routes that require authentication
+  const protectedPaths = ['/dashboard', '/play', '/settings', '/profile', '/admin']
+  // Auth-only paths: redirect logged-in users away (landing + auth pages)
+  // Note: '/' uses exact match to avoid matching all paths with startsWith
+  const authOnlyPaths = ['/auth/login', '/auth/signup']
 
   if (!user && protectedPaths.some(p => path.startsWith(p))) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
-  if (user && authPaths.some(p => path.startsWith(p))) {
+  // Redirect authenticated users away from landing page and auth pages
+  if (user && (path === '/' || authOnlyPaths.some(p => path.startsWith(p)))) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

@@ -1,11 +1,10 @@
-export const dynamic = 'force-dynamic'
+// Revalidate every 60s — stale-while-revalidate keeps it fast
+export const revalidate = 60
 
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import GlobalNav from '@/components/ui/GlobalNav'
 import LeaderboardTable from '@/components/leaderboard/LeaderboardTable'
-
-export const revalidate = 60
 
 export default async function LeaderboardPage() {
   const supabase = createClient()

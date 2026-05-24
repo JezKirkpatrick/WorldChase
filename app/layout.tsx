@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
+import { ToastProvider } from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.worldchase.net'),
   title: 'World Chase — Hunt the World',
   description: "The world's most challenging monthly geography game. Solve cryptic riddles. Explore Google Maps. Race to the global leaderboard.",
   applicationName: 'World Chase',
@@ -16,6 +18,13 @@ export const metadata: Metadata = {
     title: 'World Chase — Hunt the World',
     description: 'Hunt the World. Claim the Crown. Monthly competitive geography battle.',
     type: 'website',
+    url: 'https://www.worldchase.net',
+    siteName: 'World Chase',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'World Chase — Hunt the World',
+    description: 'Hunt the World. Claim the Crown. Monthly competitive geography battle.',
   },
 }
 
@@ -38,7 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
       <body>
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

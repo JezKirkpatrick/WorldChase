@@ -3,7 +3,9 @@
 export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { useToast } from '@/components/ui/Toast'
 import Avatar from '@/components/ui/Avatar'
 
 const RARITY_COLOR: Record<string, string> = {
@@ -20,6 +22,7 @@ const RARITY_LABEL: Record<string, string> = {
 export default function ShopPage() {
   const supabase = createClient()
   const router = useRouter()
+  const { toast } = useToast()
   const [userId, setUserId] = useState<string | null>(null)
   const [tokens, setTokens] = useState(0)
   const [cosmetics, setCosmetics] = useState<any[]>([])
@@ -33,7 +36,7 @@ export default function ShopPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push('/auth/login'); return }
       setUserId(user.id)
-      supabase.from('profiles').select('tokens,equipped_avatar,equipped_border,equipped_title').eq('id', user.id).single()
+      supabase.from('profiles').select('tokens,equipped_avatar,equipped_border,equipped_title').eq('id', user.id).maybeSingle()
         .then(({ data }) => {
           if (data) {
             setTokens(data.tokens ?? 0)
@@ -57,10 +60,12 @@ export default function ShopPage() {
     const data = await res.json()
     if (data.error) {
       setFlash({ id: cosmetic.id, success: false, msg: data.error })
+      toast(data.error, 'error')
     } else {
       setTokens(data.newTokenBalance)
       setOwned(prev => new Set([...prev, cosmetic.id]))
       setFlash({ id: cosmetic.id, success: true, msg: 'Unlocked!' })
+      toast(`${cosmetic.name} unlocked!`, 'token')
     }
     setBuying(null)
     setTimeout(() => setFlash(null), 2000)
@@ -74,6 +79,7 @@ export default function ShopPage() {
     await supabase.from('profiles').update({ [field]: cosmetic.value }).eq('id', userId)
     setEquipped(prev => ({ ...prev, [cosmetic.type]: cosmetic.value }))
     setFlash({ id: cosmetic.id, success: true, msg: 'Equipped!' })
+    toast(`${cosmetic.name} equipped!`, 'success')
     setTimeout(() => setFlash(null), 1500)
   }
 
@@ -87,11 +93,12 @@ export default function ShopPage() {
     <div className="min-h-screen bg-navy text-text">
       {/* Nav */}
       <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-6 sticky top-0 z-30">
-        <a href="/dashboard" className="font-head font-bold text-gold tracking-widest hover:text-gold-dim transition-colors">≡ WORLD CHASE</a>
+        <Link href="/dashboard" className="font-head font-bold text-gold tracking-widest hover:text-gold-dim transition-colors">≡ WORLD CHASE</Link>
         <div className="flex items-center gap-4">
-          <a href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LEADERBOARD</a>
-          <a href="/play" className="text-xs font-head text-text-muted hover:text-white">PLAY</a>
+          <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
+          <Link href="/play" className="text-xs font-head text-text-muted hover:text-white transition-colors">PLAY</Link>
           <span className="font-mono font-bold text-gold">🪙 {tokens}</span>
+          <Link href="/tokens" className="text-xs font-head text-text-muted hover:text-gold transition-colors">GET MORE →</Link>
         </div>
       </nav>
 
@@ -172,9 +179,9 @@ export default function ShopPage() {
         <div className="mt-10 border border-gold/30 p-6 text-center">
           <div className="text-gold font-head font-bold tracking-widest mb-1">NEED MORE TOKENS?</div>
           <p className="text-text-muted font-head text-sm mb-4">Earn 1 token per completed round, or grab a bundle to unlock exclusive cosmetics.</p>
-          <a href="/tokens" className="inline-block px-8 py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-all">
+          <Link href="/tokens" className="inline-block px-8 py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-all">
             GET TOKENS →
-          </a>
+          </Link>
         </div>
       </div>
     </div>

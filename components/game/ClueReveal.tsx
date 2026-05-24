@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { sounds } from '@/lib/sounds'
 import type { Clue } from '@/types/game'
@@ -11,29 +11,31 @@ interface ClueRevealProps {
   onReveal: (clueIndex: number) => Promise<void>
 }
 
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%'
+
 function DecryptText({ text }: { text: string }) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%'
   const [displayed, setDisplayed] = useState(() => {
-    let scrambled = ''
-    for (let i = 0; i < text.length; i++) {
-      scrambled += text[i] === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]
-    }
-    return scrambled
+    // Scramble initial state
+    return text.split('').map(c => c === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]).join('')
   })
 
-  useState(() => {
+  useEffect(() => {
+    // Decrypt animation: each tick reveals one more character
     let iteration = 0
     const interval = setInterval(() => {
-      setDisplayed(text.split('').map((char, i) => {
-        if (i < iteration) return char
-        if (char === ' ') return ' '
-        return chars[Math.floor(Math.random() * chars.length)]
-      }).join(''))
-      if (iteration >= text.length) clearInterval(interval)
+      setDisplayed(
+        text.split('').map((char, i) => {
+          if (i < iteration) return char
+          if (char === ' ') return ' '
+          return CHARS[Math.floor(Math.random() * CHARS.length)]
+        }).join('')
+      )
       iteration += 2
+      if (iteration > text.length) clearInterval(interval)
     }, 30)
+
     return () => clearInterval(interval)
-  })
+  }, [text])
 
   return <span className="decrypt-text font-mono text-sm">{displayed}</span>
 }
@@ -76,11 +78,12 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
             {isRevealed ? (
               <AnimatePresence>
                 <motion.p
+                  key={`clue-${i}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="text-text text-sm font-head leading-relaxed"
                 >
-                  {clue.text}
+                  {i === revealedCount && !isFree ? <DecryptText text={clue.text} /> : clue.text}
                 </motion.p>
               </AnimatePresence>
             ) : (
@@ -88,7 +91,7 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
                 {confirming === i ? (
                   <div className="space-y-2">
                     <p className="text-xs text-text-muted font-head">
-                      Spend 1 token to reveal Intelligence File {shortcut}? ({tokens} tokens remaining)
+                      Spend 1 token to reveal Intelligence File {shortcut}? ({tokens} token{tokens !== 1 ? 's' : ''} remaining)
                     </p>
                     <div className="flex gap-2">
                       <button
@@ -108,13 +111,14 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
                   </div>
                 ) : (
                   <button
-                    onClick={() => tokens >= 1 ? setConfirming(i) : null}
+                    onClick={() => tokens >= 1 ? setConfirming(i) : undefined}
+                    disabled={tokens < 1}
                     className={`w-full flex items-center justify-between text-left group ${tokens < 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <span className="text-xs text-text-muted font-head group-hover:text-gold transition-colors">
                       🔒 CLASSIFIED — UNLOCK FOR 1 TOKEN
                     </span>
-                    {tokens < 1 && <span className="text-xs text-danger">NO TOKENS</span>}
+                    {tokens < 1 && <span className="text-xs text-danger font-head">NO TOKENS</span>}
                   </button>
                 )}
               </div>

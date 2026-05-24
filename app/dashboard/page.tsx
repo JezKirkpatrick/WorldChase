@@ -3,27 +3,28 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { getUser, getProfile } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import Avatar from '@/components/ui/Avatar'
 import StreakWidget from '@/components/dashboard/StreakWidget'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import OnboardingGuide from '@/components/ui/OnboardingGuide'
+import UsernameSetupBanner from '@/components/ui/UsernameSetupBanner'
 
 const RANK_STYLE = ['text-gold', 'text-slate-300', 'text-amber-600']
 const RANK_EMOJI = ['👑', '🥈', '🥉']
 
 export default async function DashboardPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUser()
   if (!user) redirect('/auth/login')
 
-  const [profileRes, eventRes, pastEventsRes] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+  const supabase = createClient()
+  const [profile, eventRes, pastEventsRes] = await Promise.all([
+    getProfile(user.id),
     supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle(),
     supabase.from('monthly_events').select('*').eq('status', 'completed').order('ends_at', { ascending: false }).limit(3),
   ])
 
-  const profile = profileRes.data
   const event = eventRes.data
   const pastEvents = pastEventsRes.data ?? []
 
@@ -128,6 +129,9 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* ── USERNAME SETUP PROMPT ── */}
+        <UsernameSetupBanner username={profile?.username} />
 
         {/* ── ONBOARDING ── */}
         <OnboardingGuide

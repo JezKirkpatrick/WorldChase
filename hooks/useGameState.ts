@@ -53,7 +53,7 @@ export function useGameState(challengeId: string) {
 
       // 4. Auto-start if no progress row exists yet
       if (!finalProgress) {
-        const { data: newProgress } = await supabase
+        const { data: newProgress, error: insertError } = await supabase
           .from('player_progress')
           .insert({
             user_id: user.id,
@@ -65,13 +65,18 @@ export function useGameState(challengeId: string) {
           .select()
           .single()
 
-        // Ensure leaderboard entry exists
-        await supabase.from('leaderboard').upsert(
-          { user_id: user.id, event_id: ch.event_id, total_score: 0 },
-          { onConflict: 'user_id,event_id', ignoreDuplicates: true }
-        )
-
-        finalProgress = newProgress as PlayerProgress | null
+        if (insertError && insertError.code === '23505') {
+          // Unique conflict — row was created by a parallel request; fetch it
+          const { data: existingProgress } = await supabase
+            .from('player_progress')
+            .select('*')
+            .eq('challenge_id', challengeId)
+            .eq('user_id', user.id)
+            .single()
+          finalProgress = existingProgress as PlayerProgress | null
+        } else {
+          finalProgress = newProgress as PlayerProgress | null
+        }
       }
 
       // 5. Set progress and resolve revealed clues

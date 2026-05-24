@@ -9,6 +9,7 @@ interface ScorePopupProps {
   funFact: string
   rankBefore: number | null
   rankAfter: number | null
+  nextRound: number | null   // null = this was the last round
   onContinue: () => void
 }
 
@@ -27,25 +28,33 @@ function CountUp({ target, duration = 1200 }: { target: number; duration?: numbe
   return <>{value.toLocaleString()}</>
 }
 
-export default function ScorePopup({ score, locationName, funFact, rankBefore, rankAfter, onContinue }: ScorePopupProps) {
+export default function ScorePopup({
+  score, locationName, funFact, rankBefore, rankAfter, nextRound, onContinue,
+}: ScorePopupProps) {
   const rankImproved = rankBefore && rankAfter && rankAfter < rankBefore
+  const isLastRound = nextRound === null
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
     >
       <div className="w-full max-w-md bg-navy-light border border-gold/40 bracket-box p-8">
+        {/* Header */}
         <motion.div
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="text-center mb-6"
         >
-          <div className="text-success font-head font-bold text-sm tracking-widest mb-1">LOCATION CONFIRMED</div>
+          <div className="text-4xl mb-2">{isLastRound ? '🏆' : '✅'}</div>
+          <div className="text-success font-head font-bold text-sm tracking-widest mb-1">
+            {isLastRound ? 'HUNT COMPLETE!' : 'LOCATION CONFIRMED'}
+          </div>
           <div className="text-white font-head font-bold text-2xl">{locationName}</div>
         </motion.div>
 
+        {/* Score breakdown */}
         <div className="space-y-2 mb-6 font-mono text-sm">
           <div className="flex justify-between text-text-muted">
             <span>BASE SCORE</span>
@@ -74,8 +83,19 @@ export default function ScorePopup({ score, locationName, funFact, rankBefore, r
             <span>FINAL SCORE</span>
             <span><CountUp target={score.finalScore} /> PTS</span>
           </div>
+          {/* +1 token reward */}
+          <motion.div
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8 }}
+            className="flex justify-between text-text-muted"
+          >
+            <span>ROUND REWARD</span>
+            <span className="text-gold font-bold">+1 🪙</span>
+          </motion.div>
         </div>
 
+        {/* Rank improvement */}
         {rankImproved && rankAfter && rankBefore && (
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -83,10 +103,11 @@ export default function ScorePopup({ score, locationName, funFact, rankBefore, r
             transition={{ delay: 0.5 }}
             className="text-center mb-4 text-success font-mono font-bold"
           >
-            ↑ #{rankBefore} → #{rankAfter}
+            ↑ RANK #{rankBefore} → #{rankAfter}
           </motion.div>
         )}
 
+        {/* Fun fact */}
         {funFact && (
           <div className="text-xs text-text-muted border border-white/10 p-3 mb-6 font-head leading-relaxed">
             <span className="text-gold font-bold">FUN FACT: </span>{funFact}
@@ -95,9 +116,10 @@ export default function ScorePopup({ score, locationName, funFact, rankBefore, r
 
         <button
           onClick={onContinue}
-          className="w-full py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors"
+          className="w-full py-3 text-navy font-head font-bold text-sm tracking-widest transition-all hover:scale-[1.02]"
+          style={{ background: 'linear-gradient(90deg, #f5c518, #ffd700)', boxShadow: '0 0 20px rgba(245,197,24,0.3)' }}
         >
-          CONTINUE TO NEXT ROUND →
+          {isLastRound ? 'VIEW FINAL STANDINGS →' : `NEXT: ROUND ${nextRound} →`}
         </button>
       </div>
     </motion.div>

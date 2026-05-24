@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
+import { getUser } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import Avatar from '@/components/ui/Avatar'
 import AchievementGrid from '@/components/profile/AchievementGrid'
@@ -10,12 +11,12 @@ import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 
 export default async function ProfilePage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUser()
   if (!user) redirect('/auth/login')
 
+  const supabase = createClient()
   const [profileRes, progressRes] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
     supabase.from('player_progress')
       .select('status, score_earned, time_taken_seconds, clues_revealed, challenges(difficulty)')
       .eq('user_id', user.id),

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import HiddenTokenRadar from './HiddenTokenRadar'
 import { useTokenRadar } from '@/hooks/useTokenRadar'
+import { worldChaseMapStyle } from '@/lib/mapStyles'
 
 interface MapPanelProps {
   startLat: number
@@ -64,6 +65,7 @@ export default function MapPanel({
       streetViewControl: true,
       fullscreenControl: true,
       mapTypeControl: true,
+      styles: worldChaseMapStyle,
     })
 
     mapRef.current = map
