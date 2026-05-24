@@ -239,9 +239,11 @@ export default function GamePage({ params }: PageProps) {
         onToggleSound={toggleSound}
       />
 
-      <TimerBar elapsed={timeElapsed} limit={challenge.time_limit_seconds} />
+      {/* pt-12 clears the fixed BattleHUD (h-12 = 48px) so TimerBar is visible */}
+      <div className="pt-12 flex flex-col flex-1 overflow-hidden">
+        <TimerBar elapsed={timeElapsed} limit={challenge.time_limit_seconds} />
 
-      <div className="flex flex-1 overflow-hidden pt-12">
+        <div className="flex flex-1 overflow-hidden">
         {/* Left panel — collapsible */}
         {!panelCollapsed && (
           <div className="w-[38%] min-w-[300px] max-w-[480px] flex flex-col overflow-hidden relative">
@@ -359,5 +361,6 @@ export default function GamePage({ params }: PageProps) {
         </button>
       </div>
     </div>
+  </div>
   )
 }
