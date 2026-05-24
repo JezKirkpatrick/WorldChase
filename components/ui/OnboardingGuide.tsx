@@ -42,7 +42,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       desc: 'Visit the shop and equip a custom avatar',
       href: '/shop',
       cta: 'VISIT SHOP',
-      tokens: 5,
+      tokens: 1,
       done: hasAvatar,
     },
     {
@@ -51,7 +51,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       desc: 'Complete your very first round',
       href: '/play',
       cta: 'PLAY NOW',
-      tokens: 10,
+      tokens: 2,
       done: completedCount >= 1,
     },
     {
@@ -60,7 +60,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       desc: 'Complete 3 rounds total',
       href: '/play',
       cta: 'KEEP HUNTING',
-      tokens: 15,
+      tokens: 2,
       done: completedCount >= 3,
     },
     {
@@ -69,7 +69,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       desc: 'Visit the global leaderboard',
       href: '/leaderboard',
       cta: 'VIEW LEADERBOARD',
-      tokens: 3,
+      tokens: 1,
       done: hasLeaderboardRank,
     },
     {
@@ -78,7 +78,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       desc: 'Visit your public profile page',
       href: '/profile',
       cta: 'MY PROFILE',
-      tokens: 2,
+      tokens: 1,
       done: false, // always re-claimable when dismissed
     },
   ]

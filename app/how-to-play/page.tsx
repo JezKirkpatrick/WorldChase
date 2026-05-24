@@ -39,11 +39,11 @@ const SCORING = [
 
 const EARN = [
   { action: 'Complete any round',             amount: '+1 token' },
-  { action: 'Daily login bonus',              amount: '+1 token' },
-  { action: '3-day login streak',             amount: '+2 tokens' },
-  { action: '7-day consecutive streak',       amount: '+5 tokens' },
-  { action: '30-day streak',                  amount: '+20 tokens' },
-  { action: 'Find a hidden token on the map', amount: '+1–2 tokens' },
+  { action: '3-day login streak',             amount: '+1 token' },
+  { action: '7-day consecutive streak',       amount: '+2 tokens' },
+  { action: '30-day streak',                  amount: '+5 tokens' },
+  { action: 'Find a hidden token on the map', amount: '+1 token' },
+  { action: 'Onboarding steps (one-time)',    amount: '+7 tokens' },
 ]
 
 const SPEND = [
@@ -180,7 +180,7 @@ export default async function HowToPlayPage() {
         <section>
           <h2 className="font-head font-bold text-xl text-gold tracking-wider mb-4">TOKEN SYSTEM</h2>
           <p className="text-text-muted font-head mb-4">
-            Starting tokens: <span className="text-gold font-bold">3 free on signup</span>
+            Starting tokens: <span className="text-gold font-bold">2 free on signup</span>
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             <div>

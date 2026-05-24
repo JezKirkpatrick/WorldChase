@@ -105,7 +105,7 @@ export default function SignupPage() {
               {loading ? 'CREATING ACCOUNT...' : 'START HUNTING — FREE'}
             </button>
 
-            <p className="text-xs text-text-muted font-head text-center">🪙 Your first 3 tokens are free on signup</p>
+            <p className="text-xs text-text-muted font-head text-center">🪙 2 free tokens on signup — earn more by playing</p>
           </form>
         </div>
 

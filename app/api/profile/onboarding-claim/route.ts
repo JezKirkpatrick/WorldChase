@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase-server'
 export const dynamic = 'force-dynamic'
 
 const STEP_TOKENS: Record<string, number> = {
-  avatar:       5,
-  first_round:  10,
-  three_rounds: 15,
-  leaderboard:  3,
-  profile:      2,
+  avatar:       1,
+  first_round:  2,
+  three_rounds: 2,
+  leaderboard:  1,
+  profile:      1,
 }
 
 export async function POST(req: Request) {

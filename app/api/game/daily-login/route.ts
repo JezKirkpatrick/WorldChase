@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
           id: userId,
           username,
           display_name: displayName,
-          tokens: 0,
+          tokens: 2,   // 2 starter tokens on account creation
           current_streak: 0,
           last_login_date: null,
         })
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             id: userId,
             username: `hunter_${userId.slice(0, 8)}`,
             display_name: displayName,
-            tokens: 0,
+            tokens: 2,   // 2 starter tokens on account creation
             current_streak: 0,
             last_login_date: null,
           })
@@ -80,8 +80,8 @@ export async function POST(req: NextRequest) {
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
     const newStreak = last === yesterday ? (profile.current_streak ?? 0) + 1 : 1
 
-    // Milestone bonuses: 3 days = +2 tokens, 7 days = +5, 30 days = +20
-    const milestones: Record<number, number> = { 3: 2, 7: 5, 30: 20 }
+    // Milestone bonuses: 3 days = +1, 7 days = +2, 30 days = +5
+    const milestones: Record<number, number> = { 3: 1, 7: 2, 30: 5 }
     const bonus = milestones[newStreak] ?? 0
     const newTokens = (profile.tokens ?? 0) + bonus
 

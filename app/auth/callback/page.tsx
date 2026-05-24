@@ -40,7 +40,7 @@ export default function AuthCallbackPage() {
             id: user.id,
             username,
             display_name: meta.full_name || meta.name || null,
-            tokens: 0,
+            tokens: 2,   // 2 starter tokens on account creation
             current_streak: 0,
             last_login_date: null,
           })
@@ -51,7 +51,7 @@ export default function AuthCallbackPage() {
               id: user.id,
               username: `hunter_${user.id.slice(0, 8)}`,
               display_name: meta.full_name || meta.name || null,
-              tokens: 0,
+              tokens: 2,   // 2 starter tokens on account creation
               current_streak: 0,
               last_login_date: null,
             })
