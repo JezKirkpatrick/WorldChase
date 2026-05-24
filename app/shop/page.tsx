@@ -277,7 +277,7 @@ export default function ShopPage() {
 
                   {c.type === 'title' && (
                     <div className="w-full flex items-center justify-center px-2">
-                      <div className={`w-full px-3 py-3 border font-head font-bold text-sm tracking-wider text-center leading-snug ${r.titleStyle}`}
+                      <div className={`w-full px-3 py-3 border font-head font-bold text-sm tracking-wider text-center leading-snug ${r.titleBox}`}
                            style={
                              c.rarity === 'legendary' ? { boxShadow: '0 0 16px rgba(245,197,24,0.22)' }
                              : c.rarity === 'epic'    ? { boxShadow: '0 0 12px rgba(168,85,247,0.18)' }
