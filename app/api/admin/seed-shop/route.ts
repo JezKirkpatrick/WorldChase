@@ -101,6 +101,53 @@ async function runSeed() {
   }
 
   results.push(`Inserted ${allItems.length} new shop items`)
+
+  // ── Step 3: Seed chat reaction emojis ────────────────────────────
+  const { data: alreadySeededEmojis } = await admin
+    .from('cosmetics')
+    .select('id')
+    .eq('type', 'chat_emoji')
+    .limit(1)
+
+  if (!alreadySeededEmojis || alreadySeededEmojis.length === 0) {
+    const chatEmojis = [
+      // Common — 2-3 tokens
+      { name: 'Fire',        value: '🔥', rarity: 'common',    token_cost: 2  },
+      { name: 'Zap',         value: '⚡', rarity: 'common',    token_cost: 2  },
+      { name: 'Wave',        value: '🌊', rarity: 'common',    token_cost: 2  },
+      { name: 'Sparkles',    value: '✨', rarity: 'common',    token_cost: 3  },
+      { name: 'Target',      value: '🎯', rarity: 'common',    token_cost: 3  },
+      // Rare — 5-6 tokens
+      { name: 'Rocket',      value: '🚀', rarity: 'rare',      token_cost: 5  },
+      { name: 'Boom',        value: '💥', rarity: 'rare',      token_cost: 5  },
+      { name: 'Gold Medal',  value: '🥇', rarity: 'rare',      token_cost: 5  },
+      { name: 'Eyes',        value: '👀', rarity: 'rare',      token_cost: 5  },
+      { name: 'Brain',       value: '🧠', rarity: 'rare',      token_cost: 6  },
+      { name: 'Hot Face',    value: '🥵', rarity: 'rare',      token_cost: 5  },
+      // Epic — 10-12 tokens
+      { name: 'Mind Blown',  value: '🤯', rarity: 'epic',      token_cost: 10 },
+      { name: 'Gem',         value: '💎', rarity: 'epic',      token_cost: 10 },
+      { name: 'Crown',       value: '👑', rarity: 'epic',      token_cost: 12 },
+      // Legendary — 15-20 tokens
+      { name: 'Comet',       value: '☄️', rarity: 'legendary', token_cost: 15 },
+      { name: 'Galaxy',      value: '🌌', rarity: 'legendary', token_cost: 20 },
+    ].map(item => ({
+      ...item,
+      type: 'chat_emoji',
+      is_default: false,
+      metadata: { chat_emoji_item: 'true' },
+    }))
+
+    const { error: emojiError } = await admin.from('cosmetics').insert(chatEmojis)
+    if (emojiError) {
+      results.push(`Chat emoji seed error: ${emojiError.message}`)
+    } else {
+      results.push(`Inserted ${chatEmojis.length} chat reaction emojis`)
+    }
+  } else {
+    results.push('Chat emoji reactions already seeded — skipped')
+  }
+
   return NextResponse.json({ ok: true, results })
 }
 

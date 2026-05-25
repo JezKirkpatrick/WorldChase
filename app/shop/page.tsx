@@ -65,7 +65,9 @@ const BORDER_TAGLINE: Record<string, string> = {
 }
 
 // ── Tab labels ────────────────────────────────────────────────────
-const TAB_ICONS: Record<string, string> = { avatar: '🧑', border: '⬡', title: '🏷' }
+const TAB_ICONS: Record<string, string> = { avatar: '🧑', border: '⬡', title: '🏷', chat_emoji: '💬' }
+
+const FREE_REACTIONS = ['👍', '👎', '❤️', '😂', '😮', '😢']
 
 export default function ShopPage() {
   const supabase = createClient()
@@ -78,7 +80,7 @@ export default function ShopPage() {
   const [equipped, setEquipped] = useState<{ avatar: string; border: string; title: string }>({
     avatar: '🌍', border: 'none', title: '',
   })
-  const [activeTab, setActiveTab] = useState<'avatar' | 'border' | 'title'>('avatar')
+  const [activeTab, setActiveTab] = useState<'avatar' | 'border' | 'title' | 'chat_emoji'>('avatar')
   const [buying, setBuying] = useState<string | null>(null)
   const [flash, setFlash] = useState<{ id: string; success: boolean; msg: string } | null>(null)
 
@@ -209,18 +211,18 @@ export default function ShopPage() {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex items-center gap-2 mb-7">
-          {(['avatar', 'border', 'title'] as const).map(tab => (
+        <div className="flex flex-wrap items-center gap-2 mb-7">
+          {(['avatar', 'border', 'title', 'chat_emoji'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-2 px-5 py-2.5 font-head font-bold text-xs tracking-widest transition-all border ${
+              className={`flex items-center gap-2 px-4 py-2.5 font-head font-bold text-xs tracking-widest transition-all border ${
                 activeTab === tab
                   ? 'bg-gold text-navy border-gold'
                   : 'text-text-muted border-white/20 hover:border-gold/40 hover:text-white'
               }`}>
               <span>{TAB_ICONS[tab]}</span>
-              <span>{tab === 'avatar' ? 'AVATARS' : tab === 'border' ? 'BORDERS' : 'TITLES'}</span>
+              <span>{tab === 'avatar' ? 'AVATARS' : tab === 'border' ? 'BORDERS' : tab === 'title' ? 'TITLES' : 'REACTIONS'}</span>
               <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-sm font-mono ${activeTab === tab ? 'bg-navy/20' : 'bg-white/10'}`}>
-                {cosmetics.filter(c => c.type === tab).length}
+                {tab === 'chat_emoji' ? cosmetics.filter(c => c.type === 'chat_emoji').length : cosmetics.filter(c => c.type === tab).length}
               </span>
             </button>
           ))}
@@ -228,6 +230,19 @@ export default function ShopPage() {
             Balance: <span className="text-gold font-bold">🪙 {tokens}</span>
           </div>
         </div>
+
+        {/* ── Free reactions banner (REACTIONS tab only) ── */}
+        {activeTab === 'chat_emoji' && (
+          <div className="mb-6 border border-success/20 bg-success/5 p-4">
+            <div className="text-success font-head font-bold text-xs tracking-widest mb-2">FREE REACTIONS — ALWAYS AVAILABLE TO EVERYONE</div>
+            <div className="flex gap-3 text-3xl mb-2">
+              {FREE_REACTIONS.map(e => <span key={e}>{e}</span>)}
+            </div>
+            <p className="text-text-muted font-head text-xs">
+              These 6 reactions are free. Unlock premium reactions below to stand out in chat — hover any message and click <strong className="text-white">😊+</strong> to react.
+            </p>
+          </div>
+        )}
 
         {/* ── Item grid ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -259,9 +274,9 @@ export default function ShopPage() {
                 {/* ── Preview area ── */}
                 <div className="w-full flex items-center justify-center pt-6 pb-3 px-4 relative min-h-[110px]">
 
-                  {c.type === 'avatar' && (
+                  {(c.type === 'avatar' || c.type === 'chat_emoji') && (
                     <div className={`w-20 h-20 rounded-full flex items-center justify-center text-5xl ${r.avatarBg}`}
-                         style={c.rarity === 'legendary' ? { boxShadow: '0 0 24px rgba(245,197,24,0.18)' } : c.rarity === 'epic' ? { boxShadow: '0 0 18px rgba(168,85,247,0.18)' } : {}}>
+                         style={c.rarity === 'legendary' ? { boxShadow: '0 0 24px rgba(245,197,24,0.18)' } : c.rarity === 'epic' ? { boxShadow: '0 0 18px rgba(168,85,247,0.18)' } : c.rarity === 'rare' ? { boxShadow: '0 0 14px rgba(34,211,238,0.12)' } : {}}>
                       {c.value}
                     </div>
                   )}
@@ -305,6 +320,11 @@ export default function ShopPage() {
                   ) : equip ? (
                     <div className="w-full py-2 text-center text-xs font-head font-bold text-gold border border-gold/50 bg-gold/5">
                       ✓ EQUIPPED
+                    </div>
+
+                  ) : isOwned && c.type === 'chat_emoji' ? (
+                    <div className="w-full py-2 text-center text-xs font-head font-bold text-success border border-success/30 bg-success/5">
+                      ✓ UNLOCKED · USE IN CHAT
                     </div>
 
                   ) : isOwned ? (
