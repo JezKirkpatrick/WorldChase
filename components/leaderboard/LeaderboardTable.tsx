@@ -87,7 +87,7 @@ export default function LeaderboardTable({ eventId, currentUserId }: Leaderboard
                   <div className="min-w-0">
                     <div className={`flex items-center gap-1.5 font-head font-bold text-sm truncate group-hover:text-gold transition-colors ${isMe ? 'text-gold' : 'text-white'}`}>
                       <span className="truncate">
-                        {profile?.username ?? 'Anonymous'}
+                        {profile?.display_name || profile?.username ?? 'Anonymous'}
                         {isMe && <span className="text-xs text-gold/60 ml-1">(you)</span>}
                       </span>
                       {profile?.equipped_badge && (() => {
