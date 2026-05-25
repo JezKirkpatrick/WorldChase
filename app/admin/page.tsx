@@ -65,6 +65,46 @@ export default async function AdminPage() {
           <div className="text-text-muted font-head text-xs mb-4">Seed the shop with avatars, borders and titles. Safe to run once — skips if already seeded.</div>
           <SeedShopButton />
         </div>
+
+        {/* ── Chat setup ── */}
+        <div className="mt-6 border border-gold/20 p-6">
+          <div className="text-xs font-head text-gold tracking-widest mb-1">CHAT SETUP</div>
+          <div className="text-text-muted font-head text-xs mb-4 leading-relaxed">
+            Run the SQL below <strong className="text-white">once</strong> in the{' '}
+            <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer"
+               className="text-gold underline hover:text-gold-dim">Supabase SQL Editor</a>{' '}
+            to create the chat table. Safe to skip if already done.
+          </div>
+          <pre className="bg-black/40 border border-white/10 p-4 text-xs font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed">
+{`create table if not exists public.chat_messages (
+  id          uuid        default gen_random_uuid() primary key,
+  user_id     uuid        not null references public.profiles(id) on delete cascade,
+  content     text        not null,
+  created_at  timestamptz not null default now(),
+  constraint  chat_messages_content_length
+    check (char_length(content) between 1 and 300)
+);
+
+alter table public.chat_messages enable row level security;
+
+create policy "Authenticated users can read chat"
+  on public.chat_messages for select
+  using (auth.role() = 'authenticated');
+
+create policy "Users can send their own messages"
+  on public.chat_messages for insert
+  with check (auth.uid() = user_id);
+
+create index if not exists chat_messages_created_at_idx
+  on public.chat_messages(created_at asc);
+
+alter publication supabase_realtime
+  add table public.chat_messages;`}
+          </pre>
+          <p className="text-text-muted font-head text-xs mt-3">
+            After running, visit <a href="/chat" className="text-gold underline">/chat</a> to confirm it works.
+          </p>
+        </div>
       </div>
     </div>
   )

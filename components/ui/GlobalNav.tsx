@@ -30,6 +30,7 @@ export default async function GlobalNav() {
         <Link href="/play"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
         <Link href="/leaderboard" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
+        <Link href="/chat"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT</Link>
         <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
         <Link href="/support"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
         {profile?.is_admin && (
@@ -51,6 +52,7 @@ export default async function GlobalNav() {
           <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
           <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
           <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
+          <Link href="/chat"        className="text-xs font-head text-electric hover:text-white">CHAT</Link>
         </div>
       </div>
     </nav>
