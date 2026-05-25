@@ -343,8 +343,22 @@ export default function GamePage({ params }: PageProps) {
         </div>
       </Modal>
 
-      {/* Sound + shortcuts hints */}
+      {/* Fixed HUD buttons — bottom right */}
       <div className="fixed bottom-4 right-4 flex items-center gap-2 z-30">
+
+        {/* Token Radar toggle */}
+        <button
+          onClick={() => setRadarActive(a => !a)}
+          title={radarActive ? 'Deactivate radar (H)' : 'Activate token radar (H)'}
+          className={`flex items-center gap-1.5 px-3 h-8 font-head font-bold text-xs tracking-widest border transition-all ${
+            radarActive
+              ? 'bg-gold text-navy border-gold shadow-lg shadow-gold/40 animate-pulse'
+              : 'bg-navy-light border-white/20 text-text-muted hover:border-gold/50 hover:text-gold'
+          }`}
+        >
+          📡 {radarActive ? 'RADAR ON' : 'RADAR'}
+        </button>
+
         <button
           onClick={toggleSound}
           title={soundMuted ? 'Unmute (M)' : 'Mute (M)'}
