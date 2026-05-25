@@ -41,6 +41,7 @@ export default function GamePage({ params }: PageProps) {
   const [mapsReady, setMapsReady] = useState(false)
   const [panelCollapsed, setPanelCollapsed] = useState(false)
   const [soundMuted, setSoundMuted] = useState(false)
+  const [mobileView, setMobileView] = useState<'mission' | 'map'>('map')
 
   // Load Google Maps script
   useEffect(() => {
@@ -169,6 +170,17 @@ export default function GamePage({ params }: PageProps) {
     mapRef.current.setMapTypeId(current === 'satellite' ? 'roadmap' : 'satellite')
   }, [])
 
+  // Switch to map tab on mobile and trigger a resize so Google Maps redraws
+  const switchToMapView = useCallback(() => {
+    setMobileView('map')
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+      if (mapRef.current && (window as any).google?.maps?.event) {
+        (window as any).google.maps.event.trigger(mapRef.current, 'resize')
+      }
+    }, 50)
+  }, [])
+
   useKeyboard({
     map_pan_north:    () => panMap(0, -100),
     map_pan_south:    () => panMap(0, 100),
@@ -239,14 +251,21 @@ export default function GamePage({ params }: PageProps) {
         onToggleSound={toggleSound}
       />
 
-      {/* pt-12 clears the fixed BattleHUD (h-12 = 48px) so TimerBar is visible */}
-      <div className="pt-12 flex flex-col flex-1 overflow-hidden">
+      {/* pt-12 clears the fixed BattleHUD (h-12 = 48px) | pb-16 md:pb-0 reserves space for mobile tab bar */}
+      <div className="pt-12 pb-16 md:pb-0 flex flex-col flex-1 overflow-hidden">
         <TimerBar elapsed={timeElapsed} limit={challenge.time_limit_seconds} />
 
-        <div className="flex flex-1 overflow-hidden">
-        {/* Left panel — collapsible */}
-        {!panelCollapsed && (
-          <div className="w-[38%] min-w-[300px] max-w-[480px] flex flex-col overflow-hidden relative">
+        <div className="flex flex-1 overflow-hidden relative">
+        {/* Mission panel — desktop: collapsible sidebar | mobile: full-screen tab */}
+        <div className={[
+          'flex flex-col overflow-hidden bg-navy',
+          // Desktop sizing + collapse logic
+          panelCollapsed ? 'hidden' : 'md:w-[38%] md:min-w-[300px] md:max-w-[480px]',
+          // Mobile: full-width absolute overlay when mission tab active, otherwise hidden
+          mobileView === 'mission'
+            ? 'absolute inset-0 z-20 w-full md:static md:inset-auto md:z-auto'
+            : 'hidden md:flex',
+        ].filter(Boolean).join(' ')}>
             <RiddlePanel
               challenge={challenge}
               progress={progress}
@@ -261,13 +280,19 @@ export default function GamePage({ params }: PageProps) {
               onSkip={handleSkip}
             />
           </div>
-        )}
 
-        {/* Right panel — map */}
-        <div className="flex-1 relative">
+        {/* Map panel */}
+        <div className={[
+          'relative',
+          // Desktop: flex-1 fills remaining space
+          panelCollapsed ? 'flex-1' : 'md:flex-1',
+          // Mobile: show when map tab active, hidden when mission tab active
+          mobileView === 'map' ? 'flex-1' : 'hidden md:flex md:flex-1',
+        ].filter(Boolean).join(' ')}>
+          {/* Desktop-only collapse toggle */}
           <button
             onClick={() => setPanelCollapsed(c => !c)}
-            className="absolute top-2 left-2 z-20 bg-navy/90 border border-gold/40 px-2 py-1 font-head text-xs font-bold text-gold hover:border-gold transition-all"
+            className="hidden md:block absolute top-2 left-2 z-20 bg-navy/90 border border-gold/40 px-2 py-1 font-head text-xs font-bold text-gold hover:border-gold transition-all"
             title={panelCollapsed ? 'Show mission panel (P)' : 'Hide mission panel (P)'}
           >
             {panelCollapsed ? '▶ SHOW' : '◀ HIDE'}
@@ -308,6 +333,47 @@ export default function GamePage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* ── Mobile bottom tab bar ─────────────────────────────────── */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-navy-light border-t border-white/10 flex"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <button
+          onClick={() => setMobileView('mission')}
+          className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest transition-colors ${
+            mobileView === 'mission' ? 'text-gold' : 'text-text-muted'
+          }`}
+        >
+          <span className="text-base">📋</span>
+          <span>MISSION</span>
+        </button>
+        <button
+          onClick={switchToMapView}
+          className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest transition-colors ${
+            mobileView === 'map' && !radarActive ? 'text-gold' : 'text-text-muted'
+          }`}
+        >
+          <span className="text-base">🗺️</span>
+          <span>MAP</span>
+        </button>
+        <button
+          onClick={() => { setRadarActive(a => !a); switchToMapView() }}
+          className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest transition-colors ${
+            radarActive ? 'text-gold animate-pulse' : 'text-text-muted'
+          }`}
+        >
+          <span className="text-base">📡</span>
+          <span>{radarActive ? 'RADAR ON' : 'RADAR'}</span>
+        </button>
+        <button
+          onClick={toggleSound}
+          className="flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest text-text-muted transition-colors hover:text-white"
+        >
+          <span className="text-base">{soundMuted ? '🔇' : '🔊'}</span>
+          <span>SOUND</span>
+        </button>
+      </div>
+
       {/* Score popup */}
       {scorePopup && progress.status === 'completed' && (
         <ScorePopup
@@ -343,8 +409,8 @@ export default function GamePage({ params }: PageProps) {
         </div>
       </Modal>
 
-      {/* Fixed HUD buttons — bottom right */}
-      <div className="fixed bottom-4 right-4 flex items-center gap-2 z-30">
+      {/* Fixed HUD buttons — bottom right (desktop only) */}
+      <div className="hidden md:flex fixed bottom-4 right-4 items-center gap-2 z-30">
 
         {/* Token Radar toggle */}
         <button

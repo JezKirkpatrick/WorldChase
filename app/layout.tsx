@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
+import InstallPrompt from '@/components/pwa/InstallPrompt'
 import { ToastProvider } from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </ToastProvider>
         <ServiceWorkerRegister />
+        <InstallPrompt />
       </body>
     </html>
   )
