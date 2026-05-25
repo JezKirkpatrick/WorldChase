@@ -29,7 +29,8 @@ export default async function GlobalNav() {
       {/* Centre — links */}
       <div className="hidden sm:flex items-center gap-6">
         <Link href="/play"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
-        <Link href="/leaderboard" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
+        <Link href="/leaderboard"  className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
+        <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
         <Link href="/chat"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT</Link>
         <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
