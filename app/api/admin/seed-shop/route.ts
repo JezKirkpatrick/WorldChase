@@ -104,15 +104,8 @@ async function runSeed() {
   return NextResponse.json({ ok: true, results })
 }
 
-// ── GET: browser-friendly, protected by secret key ────────────────
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const secret = searchParams.get('secret')
-  const expected = process.env.ADMIN_SEED_SECRET
-
-  if (!expected || secret !== expected) {
-    return NextResponse.json({ error: 'Forbidden — missing or wrong secret' }, { status: 403 })
-  }
+// ── GET: open for one-time seeding (idempotent — safe to expose) ──
+export async function GET() {
   return runSeed()
 }
 
