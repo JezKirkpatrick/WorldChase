@@ -57,11 +57,13 @@ const rarity = (r: string) => R[(r as RarityKey) in R ? (r as RarityKey) : 'comm
 
 // ── Border descriptions ───────────────────────────────────────────
 const BORDER_TAGLINE: Record<string, string> = {
-  electric: 'Crackling cyan pulse',
-  gold:     'Warm golden aura',
-  diamond:  'Brilliant crystal glow',
-  legendary:'Ancient royal violet',
-  none:     'Clean & minimal',
+  electric:  'Spinning neon cyan arc',
+  thorns:    'Dark spiked thorn ring',
+  fire:      'Blazing fire gradient spin',
+  gold:      'Golden spin + crown above',
+  diamond:   'Fast crystal ice spin + sparkles',
+  legendary: 'Slow void cosmic orbit',
+  none:      'Clean & minimal',
 }
 
 // ── Tab labels ────────────────────────────────────────────────────

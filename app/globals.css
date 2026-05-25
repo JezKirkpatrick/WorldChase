@@ -363,3 +363,74 @@ body {
   100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 .pop-in { animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+
+/* ── Avatar border animations ───────────────────────────────────── */
+@keyframes avatar-spin        { to   { transform: rotate(360deg); } }
+@keyframes avatar-spin-slow   { to   { transform: rotate(360deg); } }
+@keyframes avatar-spin-rev    { to   { transform: rotate(-360deg); } }
+@keyframes avatar-sparkle-pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.3; transform: scale(0.4); }
+}
+
+/* Electric / Neon Pulse — fast cyan spin + glow pulse */
+.avatar-ring-electric {
+  background: conic-gradient(from 0deg, #00d4ff, #0044cc, #00ffff, #0066ff, #00d4ff);
+  animation: avatar-spin 2s linear infinite;
+  box-shadow: 0 0 12px rgba(0,212,255,0.7), 0 0 28px rgba(0,212,255,0.35);
+}
+
+/* Gold Crown — warm golden spin + rich glow */
+.avatar-ring-gold {
+  background: conic-gradient(from 0deg, #f5c518, #b8860b, #ffd700, #e8a000, #f5c518);
+  animation: avatar-spin 4s linear infinite;
+  box-shadow: 0 0 14px rgba(245,197,24,0.8), 0 0 32px rgba(245,197,24,0.4);
+}
+
+/* Diamond / Crystal — fast ice spin + cool glow */
+.avatar-ring-diamond {
+  background: conic-gradient(from 0deg, #ffffff, #7ef0ff, #c8f8ff, #00d0ff, #ffffff, #b0f8ff, #ffffff);
+  animation: avatar-spin 1.5s linear infinite;
+  box-shadow: 0 0 16px rgba(160,240,255,0.8), 0 0 36px rgba(80,200,255,0.4), 0 0 60px rgba(200,255,255,0.2);
+}
+
+/* Void / Legendary — slow dark cosmic spin */
+.avatar-ring-void {
+  background: conic-gradient(from 0deg, #6b21a8, #1e1b4b, #7c3aed, #312e81, #4c1d95, #6b21a8);
+  animation: avatar-spin-slow 6s linear infinite;
+  box-shadow: 0 0 12px rgba(124,58,237,0.7), 0 0 28px rgba(107,33,168,0.4);
+}
+
+/* Fire Ring — warm orange/red spin */
+.avatar-ring-fire {
+  background: conic-gradient(from 0deg, #ff4500, #ff8c00, #ffd700, #ff6600, #ff2200, #ff4500);
+  animation: avatar-spin 3s linear infinite;
+  box-shadow: 0 0 14px rgba(255,100,0,0.75), 0 0 32px rgba(255,50,0,0.4);
+}
+
+/* Sparkle dots for diamond */
+.avatar-sparkle {
+  animation: avatar-sparkle-pulse 1.4s ease-in-out infinite;
+}
+
+/* Orbit dot for void */
+.avatar-orbit-dot {
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  box-shadow: inset 0 0 0 0 transparent;
+  position: relative;
+  animation: avatar-spin-slow 4s linear infinite;
+}
+.avatar-orbit-dot::before {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #a78bfa;
+  box-shadow: 0 0 6px 2px rgba(167,139,250,0.8);
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}

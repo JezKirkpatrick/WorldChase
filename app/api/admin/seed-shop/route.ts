@@ -73,10 +73,12 @@ async function runSeed() {
 
   const borders = [
     { type: 'border', name: 'No Border',    value: 'none',      rarity: 'common',    token_cost: 0,  is_default: true  },
-    { type: 'border', name: 'Electric',     value: 'electric',  rarity: 'rare',      token_cost: 5,  is_default: false },
-    { type: 'border', name: 'Gold Ring',    value: 'gold',      rarity: 'epic',      token_cost: 10, is_default: false },
-    { type: 'border', name: 'Diamond Aura', value: 'diamond',   rarity: 'legendary', token_cost: 20, is_default: false },
-    { type: 'border', name: 'Void Crown',   value: 'legendary', rarity: 'legendary', token_cost: 25, is_default: false },
+    { type: 'border', name: 'Neon Pulse',   value: 'electric',  rarity: 'rare',      token_cost: 5,  is_default: false },
+    { type: 'border', name: 'Thorns',       value: 'thorns',    rarity: 'rare',      token_cost: 6,  is_default: false },
+    { type: 'border', name: 'Fire Ring',    value: 'fire',      rarity: 'epic',      token_cost: 10, is_default: false },
+    { type: 'border', name: 'Gold Crown',   value: 'gold',      rarity: 'epic',      token_cost: 12, is_default: false },
+    { type: 'border', name: 'Crystal Aura', value: 'diamond',   rarity: 'legendary', token_cost: 20, is_default: false },
+    { type: 'border', name: 'Void Ring',    value: 'legendary', rarity: 'legendary', token_cost: 25, is_default: false },
   ]
 
   const titles = [
