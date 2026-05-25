@@ -21,7 +21,7 @@ async function createProfileIfNeeded(supabase: ReturnType<typeof createClient>, 
 
   const { error: insertError } = await supabase.from('profiles').insert({
     id: user.id, username,
-    display_name: meta.full_name || meta.name || null,
+    display_name: meta.display_name || meta.full_name || meta.name || null,
     tokens: 2, current_streak: 0, last_login_date: null,
   })
 
@@ -29,7 +29,7 @@ async function createProfileIfNeeded(supabase: ReturnType<typeof createClient>, 
     await supabase.from('profiles').insert({
       id: user.id,
       username: `hunter_${user.id.slice(0, 8)}`,
-      display_name: meta.full_name || meta.name || null,
+      display_name: meta.display_name || meta.full_name || meta.name || null,
       tokens: 2, current_streak: 0, last_login_date: null,
     })
   }
