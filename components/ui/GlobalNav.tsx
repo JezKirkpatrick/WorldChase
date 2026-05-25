@@ -45,10 +45,13 @@ export default async function GlobalNav() {
           <span>🪙</span>
           <span>{profile?.tokens ?? 0}</span>
         </Link>
-        <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg ${ring} transition-all hover:scale-105`}>
+        <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg ${ring} transition-all hover:scale-105`} title="Profile">
           {avatar}
         </Link>
-        <div className="hidden sm:block">
+        <div className="hidden sm:flex items-center gap-2">
+          <Link href="/settings" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors px-2 py-1" title="Account settings">
+            ⚙
+          </Link>
           <LogoutButton />
         </div>
         {/* Mobile links */}

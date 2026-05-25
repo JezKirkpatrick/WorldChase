@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     if (error) throw error
 
     return NextResponse.json({ entries: data ?? [] }, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30' }
+      headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=5' }
     })
   } catch (err) {
     console.error(err)
