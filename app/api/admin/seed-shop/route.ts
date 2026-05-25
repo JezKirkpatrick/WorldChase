@@ -45,9 +45,9 @@ async function runSeed() {
 
   if (alreadySeeded && alreadySeeded.length > 0) {
     results.push('Shop catalogue already seeded — skipped')
-    return NextResponse.json({ ok: true, results })
-  }
-
+    // ← do NOT return here; fall through so Step 3 still runs
+  } else {
+  // ── only insert if not already seeded ──────────────────────────────
   const avatars = [
     { type: 'avatar', name: 'Globe',         value: '🌍', rarity: 'common',    token_cost: 0,  is_default: true  },
     { type: 'avatar', name: 'Americas',      value: '🌎', rarity: 'common',    token_cost: 0,  is_default: true  },
@@ -101,8 +101,9 @@ async function runSeed() {
   }
 
   results.push(`Inserted ${allItems.length} new shop items`)
+  } // end else (step 2 insert)
 
-  // ── Step 3: Seed chat reaction emojis ────────────────────────────
+  // ── Step 3: Seed chat reaction emojis (always runs) ──────────────
   const { data: alreadySeededEmojis } = await admin
     .from('cosmetics')
     .select('id')
