@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getUser, getProfile } from '@/lib/auth'
+import LogoutButton from '@/components/ui/LogoutButton'
 
 const BORDER_RING: Record<string, string> = {
   gold:      'ring-2 ring-gold shadow-gold/40',
@@ -47,12 +48,16 @@ export default async function GlobalNav() {
         <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg ${ring} transition-all hover:scale-105`}>
           {avatar}
         </Link>
+        <div className="hidden sm:block">
+          <LogoutButton />
+        </div>
         {/* Mobile links */}
         <div className="sm:hidden flex items-center gap-3">
           <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
           <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
           <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
           <Link href="/chat"        className="text-xs font-head text-electric hover:text-white">CHAT</Link>
+          <LogoutButton />
         </div>
       </div>
     </nav>
