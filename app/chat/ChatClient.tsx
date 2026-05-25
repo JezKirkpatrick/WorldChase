@@ -2,6 +2,31 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 
+const CHAT_SQL = `create table if not exists public.chat_messages (
+  id          uuid        default gen_random_uuid() primary key,
+  user_id     uuid        not null references public.profiles(id) on delete cascade,
+  content     text        not null,
+  created_at  timestamptz not null default now(),
+  constraint  chat_messages_content_length
+    check (char_length(content) between 1 and 300)
+);
+
+alter table public.chat_messages enable row level security;
+
+create policy "Authenticated users can read chat"
+  on public.chat_messages for select
+  using (auth.role() = 'authenticated');
+
+create policy "Users can send their own messages"
+  on public.chat_messages for insert
+  with check (auth.uid() = user_id);
+
+create index if not exists chat_messages_created_at_idx
+  on public.chat_messages(created_at asc);
+
+alter publication supabase_realtime
+  add table public.chat_messages;`
+
 type Profile = {
   username: string
   display_name: string | null
@@ -31,6 +56,7 @@ export default function ChatClient({ userId }: { userId: string }) {
   const [myProfile,     setMyProfile]     = useState<Profile>(GHOST)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const [tableReady,    setTableReady]    = useState(true) // assume OK; flip on error
+  const [sqlCopied,     setSqlCopied]     = useState(false)
 
   const bottomRef    = useRef<HTMLDivElement>(null)
   const inputRef     = useRef<HTMLInputElement>(null)
@@ -157,15 +183,70 @@ export default function ChatClient({ userId }: { userId: string }) {
     inputRef.current?.focus()
   }
 
-  // ── Table not set up yet ─────────────────────────────────────────────
+  // ── Table not set up yet — show self-serve SQL panel ────────────────
   if (!tableReady) {
+    function copySql() {
+      navigator.clipboard.writeText(CHAT_SQL).then(() => {
+        setSqlCopied(true)
+        setTimeout(() => setSqlCopied(false), 2500)
+      })
+    }
+
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <div className="text-3xl">🔧</div>
-        <div className="text-gold font-head font-bold tracking-widest">CHAT NOT SET UP YET</div>
-        <div className="text-text-muted font-head text-sm max-w-sm leading-relaxed">
-          An admin needs to run the database migration.
-          Go to <span className="text-gold font-bold">/admin</span> and follow the Chat Setup instructions.
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
+        <div className="max-w-2xl w-full flex flex-col gap-5">
+
+          {/* Title */}
+          <div className="text-center">
+            <div className="text-3xl mb-3">🔧</div>
+            <div className="text-gold font-head font-bold tracking-widest text-lg">ONE-TIME SETUP NEEDED</div>
+            <p className="text-text-muted font-head text-sm mt-2 leading-relaxed">
+              Copy the SQL below, open the Supabase SQL Editor, paste it in and click <strong className="text-white">Run</strong>.
+              The chat will be live instantly for all players.
+            </p>
+          </div>
+
+          {/* SQL block */}
+          <div className="border border-white/10 bg-black/40">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+              <span className="text-xs font-head text-text-muted tracking-widest">SQL — run once in Supabase</span>
+              <button
+                onClick={copySql}
+                className={`text-xs font-head font-bold tracking-widest px-3 py-1 border transition-all ${
+                  sqlCopied
+                    ? 'border-green-400/50 text-green-400'
+                    : 'border-gold/40 text-gold hover:border-gold hover:bg-gold/5'
+                }`}
+              >
+                {sqlCopied ? '✓ COPIED!' : 'COPY SQL'}
+              </button>
+            </div>
+            <pre className="p-4 text-xs font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed">
+              {CHAT_SQL}
+            </pre>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a
+              href="https://supabase.com/dashboard/project/_/sql/new"
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 text-center px-5 py-2.5 border border-gold/40 text-gold font-head text-xs font-bold tracking-widest hover:border-gold hover:bg-gold/5 transition-all"
+            >
+              OPEN SUPABASE SQL EDITOR ↗
+            </a>
+            <button
+              onClick={() => window.location.reload()}
+              className="flex-1 px-5 py-2.5 border border-white/20 text-text-muted font-head text-xs font-bold tracking-widest hover:border-white/50 hover:text-white transition-all"
+            >
+              ↻ CHECK AGAIN
+            </button>
+          </div>
+
+          <p className="text-center text-text-muted font-head text-xs">
+            After running the SQL, click <strong className="text-white">Check Again</strong> — no page reload needed.
+          </p>
         </div>
       </div>
     )

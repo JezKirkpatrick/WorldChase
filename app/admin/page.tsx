@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import SeedShopButton from '@/components/admin/SeedShopButton'
+import CopySqlButton from '@/components/admin/CopySqlButton'
 
 export default async function AdminPage() {
   const supabase = createClient()
@@ -71,11 +72,41 @@ export default async function AdminPage() {
           <div className="text-xs font-head text-gold tracking-widest mb-1">CHAT SETUP</div>
           <div className="text-text-muted font-head text-xs mb-4 leading-relaxed">
             Run the SQL below <strong className="text-white">once</strong> in the{' '}
-            <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer"
-               className="text-gold underline hover:text-gold-dim">Supabase SQL Editor</a>{' '}
-            to create the chat table. Safe to skip if already done.
+            <a href="https://supabase.com/dashboard/project/_/sql/new" target="_blank" rel="noreferrer"
+               className="text-gold underline hover:text-gold-dim">Supabase SQL Editor ↗</a>{' '}
+            to create the chat table. Safe to run again — uses <code className="text-white">IF NOT EXISTS</code>.
           </div>
-          <pre className="bg-black/40 border border-white/10 p-4 text-xs font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed">
+
+          {/* SQL block with header + copy button */}
+          <div className="border border-white/10">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-white/[0.03] border-b border-white/10">
+              <span className="text-xs font-head text-text-muted tracking-widest">chat_messages migration</span>
+              <CopySqlButton sql={`create table if not exists public.chat_messages (
+  id          uuid        default gen_random_uuid() primary key,
+  user_id     uuid        not null references public.profiles(id) on delete cascade,
+  content     text        not null,
+  created_at  timestamptz not null default now(),
+  constraint  chat_messages_content_length
+    check (char_length(content) between 1 and 300)
+);
+
+alter table public.chat_messages enable row level security;
+
+create policy "Authenticated users can read chat"
+  on public.chat_messages for select
+  using (auth.role() = 'authenticated');
+
+create policy "Users can send their own messages"
+  on public.chat_messages for insert
+  with check (auth.uid() = user_id);
+
+create index if not exists chat_messages_created_at_idx
+  on public.chat_messages(created_at asc);
+
+alter publication supabase_realtime
+  add table public.chat_messages;`} />
+            </div>
+            <pre className="bg-black/40 p-4 text-xs font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed">
 {`create table if not exists public.chat_messages (
   id          uuid        default gen_random_uuid() primary key,
   user_id     uuid        not null references public.profiles(id) on delete cascade,
@@ -100,9 +131,11 @@ create index if not exists chat_messages_created_at_idx
 
 alter publication supabase_realtime
   add table public.chat_messages;`}
-          </pre>
+            </pre>
+          </div>
+
           <p className="text-text-muted font-head text-xs mt-3">
-            After running, visit <a href="/chat" className="text-gold underline">/chat</a> to confirm it works.
+            After running, visit <a href="/chat" className="text-gold underline hover:text-gold-dim">/chat</a> and click <strong className="text-white">Check Again</strong> to verify.
           </p>
         </div>
       </div>
