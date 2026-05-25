@@ -4,15 +4,7 @@ import { createClient as createAdmin } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST() {
-  // Auth check — must be admin
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
-  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
-  if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-
-  // Use service role to bypass RLS
+async function runSeed() {
   const admin = createAdmin(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -20,7 +12,7 @@ export async function POST() {
 
   const results: string[] = []
 
-  // ── Step 1: Price existing non-default, non-arena items ───────────
+  // ── Step 1: Price existing non-default, non-arena items ──────────
   const { data: existing } = await admin
     .from('cosmetics')
     .select('id, rarity, token_cost, is_default, metadata')
@@ -48,7 +40,7 @@ export async function POST() {
   const { data: alreadySeeded } = await admin
     .from('cosmetics')
     .select('id')
-    .eq('metadata->>shop_item', 'true')
+    .filter('metadata->>shop_item', 'eq', 'true')
     .limit(1)
 
   if (alreadySeeded && alreadySeeded.length > 0) {
@@ -110,4 +102,26 @@ export async function POST() {
 
   results.push(`Inserted ${allItems.length} new shop items`)
   return NextResponse.json({ ok: true, results })
+}
+
+// ── GET: browser-friendly, protected by secret key ────────────────
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const secret = searchParams.get('secret')
+  const expected = process.env.ADMIN_SEED_SECRET
+
+  if (!expected || secret !== expected) {
+    return NextResponse.json({ error: 'Forbidden — missing or wrong secret' }, { status: 403 })
+  }
+  return runSeed()
+}
+
+// ── POST: protected by is_admin flag ─────────────────────────────
+export async function POST() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+  if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  return runSeed()
 }
