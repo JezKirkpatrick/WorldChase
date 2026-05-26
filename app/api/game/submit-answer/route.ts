@@ -17,10 +17,21 @@ function checkRateLimit(userId: string): boolean {
 }
 
 function keywordMatch(guess: string, keywords: string[]): boolean {
-  const g = guess.toLowerCase().trim()
+  const g      = guess.toLowerCase().trim()
+  const gWords = g.split(/[\s,]+/).filter(Boolean)
+
   return keywords.some(k => {
-    const kw = k.toLowerCase().trim()
-    return g === kw || g.includes(kw) || kw.includes(g)
+    const kw      = k.toLowerCase().trim()
+    const kwWords = kw.split(/[\s,]+/).filter(Boolean)
+
+    // Exact full match
+    if (g === kw) return true
+
+    // Every word in the keyword must appear as a whole word in the guess.
+    // e.g. guess "paris france" matches keyword "paris" ✓
+    //      guess "france"       does NOT match keyword "paris" ✗
+    //      guess "france"       does NOT match keyword "paris, france" ✗ (paris missing)
+    return kwWords.every(w => gWords.includes(w))
   })
 }
 
