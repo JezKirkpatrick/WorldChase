@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query
     if (error) throw error
 
-    return NextResponse.json({ entries: data ?? [] }, {
+    // Assign rank from position so it's always correct regardless of stored value
+    const entries = (data ?? []).map((entry, i) => ({ ...entry, rank: offset + i + 1 }))
+
+    return NextResponse.json({ entries }, {
       headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=5' }
     })
   } catch (err) {
