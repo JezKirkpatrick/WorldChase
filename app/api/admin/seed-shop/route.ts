@@ -151,6 +151,24 @@ async function runSeed() {
     results.push('Chat emoji reactions already seeded — skipped')
   }
 
+  // ── Step 4: Insert any missing new borders (idempotent) ──────────
+  const newBorders = [
+    { name: 'Fire Ring', value: 'fire',   rarity: 'epic', token_cost: 10 },
+    { name: 'Thorns',    value: 'thorns', rarity: 'rare', token_cost: 6  },
+  ]
+  for (const b of newBorders) {
+    const { data: exists } = await admin.from('cosmetics').select('id')
+      .eq('type', 'border').eq('value', b.value).limit(1)
+    if (!exists || exists.length === 0) {
+      const { error: bErr } = await admin.from('cosmetics').insert({
+        ...b, type: 'border', is_default: false, metadata: { shop_item: 'true' },
+      })
+      results.push(bErr ? `Border error (${b.name}): ${bErr.message}` : `Inserted border: ${b.name}`)
+    } else {
+      results.push(`Border already exists: ${b.name}`)
+    }
+  }
+
   return NextResponse.json({ ok: true, results })
 }
 

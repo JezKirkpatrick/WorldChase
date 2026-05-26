@@ -106,6 +106,12 @@ export default function SignupPage() {
             </button>
 
             <p className="text-xs text-text-muted font-head text-center">🪙 2 free tokens on signup — earn more by playing</p>
+            <p className="text-[10px] text-text-muted/40 font-head text-center leading-relaxed">
+              By signing up you agree to our{' '}
+              <Link href="/terms"   className="text-text-muted/70 hover:text-gold underline">Terms of Service</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-text-muted/70 hover:text-gold underline">Privacy Policy</Link>
+            </p>
           </form>
         </div>
 

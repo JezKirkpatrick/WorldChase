@@ -16,7 +16,14 @@
       "PowerShell(py *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\" -Recurse -Force)",
       "Bash(Select-Object FullName)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(git rm *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\\\\public\\\\icons\" -Force | ForEach-Object { $_.FullName })",
+      "Bash(Select-Object -First 20)",
+      "Bash(Select-Object -First 50)",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\\\\supabase\\\\schema.sql\" | Measure-Object -Line\\).Lines)",
+      "PowerShell(head *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\kiwis\\\\OneDrive\\\\Desktop\\\\Claude\\\\WorldChase\" -Recurse -Directory | Where-Object { $_.Name -match \"supabase|migration\" })"
     ]
   }
 }

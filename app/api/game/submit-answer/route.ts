@@ -5,6 +5,17 @@ import { calculateScore } from '@/lib/scoring'
 
 export const dynamic = 'force-dynamic'
 
+// ── Simple in-memory rate limiter: max 10 AI calls per user per minute ──
+const aiCallLog = new Map<string, number[]>()
+function checkRateLimit(userId: string): boolean {
+  const now   = Date.now()
+  const cutoff = now - 60_000
+  const calls  = (aiCallLog.get(userId) ?? []).filter(t => t > cutoff)
+  if (calls.length >= 10) return false
+  aiCallLog.set(userId, [...calls, now])
+  return true
+}
+
 function keywordMatch(guess: string, keywords: string[]): boolean {
   const g = guess.toLowerCase().trim()
   return keywords.some(k => {
@@ -49,6 +60,10 @@ export async function POST(req: NextRequest) {
       feedback = 'Confirmed! Your geographical instincts are razor sharp.'
       confidence = 1.0
     } else {
+      // Rate limit AI calls
+      if (!checkRateLimit(userId)) {
+        return NextResponse.json({ error: 'Too many attempts — wait a moment and try again.' }, { status: 429 })
+      }
       // Only call AI for ambiguous guesses — use Haiku (10x cheaper than Sonnet)
       const aiResponse = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
