@@ -106,10 +106,12 @@ export default function LeaderboardTable({ eventId, currentUserId }: Leaderboard
                   </div>
                 </div>
 
-                <span className="text-right font-mono text-sm text-text-muted">{entry.challenges_completed}/20</span>
+                <span className="text-right font-mono text-sm text-text-muted">
+                  {entry.challenges_completed > 0 ? `${entry.challenges_completed}/20` : '—'}
+                </span>
 
                 <span className={`text-right font-mono font-bold text-sm ${entry.rank <= 3 ? 'text-gold' : 'text-white'}`}>
-                  {entry.total_score?.toLocaleString()}
+                  {entry.total_score > 0 ? entry.total_score.toLocaleString() : '—'}
                 </span>
 
                 <div className="text-right">
