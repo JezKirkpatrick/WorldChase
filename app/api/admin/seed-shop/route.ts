@@ -65,7 +65,7 @@ async function runSeed() {
     { type: 'avatar', name: 'Diamond',       value: '💎', rarity: 'epic',      token_cost: 10, is_default: false },
     { type: 'avatar', name: 'Fox',           value: '🦊', rarity: 'epic',      token_cost: 12, is_default: false },
     { type: 'avatar', name: 'Galaxy',        value: '🌌', rarity: 'epic',      token_cost: 12, is_default: false },
-    { type: 'avatar', name: 'Crown',         value: '👑', rarity: 'legendary', token_cost: 20, is_default: false },
+    { type: 'avatar', name: 'Trident',       value: '🔱', rarity: 'legendary', token_cost: 20, is_default: false },
     { type: 'avatar', name: 'Comet',         value: '☄️', rarity: 'legendary', token_cost: 20, is_default: false },
     { type: 'avatar', name: 'Trophy',        value: '🏆', rarity: 'legendary', token_cost: 25, is_default: false },
     { type: 'avatar', name: 'Infinity',      value: '♾️', rarity: 'legendary', token_cost: 30, is_default: false },

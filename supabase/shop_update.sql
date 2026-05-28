@@ -66,7 +66,7 @@ BEGIN
       ('avatar', 'Galaxy',         '🌌', 'epic',     12,  false, '{"shop_item":"true"}'),
 
       -- Legendary (20–30 tokens)
-      ('avatar', 'Crown',          '👑', 'legendary', 20, false, '{"shop_item":"true"}'),
+      ('avatar', 'Trident',        '🔱', 'legendary', 20, false, '{"shop_item":"true"}'),
       ('avatar', 'Comet',          '☄️', 'legendary', 20, false, '{"shop_item":"true"}'),
       ('avatar', 'Trophy',         '🏆', 'legendary', 25, false, '{"shop_item":"true"}'),
       ('avatar', 'Infinity',       '♾️', 'legendary', 30, false, '{"shop_item":"true"}');
