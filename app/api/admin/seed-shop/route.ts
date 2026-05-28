@@ -179,7 +179,7 @@ async function runSeed() {
       name: 'Ultimate Avatar',
       value: 'custom_upload',
       rarity: 'ultimate',
-      token_cost: 50,
+      token_cost: 600,
       is_default: false,
       metadata: { shop_item: 'true' },
     })
