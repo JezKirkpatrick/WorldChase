@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { Challenge, PlayerProgress, Guess, Clue } from '@/types/game'
 
@@ -11,9 +11,11 @@ export function useGameState(challengeId: string) {
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const initialLoadDone = useRef(false)
 
   const load = useCallback(async () => {
-    setLoading(true)
+    // Only show full loading screen on first load — reloads (after answers) stay silent
+    if (!initialLoadDone.current) setLoading(true)
     setLoadError(null)
     const supabase = createClient()
 
@@ -94,6 +96,7 @@ export function useGameState(challengeId: string) {
     }
 
     setLoading(false)
+    initialLoadDone.current = true
   }, [challengeId])
 
   // Initial load

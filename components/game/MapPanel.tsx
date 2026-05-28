@@ -83,7 +83,9 @@ export default function MapPanel({
       sv.setVisible(true)
     }
 
-    map.addListener('center_changed', () => {
+    // Use 'idle' (fires once after pan/zoom stops) instead of 'center_changed'
+    // (which fires every animation frame and causes ~60 re-renders per second of dragging)
+    map.addListener('idle', () => {
       const c = map.getCenter()!
       const lat = c.lat(), lng = c.lng()
       const zoom = map.getZoom() ?? 12

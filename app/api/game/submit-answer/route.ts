@@ -134,7 +134,9 @@ export async function POST(req: NextRequest) {
         await Promise.all([progressUpdate, leaderboardUpdate])
       }
 
-      return NextResponse.json({ is_correct: true, feedback, score })
+      // Return the authoritative token balance so client stays in sync
+      const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).single()
+      return NextResponse.json({ is_correct: true, feedback, score, newTokenBalance: profileData?.tokens ?? null })
     } else {
       await supabase.from('player_progress').update({ attempts: newAttempts }).eq('id', progress.id)
       return NextResponse.json({ is_correct: false, feedback })

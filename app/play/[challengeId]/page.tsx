@@ -78,62 +78,72 @@ export default function GamePage({ params }: PageProps) {
 
   function flashToken(newBalance: number, prev: number) {
     const delta = newBalance - prev
-    setTokenDelta(delta)
-    setTimeout(() => setTokenDelta(0), 700)
+    if (delta !== 0) {
+      setTokenDelta(delta)
+      setTimeout(() => setTokenDelta(0), 700)
+    }
     setTokens(newBalance)
   }
 
   const handleRevealClue = useCallback(async (index: number) => {
     if (!userId || !challenge) return
-    const res = await fetch('/api/game/reveal-clue', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challengeId: challenge.id, userId, clueIndex: index }),
-    })
-    const data = await res.json()
-    if (data.error) { toast(data.error, 'error'); return }
-    if (data.newTokenBalance !== undefined) {
-      flashToken(data.newTokenBalance, tokens)
-      sounds.token()
-      toast(`−1 token · Intelligence File ${index + 1} unlocked`, 'info')
-    }
-    await reload()
+    try {
+      const res = await fetch('/api/game/reveal-clue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: challenge.id, userId, clueIndex: index }),
+      })
+      if (!res.ok) { toast('Something went wrong — try again', 'error'); return }
+      const data = await res.json()
+      if (data.error) { toast(data.error, 'error'); return }
+      if (data.newTokenBalance !== undefined) {
+        flashToken(data.newTokenBalance, tokens)
+        sounds.token()
+        toast(`−1 token · Intelligence File ${index + 1} unlocked`, 'info')
+      }
+      await reload()
+    } catch { toast('Connection error — try again', 'error') }
   }, [userId, challenge, reload, tokens, toast])
 
   const handleSubmitAnswer = useCallback(async (answer: string) => {
     if (!userId || !challenge) return
-    const res = await fetch('/api/game/submit-answer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guessText: answer, challengeId: challenge.id, userId }),
-    })
-    const data = await res.json()
-    setLastFeedback(data.feedback)
-    setLastCorrect(data.is_correct)
-    if (data.is_correct && data.score) {
-      setScorePopup({ score: data.score, funFact: challenge.fun_fact })
-      // +1 token for completing a round
-      setTokens(t => {
-        const next = t + 1
-        flashToken(next, t)
-        return next
+    try {
+      const res = await fetch('/api/game/submit-answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guessText: answer, challengeId: challenge.id, userId }),
       })
-    }
-    await reload()
-  }, [userId, challenge, reload])
+      if (!res.ok) { toast('Something went wrong — try again', 'error'); return }
+      const data = await res.json()
+      if (data.error) { toast(data.error, 'error'); return }
+      setLastFeedback(data.feedback)
+      setLastCorrect(data.is_correct)
+      if (data.is_correct && data.score) {
+        setScorePopup({ score: data.score, funFact: challenge.fun_fact })
+        // Use server-returned balance so easy rounds (0 tokens) stay accurate
+        if (data.newTokenBalance !== null && data.newTokenBalance !== undefined) {
+          flashToken(data.newTokenBalance, tokens)
+        }
+      }
+      await reload()
+    } catch { toast('Connection error — try again', 'error') }
+  }, [userId, challenge, reload, tokens, toast])
 
   const handleSkip = useCallback(async () => {
     if (!userId || !challenge) return
-    const res = await fetch('/api/game/skip-challenge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challengeId: challenge.id, userId }),
-    })
-    const data = await res.json()
-    if (data.error) { toast(data.error, 'error'); return }
-    if (data.newTokenBalance !== undefined) flashToken(data.newTokenBalance, tokens)
-    toast('Round skipped', 'info')
-    router.push('/play')
+    try {
+      const res = await fetch('/api/game/skip-challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: challenge.id, userId }),
+      })
+      if (!res.ok) { toast('Something went wrong — try again', 'error'); return }
+      const data = await res.json()
+      if (data.error) { toast(data.error, 'error'); return }
+      if (data.newTokenBalance !== undefined) flashToken(data.newTokenBalance, tokens)
+      toast('Round skipped', 'info')
+      router.push('/play')
+    } catch { toast('Connection error — try again', 'error') }
   }, [userId, challenge, router, tokens, toast])
 
   const panMap = useCallback((dx: number, dy: number) => {
