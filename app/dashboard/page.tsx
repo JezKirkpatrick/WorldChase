@@ -287,6 +287,7 @@ export default async function DashboardPage() {
 
         {/* ── QUICK LINKS ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 animate-fade-up" style={{ animationDelay: '0.4s', opacity: 0, animationFillMode: 'forwards' }}>
+          <ShareButton className="border border-electric/30 py-3 text-center font-head font-bold text-xs tracking-widest text-electric hover:bg-electric/10 hover:border-electric transition-all" />
           {[
             { href: '/leaderboard', label: '🏆 LEADERBOARD', border: 'hover:border-gold/40 hover:text-gold' },
             { href: '/shop',        label: '🛍 SHOP',        border: 'hover:border-electric/40 hover:text-electric' },
@@ -299,7 +300,6 @@ export default async function DashboardPage() {
             </Link>
           ))}
           <InviteFriendsButton className="border border-[#1877f2]/40 py-3 text-center font-head font-bold text-xs tracking-widest text-[#1877f2] hover:bg-[#1877f2]/10 hover:border-[#1877f2] transition-all" />
-          <ShareButton className="border border-electric/30 py-3 text-center font-head font-bold text-xs tracking-widest text-electric hover:bg-electric/10 hover:border-electric transition-all" />
         </div>
       </div>
     </div>

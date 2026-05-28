@@ -57,22 +57,20 @@ export default function ShareButton({ className }: { className?: string }) {
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-2 right-0 z-50 bg-navy-light border border-white/15 shadow-xl min-w-[180px] py-1 animate-fade-up"
-          style={{ animationDuration: '0.15s' }}>
+        <div className="absolute top-full mt-2 left-0 z-50 bg-navy-light border border-white/15 shadow-xl min-w-[190px] py-1"
+          style={{ animation: 'fadeUp 0.15s ease forwards' }}>
           <div className="px-3 py-1.5 text-[10px] font-head text-text-muted tracking-widest border-b border-white/8 mb-1">
             SHARE WORLDCHASE
           </div>
 
-          {isMobile && hasNativeShare && (
-            <button onClick={nativeShare}
-              className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
-              <span>📱</span> More options
-            </button>
-          )}
-
           <button onClick={copyLink}
             className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
             <span>🔗</span> Copy link
+          </button>
+
+          <button onClick={() => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${link}`)}
+            className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
+            <span className="text-[#1877f2] font-bold">f</span> Facebook
           </button>
 
           <button onClick={() => openUrl(`https://twitter.com/intent/tweet?text=${text}&url=${link}`)}
@@ -94,6 +92,13 @@ export default function ShareButton({ className }: { className?: string }) {
             className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
             <span>✉️</span> Email
           </button>
+
+          {isMobile && hasNativeShare && (
+            <button onClick={nativeShare}
+              className="w-full text-left px-3 py-2 text-xs font-head text-text-muted hover:bg-white/8 transition-colors flex items-center gap-2 border-t border-white/8 mt-1">
+              <span>📱</span> More apps…
+            </button>
+          )}
         </div>
       )}
     </div>
