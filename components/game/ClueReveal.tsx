@@ -81,7 +81,7 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
                   key={`clue-${i}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-text text-sm font-head leading-relaxed"
+                  className="text-text text-sm font-head leading-relaxed select-none"
                 >
                   {i === revealedCount && !isFree ? <DecryptText text={clue.text} /> : clue.text}
                 </motion.p>

@@ -26,6 +26,10 @@ export default function RiddlePanel({
 }: RiddlePanelProps) {
   const wrongAttempts = guesses.filter(g => !g.is_correct).length
 
+  function blockCopy(e: React.ClipboardEvent) {
+    e.preventDefault()
+  }
+
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-navy-light border-r border-white/10">
       {/* Mission Briefing */}
@@ -34,11 +38,16 @@ export default function RiddlePanel({
           MISSION BRIEFING
           <div className="flex-1 h-px bg-gold/20" />
         </div>
-        <p className="text-text font-head text-base leading-relaxed">{challenge.riddle_text}</p>
+        <p
+          className="text-text font-head text-base leading-relaxed select-none"
+          onCopy={blockCopy}
+        >
+          {challenge.riddle_text}
+        </p>
       </div>
 
       {/* Clues */}
-      <div className="p-5 border-b border-white/10 flex-1">
+      <div className="p-5 border-b border-white/10 flex-1" onCopy={blockCopy}>
         <ClueReveal
           clues={challenge.clues}
           revealedCount={progress.clues_revealed}
