@@ -78,12 +78,20 @@ export default function LeaderboardTable({ eventId, currentUserId }: Leaderboard
                 <RankBadge rank={entry.rank} previousRank={entry.previous_rank} />
 
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Avatar
-                    emoji={profile?.equipped_avatar ?? '🌍'}
-                    border={profile?.equipped_border ?? 'none'}
-                    size="xs"
-                    className="shrink-0"
-                  />
+                  <div className="relative shrink-0" style={{ overflow: 'visible' }}>
+                    {entry.rank <= 3 && (
+                      <span className={`absolute -top-3 left-1/2 -translate-x-1/2 text-sm leading-none pointer-events-none select-none ${
+                        entry.rank === 1 ? 'text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.9)]' :
+                        entry.rank === 2 ? 'text-slate-300 drop-shadow-[0_0_4px_rgba(200,200,220,0.7)]' :
+                                           'text-amber-700 drop-shadow-[0_0_4px_rgba(180,100,20,0.7)]'
+                      }`}>♛</span>
+                    )}
+                    <Avatar
+                      emoji={profile?.equipped_avatar ?? '🌍'}
+                      border={profile?.equipped_border ?? 'none'}
+                      size="xs"
+                    />
+                  </div>
                   <div className="min-w-0">
                     <div className={`flex items-center gap-1.5 font-head font-bold text-sm truncate group-hover:text-gold transition-colors ${isMe ? 'text-gold' : 'text-white'}`}>
                       <span className="truncate">
