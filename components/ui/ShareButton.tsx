@@ -45,11 +45,12 @@ export default function ShareButton({ className }: { className?: string }) {
   }
 
   const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const hasNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => isMobile && navigator.share ? nativeShare() : setOpen(o => !o)}
+        onClick={() => isMobile && hasNativeShare ? nativeShare() : setOpen(o => !o)}
         className={className}
       >
         {copied ? '✓ COPIED!' : '📤 SHARE'}
@@ -62,7 +63,7 @@ export default function ShareButton({ className }: { className?: string }) {
             SHARE WORLDCHASE
           </div>
 
-          {isMobile && navigator.share && (
+          {isMobile && hasNativeShare && (
             <button onClick={nativeShare}
               className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
               <span>📱</span> More options
