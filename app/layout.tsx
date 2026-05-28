@@ -21,11 +21,18 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://www.worldchase.net',
     siteName: 'World Chase',
+    images: [{
+      url: '/opengraph-image',
+      width: 1200,
+      height: 630,
+      alt: 'World Chase — Hunt the World',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'World Chase — Hunt the World',
     description: 'Hunt the World. Claim the Crown. Monthly competitive geography battle.',
+    images: ['/opengraph-image'],
   },
 }
 
