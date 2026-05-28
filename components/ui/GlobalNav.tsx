@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getUser, getProfile } from '@/lib/auth'
+import { createClient } from '@/lib/supabase-server'
 import LogoutButton from '@/components/ui/LogoutButton'
 
 const BORDER_RING: Record<string, string> = {
@@ -19,6 +20,18 @@ export default async function GlobalNav() {
   const border = profile?.equipped_border ?? 'none'
   const ring = BORDER_RING[border] ?? ''
 
+  // Pending friend request count for badge
+  let pendingCount = 0
+  if (user) {
+    const supabase = createClient()
+    const { count } = await supabase
+      .from('friendships')
+      .select('id', { count: 'exact', head: true })
+      .eq('addressee_id', user.id)
+      .eq('status', 'pending')
+    pendingCount = count ?? 0
+  }
+
   return (
     <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
       {/* Left — logo */}
@@ -33,6 +46,14 @@ export default async function GlobalNav() {
         <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
         <Link href="/chat"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT</Link>
+        <Link href="/friends"     className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">
+          FRIENDS
+          {pendingCount > 0 && (
+            <span className="absolute -top-1.5 -right-3 bg-electric text-navy font-mono text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {pendingCount}
+            </span>
+          )}
+        </Link>
         <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
         <Link href="/support"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
         {profile?.is_admin && (
@@ -60,7 +81,10 @@ export default async function GlobalNav() {
           <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
           <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
           <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
-          <Link href="/chat"        className="text-xs font-head text-electric hover:text-white">CHAT</Link>
+          <Link href="/chat"    className="text-xs font-head text-electric hover:text-white">CHAT</Link>
+          <Link href="/friends" className="relative text-xs font-head text-text-muted hover:text-white">
+            👥{pendingCount > 0 && <span className="absolute -top-1 -right-1.5 bg-electric text-navy font-mono text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{pendingCount}</span>}
+          </Link>
           <LogoutButton />
         </div>
       </div>

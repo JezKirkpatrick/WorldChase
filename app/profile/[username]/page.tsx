@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase-server'
 import GlobalNav from '@/components/ui/GlobalNav'
 import Avatar from '@/components/ui/Avatar'
 import AchievementGrid from '@/components/profile/AchievementGrid'
+import FriendButton from '@/components/ui/FriendButton'
+import type { FriendStatus } from '@/components/ui/FriendButton'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 
@@ -48,6 +50,21 @@ export default async function PublicProfilePage({ params }: { params: { username
 
   const bestRank = lbRes.data?.[0]
   const isMe = me?.id === profile.id
+
+  // Friendship status between viewer and this profile
+  let friendStatus: FriendStatus = 'none'
+  if (me && !isMe) {
+    const { data: fs } = await supabase
+      .from('friendships')
+      .select('status,requester_id')
+      .or(`and(requester_id.eq.${me.id},addressee_id.eq.${profile.id}),and(requester_id.eq.${profile.id},addressee_id.eq.${me.id})`)
+      .maybeSingle()
+    if (fs) {
+      if (fs.status === 'accepted') friendStatus = 'accepted'
+      else if (fs.status === 'pending' && fs.requester_id === me.id) friendStatus = 'pending_sent'
+      else if (fs.status === 'pending' && fs.requester_id === profile.id) friendStatus = 'pending_received'
+    }
+  }
 
   const stats: AchievementStats = {
     completed, totalScore, bestTime, noClueWin,
@@ -100,11 +117,17 @@ export default async function PublicProfilePage({ params }: { params: { username
                 </div>
               )}
             </div>
-            {isMe && (
+            {isMe ? (
               <Link href="/shop"
                 className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 transition-all">
                 CUSTOMISE
               </Link>
+            ) : me && (
+              <FriendButton
+                targetUserId={profile.id}
+                targetUsername={profile.username}
+                initialStatus={friendStatus}
+              />
             )}
           </div>
         </div>
