@@ -27,6 +27,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
   const [claimed, setClaimed] = useState<string[]>([])
   const [claiming, setClaiming] = useState(false)
   const [tokensGained, setTokensGained] = useState(0)
+  const [visitedShop, setVisitedShop] = useState(false)
   const [visitedLeaderboard, setVisitedLeaderboard] = useState(false)
   const [visitedProfile, setVisitedProfile] = useState(false)
 
@@ -36,13 +37,17 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       if (d === '1') setDismissed(true)
       const c = localStorage.getItem(`wc_onboarding_claimed_${userId}`)
       if (c) setClaimed(JSON.parse(c))
+      if (localStorage.getItem(`wc_visited_shop_${userId}`) === '1') setVisitedShop(true)
       if (localStorage.getItem(`wc_visited_leaderboard_${userId}`) === '1') setVisitedLeaderboard(true)
       if (localStorage.getItem(`wc_visited_profile_${userId}`) === '1') setVisitedProfile(true)
     }
   }, [userId])
 
   function markVisited(stepId: string) {
-    if (stepId === 'leaderboard') {
+    if (stepId === 'avatar') {
+      localStorage.setItem(`wc_visited_shop_${userId}`, '1')
+      setVisitedShop(true)
+    } else if (stepId === 'leaderboard') {
       localStorage.setItem(`wc_visited_leaderboard_${userId}`, '1')
       setVisitedLeaderboard(true)
     } else if (stepId === 'profile') {
@@ -59,7 +64,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       href: '/shop',
       cta: 'VISIT SHOP',
       tokens: 1,
-      done: hasAvatar,
+      done: hasAvatar || visitedShop,
     },
     {
       id: 'first_round',
