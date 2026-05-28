@@ -1,30 +1,29 @@
 'use client'
 
+const FB_APP_ID = '1613984633019651'
+
 export default function InviteFriendsButton({ className }: { className?: string }) {
   async function handleClick() {
     const gameUrl = window.location.origin
     const text = 'Come play WorldChase with me! 🌍 Race to name locations around the globe.'
 
-    // Native share sheet (mobile) — lets user pick Messenger, WhatsApp, SMS, etc.
+    // Mobile: native share sheet lets user pick Messenger, WhatsApp, SMS, etc.
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({ title: 'WorldChase', text, url: gameUrl })
         return
       } catch {
-        // User cancelled or share failed — fall through
+        // User cancelled or browser blocked — fall through to Messenger dialog
       }
     }
 
-    // Fallback: Messenger deep link (opens Messenger app on mobile, Messenger web on desktop)
+    // Desktop: Facebook Send Dialog (opens pre-filled Messenger share)
     const encoded = encodeURIComponent(gameUrl)
     window.open(
-      `fb-messenger://share/?link=${encoded}`,
-      '_blank'
+      `https://www.facebook.com/dialog/send?app_id=${FB_APP_ID}&link=${encoded}&redirect_uri=${encoded}`,
+      'fb-messenger-send',
+      'width=600,height=500,resizable=yes'
     )
-    // Give the deep link 500ms to fire, then open Messenger web as safety net
-    setTimeout(() => {
-      window.open(`https://www.messenger.com`, '_blank')
-    }, 500)
   }
 
   return (
