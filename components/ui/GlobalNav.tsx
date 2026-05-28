@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getUser, getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase-server'
 import LogoutButton from '@/components/ui/LogoutButton'
+import ShareButton from '@/components/ui/ShareButton'
 
 const BORDER_RING: Record<string, string> = {
   gold:      'ring-2 ring-gold shadow-gold/40',
@@ -41,6 +42,7 @@ export default async function GlobalNav() {
 
       {/* Centre — links */}
       <div className="hidden sm:flex items-center gap-6">
+        <ShareButton className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors" />
         <Link href="/play"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
         <Link href="/leaderboard"  className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
         <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
