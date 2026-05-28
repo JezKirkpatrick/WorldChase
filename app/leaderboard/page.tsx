@@ -8,9 +8,10 @@ import LeaderboardTable from '@/components/leaderboard/LeaderboardTable'
 
 export default async function LeaderboardPage() {
   const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  const eventRes = await supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle()
+  const [{ data: { user } }, eventRes] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle(),
+  ])
   const event = eventRes.data
 
   return (

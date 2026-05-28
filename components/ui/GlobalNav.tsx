@@ -15,23 +15,26 @@ const BORDER_RING: Record<string, string> = {
 
 export default async function GlobalNav() {
   const user = await getUser()
-  const profile = user ? await getProfile(user.id) : null
+
+  // Run profile + pending-friends count in parallel — previously sequential
+  let profile = null
+  let pendingCount = 0
+  if (user) {
+    const supabase = createClient()
+    const [profileData, { count }] = await Promise.all([
+      getProfile(user.id),
+      supabase.from('friendships')
+        .select('id', { count: 'exact', head: true })
+        .eq('addressee_id', user.id)
+        .eq('status', 'pending'),
+    ])
+    profile      = profileData
+    pendingCount = count ?? 0
+  }
 
   const avatar = profile?.equipped_avatar ?? '🌍'
   const border = profile?.equipped_border ?? 'none'
   const ring = BORDER_RING[border] ?? ''
-
-  // Pending friend request count for badge
-  let pendingCount = 0
-  if (user) {
-    const supabase = createClient()
-    const { count } = await supabase
-      .from('friendships')
-      .select('id', { count: 'exact', head: true })
-      .eq('addressee_id', user.id)
-      .eq('status', 'pending')
-    pendingCount = count ?? 0
-  }
 
   return (
     <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">

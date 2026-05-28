@@ -9,11 +9,14 @@ import DifficultyBadge from '@/components/ui/DifficultyBadge'
 import type { Difficulty } from '@/types/game'
 
 export default async function PlayPage() {
-  const user = await getUser()
-  if (!user) redirect('/auth/login')
-
   const supabase = createClient()
-  const eventRes = await supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle()
+
+  // Auth + active event in parallel — no dependency between them
+  const [user, eventRes] = await Promise.all([
+    getUser(),
+    supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle(),
+  ])
+  if (!user) redirect('/auth/login')
   const event = eventRes.data
   if (!event) redirect('/dashboard')
 

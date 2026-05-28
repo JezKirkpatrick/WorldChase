@@ -17,15 +17,17 @@ const RANK_STYLE = ['text-gold', 'text-slate-300', 'text-amber-600']
 const RANK_EMOJI = ['👑', '🥈', '🥉']
 
 export default async function DashboardPage() {
-  const user = await getUser()
-  if (!user) redirect('/auth/login')
-
   const supabase = createClient()
-  const [profile, eventRes, pastEventsRes] = await Promise.all([
-    getProfile(user.id),
+
+  // User + events have no dependency on each other — fetch in parallel
+  const [user, eventRes, pastEventsRes] = await Promise.all([
+    getUser(),
     supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle(),
     supabase.from('monthly_events').select('*').eq('status', 'completed').order('ends_at', { ascending: false }).limit(3),
   ])
+  if (!user) redirect('/auth/login')
+
+  const profile = await getProfile(user.id)
 
   const event = eventRes.data
   const pastEvents = pastEventsRes.data ?? []
