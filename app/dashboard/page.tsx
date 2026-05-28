@@ -11,6 +11,7 @@ import { ACHIEVEMENTS } from '@/lib/achievements'
 import OnboardingGuide from '@/components/ui/OnboardingGuide'
 import UsernameSetupBanner from '@/components/ui/UsernameSetupBanner'
 import InviteFriendsButton from '@/components/ui/InviteFriendsButton'
+import ShareButton from '@/components/ui/ShareButton'
 
 const RANK_STYLE = ['text-gold', 'text-slate-300', 'text-amber-600']
 const RANK_EMOJI = ['👑', '🥈', '🥉']
@@ -298,6 +299,7 @@ export default async function DashboardPage() {
             </Link>
           ))}
           <InviteFriendsButton className="border border-[#1877f2]/40 py-3 text-center font-head font-bold text-xs tracking-widest text-[#1877f2] hover:bg-[#1877f2]/10 hover:border-[#1877f2] transition-all" />
+          <ShareButton className="border border-electric/30 py-3 text-center font-head font-bold text-xs tracking-widest text-electric hover:bg-electric/10 hover:border-electric transition-all" />
         </div>
       </div>
     </div>

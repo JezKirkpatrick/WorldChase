@@ -8,6 +8,7 @@ import GlobalNav from '@/components/ui/GlobalNav'
 import Avatar from '@/components/ui/Avatar'
 import AchievementGrid from '@/components/profile/AchievementGrid'
 import InviteFriendsButton from '@/components/ui/InviteFriendsButton'
+import ShareButton from '@/components/ui/ShareButton'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 
@@ -173,6 +174,7 @@ export default async function ProfilePage() {
             🆘 SUPPORT
           </Link>
           <InviteFriendsButton className="border border-[#1877f2]/40 py-3 text-center font-head font-bold text-xs tracking-widest text-[#1877f2] hover:bg-[#1877f2]/10 hover:border-[#1877f2] transition-all" />
+          <ShareButton className="border border-electric/30 py-3 text-center font-head font-bold text-xs tracking-widest text-electric hover:bg-electric/10 hover:border-electric transition-all" />
         </div>
       </div>
     </div>
