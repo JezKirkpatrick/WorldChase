@@ -169,6 +169,25 @@ async function runSeed() {
     }
   }
 
+  // ── Step 5: Insert ultimate avatar item (idempotent) ────────────
+  const { data: ultimateExists } = await admin.from('cosmetics').select('id')
+    .eq('type', 'avatar').eq('value', 'custom_upload').limit(1)
+
+  if (!ultimateExists || ultimateExists.length === 0) {
+    const { error: ultErr } = await admin.from('cosmetics').insert({
+      type: 'avatar',
+      name: 'Ultimate Avatar',
+      value: 'custom_upload',
+      rarity: 'ultimate',
+      token_cost: 50,
+      is_default: false,
+      metadata: { shop_item: 'true' },
+    })
+    results.push(ultErr ? `Ultimate avatar error: ${ultErr.message}` : 'Inserted ultimate avatar item')
+  } else {
+    results.push('Ultimate avatar already exists — skipped')
+  }
+
   return NextResponse.json({ ok: true, results })
 }
 

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { useToast } from '@/components/ui/Toast'
 import Avatar from '@/components/ui/Avatar'
+import AvatarUploadModal from '@/components/shop/AvatarUploadModal'
 
 // ── Rarity theming ────────────────────────────────────────────────
 const R = {
@@ -50,6 +51,16 @@ const R = {
     buyBtn: 'bg-gold text-navy hover:bg-gold-dim',
     shadow: 'shadow-gold/25',
   },
+  ultimate: {
+    label: 'ULTIMATE',
+    pill: 'text-white border border-gold/50',
+    card: 'border-gold/70',
+    cardGlow: 'from-gold/12 via-electric/8 to-transparent',
+    titleBox: 'text-white border-gold/70 bg-gold/10',
+    avatarBg: 'bg-gold/10',
+    buyBtn: 'text-navy font-bold',
+    shadow: 'shadow-gold/35',
+  },
 } as const
 
 type RarityKey = keyof typeof R
@@ -85,6 +96,7 @@ export default function ShopPage() {
   const [activeTab, setActiveTab] = useState<'avatar' | 'border' | 'title' | 'chat_emoji'>('avatar')
   const [buying, setBuying] = useState<string | null>(null)
   const [flash, setFlash] = useState<{ id: string; success: boolean; msg: string } | null>(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -152,12 +164,16 @@ export default function ShopPage() {
   }
 
   const filtered = cosmetics.filter(c => c.type === activeTab)
-  const isEquipped = (c: any) =>
-    (c.type === 'avatar'  && equipped.avatar === c.value) ||
-    (c.type === 'border'  && equipped.border === c.value) ||
-    (c.type === 'title'   && equipped.title  === c.value)
+  const isEquipped = (c: any) => {
+    if (c.type === 'avatar' && c.value === 'custom_upload')
+      return equipped.avatar.startsWith('http')
+    return (c.type === 'avatar'  && equipped.avatar === c.value) ||
+           (c.type === 'border'  && equipped.border === c.value) ||
+           (c.type === 'title'   && equipped.title  === c.value)
+  }
 
   return (
+    <>
     <div className="min-h-screen bg-navy text-text">
 
       {/* ── Nav ── */}
@@ -277,9 +293,13 @@ export default function ShopPage() {
                 <div className="w-full flex items-center justify-center pt-6 pb-3 px-4 relative min-h-[110px]">
 
                   {(c.type === 'avatar' || c.type === 'chat_emoji') && (
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center text-5xl ${r.avatarBg}`}
-                         style={c.rarity === 'legendary' ? { boxShadow: '0 0 24px rgba(245,197,24,0.18)' } : c.rarity === 'epic' ? { boxShadow: '0 0 18px rgba(168,85,247,0.18)' } : c.rarity === 'rare' ? { boxShadow: '0 0 14px rgba(34,211,238,0.12)' } : {}}>
-                      {c.value}
+                    <div className={`w-20 h-20 rounded-full flex items-center justify-center text-5xl overflow-hidden ${r.avatarBg}`}
+                         style={c.rarity === 'ultimate' ? { boxShadow: '0 0 28px rgba(245,197,24,0.25)' } : c.rarity === 'legendary' ? { boxShadow: '0 0 24px rgba(245,197,24,0.18)' } : c.rarity === 'epic' ? { boxShadow: '0 0 18px rgba(168,85,247,0.18)' } : c.rarity === 'rare' ? { boxShadow: '0 0 14px rgba(34,211,238,0.12)' } : {}}>
+                      {c.value === 'custom_upload'
+                        ? (equipped.avatar.startsWith('http')
+                            ? <img src={equipped.avatar} alt="avatar" className="w-full h-full object-cover" />
+                            : <span className="text-4xl">📸</span>)
+                        : c.value}
                     </div>
                   )}
 
@@ -319,10 +339,29 @@ export default function ShopPage() {
                       {flash.msg}
                     </div>
 
+                  ) : equip && c.value === 'custom_upload' ? (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="w-full py-1.5 text-center text-xs font-head font-bold text-gold border border-gold/50 bg-gold/5">
+                        ✓ EQUIPPED
+                      </div>
+                      <button onClick={() => setShowUploadModal(true)}
+                        className="w-full py-1.5 text-xs font-head font-bold transition-all"
+                        style={{ background: 'linear-gradient(90deg, #f5c518, #00d4ff)', color: '#0a0e27' }}>
+                        CHANGE PHOTO
+                      </button>
+                    </div>
+
                   ) : equip ? (
                     <div className="w-full py-2 text-center text-xs font-head font-bold text-gold border border-gold/50 bg-gold/5">
                       ✓ EQUIPPED
                     </div>
+
+                  ) : isOwned && c.value === 'custom_upload' ? (
+                    <button onClick={() => setShowUploadModal(true)}
+                      className="w-full py-2 text-xs font-head font-bold transition-all"
+                      style={{ background: 'linear-gradient(90deg, #f5c518, #00d4ff)', color: '#0a0e27' }}>
+                      UPLOAD PHOTO →
+                    </button>
 
                   ) : isOwned && c.type === 'chat_emoji' ? (
                     <div className="w-full py-2 text-center text-xs font-head font-bold text-success border border-success/30 bg-success/5">
@@ -345,9 +384,13 @@ export default function ShopPage() {
                     <button
                       onClick={() => handleBuy(c)}
                       disabled={tokens < c.token_cost || buying === c.id}
-                      className={`w-full py-2 text-xs font-head font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${r.buyBtn}`}
+                      className={`w-full py-2 text-xs font-head font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${c.rarity !== 'ultimate' ? r.buyBtn : ''}`}
                       style={
-                        c.rarity === 'legendary' && tokens >= c.token_cost
+                        c.rarity === 'ultimate' && tokens >= c.token_cost
+                          ? { background: 'linear-gradient(90deg, #f5c518, #00d4ff)', color: '#0a0e27', boxShadow: '0 0 18px rgba(245,197,24,0.35)' }
+                          : c.rarity === 'ultimate'
+                          ? { background: 'rgba(255,255,255,0.08)', color: '#7a7a9a' }
+                          : c.rarity === 'legendary' && tokens >= c.token_cost
                           ? { boxShadow: '0 0 14px rgba(245,197,24,0.28)' }
                           : {}
                       }>
@@ -376,6 +419,10 @@ export default function ShopPage() {
               {R[r].label}
             </span>
           ))}
+          <span className="text-[10px] font-head font-bold px-2 py-1 text-white border border-gold/50"
+            style={{ background: 'linear-gradient(90deg, rgba(245,197,24,0.15), rgba(0,212,255,0.1))' }}>
+            ULTIMATE
+          </span>
           <span className="ml-auto text-text-muted/40 font-head text-xs">Arena titles & borders earned through ranked play</span>
         </div>
 
@@ -396,5 +443,19 @@ export default function ShopPage() {
 
       </div>
     </div>
+
+    {showUploadModal && userId && (
+      <AvatarUploadModal
+        userId={userId}
+        onSuccess={(url) => {
+          setEquipped(prev => ({ ...prev, avatar: url }))
+          setShowUploadModal(false)
+          router.refresh()
+          toast('Ultimate avatar equipped!', 'success')
+        }}
+        onClose={() => setShowUploadModal(false)}
+      />
+    )}
+    </>
   )
 }

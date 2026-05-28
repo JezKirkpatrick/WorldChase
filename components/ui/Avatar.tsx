@@ -30,6 +30,8 @@ interface AvatarProps {
   className?: string
 }
 
+const isUrl = (s?: string) => typeof s === 'string' && s.startsWith('http')
+
 export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', className = '' }: AvatarProps) {
   const px     = SIZE_PX[size]  ?? 48
   const emSize = EMOJI_SIZE[size] ?? 'text-2xl'
@@ -38,9 +40,11 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
   if (!border || !RICH.has(border)) {
     const ring = RING[border ?? 'none'] ?? ''
     return (
-      <div className={`rounded-full bg-[#0B1628] flex items-center justify-center shrink-0 ${emSize} ${ring} ${className}`}
+      <div className={`rounded-full bg-[#0B1628] flex items-center justify-center shrink-0 overflow-hidden ${isUrl(emoji) ? '' : emSize} ${ring} ${className}`}
            style={{ width: px, height: px }}>
-        {emoji}
+        {isUrl(emoji)
+          ? <img src={emoji} alt="avatar" className="w-full h-full object-cover" />
+          : emoji}
       </div>
     )
   }
@@ -63,10 +67,12 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
       <div className="absolute rounded-full bg-[#0B1628] z-[1]"
            style={{ width: px, height: px, top: gap, left: gap }} />
 
-      {/* ── Emoji ── */}
-      <div className={`absolute z-[2] flex items-center justify-center ${emSize}`}
+      {/* ── Emoji / Photo ── */}
+      <div className={`absolute z-[2] flex items-center justify-center overflow-hidden rounded-full ${isUrl(emoji) ? '' : emSize}`}
            style={{ width: px, height: px, top: gap, left: gap }}>
-        {emoji}
+        {isUrl(emoji)
+          ? <img src={emoji} alt="avatar" className="w-full h-full object-cover" />
+          : emoji}
       </div>
 
       {/* ── Crown decoration for gold ── */}

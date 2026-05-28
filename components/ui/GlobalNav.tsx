@@ -69,8 +69,10 @@ export default async function GlobalNav() {
           <span>🪙</span>
           <span>{profile?.tokens ?? 0}</span>
         </Link>
-        <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg ${ring} transition-all hover:scale-105`} title="Profile">
-          {avatar}
+        <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105`} title="Profile">
+          {avatar.startsWith('http')
+            ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
+            : avatar}
         </Link>
         <div className="hidden sm:flex items-center gap-2">
           <Link href="/settings" className="text-xl text-text-muted hover:text-white transition-colors px-2 py-1" title="Account settings">
