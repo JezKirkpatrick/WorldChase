@@ -23,7 +23,7 @@ export default async function PublicProfilePage({ params }: { params: { username
 
   const [progressRes, lbRes] = await Promise.all([
     service.from('player_progress')
-      .select('status, score_earned, time_taken_seconds, clues_revealed, challenges(difficulty)')
+      .select('status, score_earned, time_taken_seconds, clues_revealed, challenge_id')
       .eq('user_id', profile.id),
     supabase.from('leaderboard')
       .select('rank, total_score')
@@ -33,20 +33,27 @@ export default async function PublicProfilePage({ params }: { params: { username
   ])
 
   const progress = progressRes.data ?? []
-  const completed = progress.filter((p: any) => p.status === 'completed').length
+  const completedRows = progress.filter((p: any) => p.status === 'completed')
+  const completed = completedRows.length
   const skipped = progress.filter((p: any) => p.status === 'skipped').length
   const totalScore = progress.reduce((s: number, p: any) => s + (p.score_earned ?? 0), 0)
-  const times = progress
-    .filter((p: any) => p.time_taken_seconds && p.status === 'completed')
-    .map((p: any) => p.time_taken_seconds as number)
+  const times = completedRows.filter((p: any) => p.time_taken_seconds).map((p: any) => p.time_taken_seconds as number)
   const bestTime = times.length ? Math.min(...times) : Infinity
-  const noClueWin = progress.some((p: any) => p.status === 'completed' && (p.clues_revealed ?? 1) === 0)
-  const hardCompleted = progress.filter((p: any) =>
-    p.status === 'completed' && (p.challenges as any)?.difficulty === 'hard'
-  ).length
-  const extremeCompleted = progress.filter((p: any) =>
-    p.status === 'completed' && (p.challenges as any)?.difficulty === 'extreme'
-  ).length
+  const noClueWin = completedRows.some((p: any) => (p.clues_revealed ?? 1) === 0)
+
+  // Fetch difficulties for completed challenges separately to avoid join issues
+  const completedChallengeIds = completedRows.map((p: any) => p.challenge_id).filter(Boolean)
+  let hardCompleted = 0
+  let extremeCompleted = 0
+  if (completedChallengeIds.length > 0) {
+    const { data: diffData } = await service.from('challenges')
+      .select('id, difficulty')
+      .in('id', completedChallengeIds)
+    const diffMap = new Map((diffData ?? []).map((c: any) => [c.id, c.difficulty]))
+    hardCompleted = completedRows.filter((p: any) => diffMap.get(p.challenge_id) === 'hard').length
+    extremeCompleted = completedRows.filter((p: any) => diffMap.get(p.challenge_id) === 'extreme').length
+  }
+
   const perfectMonth = completed >= 20 && skipped === 0
 
   const bestRank = lbRes.data?.[0]
