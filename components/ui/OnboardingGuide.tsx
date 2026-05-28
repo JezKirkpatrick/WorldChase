@@ -25,6 +25,8 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
   const [claimed, setClaimed] = useState<string[]>([])
   const [claiming, setClaiming] = useState(false)
   const [tokensGained, setTokensGained] = useState(0)
+  const [visitedLeaderboard, setVisitedLeaderboard] = useState(false)
+  const [visitedProfile, setVisitedProfile] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -32,8 +34,20 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       if (d === '1') setDismissed(true)
       const c = localStorage.getItem(`wc_onboarding_claimed_${userId}`)
       if (c) setClaimed(JSON.parse(c))
+      if (localStorage.getItem(`wc_visited_leaderboard_${userId}`) === '1') setVisitedLeaderboard(true)
+      if (localStorage.getItem(`wc_visited_profile_${userId}`) === '1') setVisitedProfile(true)
     }
   }, [userId])
+
+  function markVisited(stepId: string) {
+    if (stepId === 'leaderboard') {
+      localStorage.setItem(`wc_visited_leaderboard_${userId}`, '1')
+      setVisitedLeaderboard(true)
+    } else if (stepId === 'profile') {
+      localStorage.setItem(`wc_visited_profile_${userId}`, '1')
+      setVisitedProfile(true)
+    }
+  }
 
   const steps: Step[] = [
     {
@@ -70,7 +84,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       href: '/leaderboard',
       cta: 'VIEW LEADERBOARD',
       tokens: 1,
-      done: hasLeaderboardRank,
+      done: visitedLeaderboard || hasLeaderboardRank,
     },
     {
       id: 'profile',
@@ -79,7 +93,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
       href: '/profile',
       cta: 'MY PROFILE',
       tokens: 1,
-      done: false, // always re-claimable when dismissed
+      done: visitedProfile,
     },
   ]
 
@@ -174,6 +188,7 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
                     <span className="text-xs font-mono text-gold/70">+{step.tokens}🪙</span>
                     {!step.done && (
                       <Link href={step.href}
+                        onClick={() => markVisited(step.id)}
                         className="text-xs font-head font-bold text-electric border border-electric/30 px-2 py-1 hover:bg-electric/10 transition-all">
                         {step.cta} →
                       </Link>
