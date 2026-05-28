@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface Step {
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderboardRank, userId }: Props) {
+  const router = useRouter()
   const [dismissed, setDismissed] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [claimed, setClaimed] = useState<string[]>([])
@@ -116,10 +118,12 @@ export default function OnboardingGuide({ completedCount, hasAvatar, hasLeaderbo
         body: JSON.stringify({ stepIds: unclaimedDone.map(s => s.id) }),
       })
       if (res.ok) {
+        const { tokensEarned } = await res.json()
         const newClaimed = [...claimed, ...unclaimedDone.map(s => s.id)]
         setClaimed(newClaimed)
         localStorage.setItem(`wc_onboarding_claimed_${userId}`, JSON.stringify(newClaimed))
-        setTokensGained(pendingTokens)
+        setTokensGained(tokensEarned ?? pendingTokens)
+        router.refresh()
         setTimeout(() => setTokensGained(0), 3000)
       }
     } finally {
