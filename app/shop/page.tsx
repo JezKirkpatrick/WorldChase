@@ -330,6 +330,11 @@ export default function ShopPage() {
                 {/* ── Item info ── */}
                 <div className="w-full px-4 pb-1 text-center relative">
                   <div className="text-white font-head font-bold text-sm">{c.name}</div>
+                  {c.value === 'custom_upload' && (
+                    <div className="mt-1 text-[10px] font-head text-text-muted leading-snug">
+                      Upload your own photo as your avatar
+                    </div>
+                  )}
                 </div>
 
                 {/* ── Action button ── */}
