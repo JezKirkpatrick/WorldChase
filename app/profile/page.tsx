@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-server'
+import { createClient, createServiceClient } from '@/lib/supabase-server'
 import { getUser } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import Avatar from '@/components/ui/Avatar'
@@ -16,9 +16,10 @@ export default async function ProfilePage() {
   if (!user) redirect('/auth/login')
 
   const supabase = createClient()
+  const service = createServiceClient()
   const [profileRes, progressRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-    supabase.from('player_progress')
+    service.from('player_progress')
       .select('status, score_earned, time_taken_seconds, clues_revealed, challenges(difficulty)')
       .eq('user_id', user.id),
   ])
