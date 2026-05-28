@@ -21,6 +21,7 @@ type Message = {
 }
 type ReactionGroup = { emoji: string; count: number; reacted: boolean }
 type ReactionsMap  = Record<string, ReactionGroup[]>
+type PickerPos     = { top?: number; bottom?: number; left: number }
 
 const GHOST: Profile = { username: 'hunter', display_name: null, equipped_avatar: '🌍', equipped_title: null }
 
@@ -28,12 +29,28 @@ function timeStr(ts: string) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+function isUrl(s?: string | null) {
+  return typeof s === 'string' && s.startsWith('http')
+}
+
+function AvatarBubble({ src, mine, size = 8 }: { src?: string | null; mine?: boolean; size?: number }) {
+  const avatar = src ?? '🌍'
+  const px = size * 4
+  return (
+    <div
+      className={`rounded-full flex items-center justify-center shrink-0 overflow-hidden ${mine ? 'ring-1 ring-gold/40 bg-gold/10' : 'bg-white/8'}`}
+      style={{ width: px, height: px, fontSize: px * 0.5 }}>
+      {isUrl(avatar)
+        ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
+        : avatar}
+    </div>
+  )
+}
+
 function addRx(prev: ReactionsMap, msgId: string, emoji: string, byUser: string, myId: string): ReactionsMap {
   const list = prev[msgId] ?? []
   const hit  = list.find(g => g.emoji === emoji)
-  if (hit) {
-    return { ...prev, [msgId]: list.map(g => g.emoji === emoji ? { ...g, count: g.count + 1, reacted: g.reacted || byUser === myId } : g) }
-  }
+  if (hit) return { ...prev, [msgId]: list.map(g => g.emoji === emoji ? { ...g, count: g.count + 1, reacted: g.reacted || byUser === myId } : g) }
   return { ...prev, [msgId]: [...list, { emoji, count: 1, reacted: byUser === myId }] }
 }
 
@@ -87,6 +104,7 @@ export default function ChatClient({ userId }: { userId: string }) {
   const [tableReady,    setTableReady]    = useState(true)
   const [sqlCopied,     setSqlCopied]     = useState(false)
   const [pickerMsgId,   setPickerMsgId]   = useState<string | null>(null)
+  const [pickerPos,     setPickerPos]     = useState<PickerPos | null>(null)
 
   const bottomRef    = useRef<HTMLDivElement>(null)
   const inputRef     = useRef<HTMLInputElement>(null)
@@ -100,12 +118,26 @@ export default function ChatClient({ userId }: { userId: string }) {
   function scrollToBottom(smooth = false) {
     bottomRef.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant' })
   }
+  function closePicker() { setPickerMsgId(null); setPickerPos(null) }
+
+  function openPicker(msgId: string, e: React.MouseEvent<HTMLButtonElement>) {
+    if (pickerMsgId === msgId) { closePicker(); return }
+    const rect = e.currentTarget.getBoundingClientRect()
+    const above = rect.top > window.innerHeight / 2
+    setPickerMsgId(msgId)
+    setPickerPos({
+      left: Math.max(4, Math.min(rect.left - 4, window.innerWidth - 252)),
+      ...(above
+        ? { bottom: window.innerHeight - rect.top + 6 }
+        : { top: rect.bottom + 6 }),
+    })
+  }
 
   // Close picker on outside click
   useEffect(() => {
     if (!pickerMsgId) return
     function handle(e: MouseEvent) {
-      if (!(e.target as Element).closest('[data-picker]')) setPickerMsgId(null)
+      if (!(e.target as Element).closest('[data-picker]')) closePicker()
     }
     document.addEventListener('mousedown', handle)
     return () => document.removeEventListener('mousedown', handle)
@@ -118,13 +150,11 @@ export default function ChatClient({ userId }: { userId: string }) {
     let presCh: ReturnType<typeof supabase.channel> | null = null
 
     async function init() {
-      // My profile
       const { data: me } = await supabase
         .from('profiles').select('username,display_name,equipped_avatar,equipped_title')
         .eq('id', userId).maybeSingle()
       if (me) { setMyProfile(me as Profile); profileCache.current[userId] = me as Profile }
 
-      // Owned premium reaction emojis
       const { data: ownedRows } = await supabase
         .from('user_cosmetics').select('cosmetics(type,value)').eq('user_id', userId)
       const emojiSet = new Set<string>()
@@ -134,7 +164,6 @@ export default function ChatClient({ userId }: { userId: string }) {
       }
       setOwnedEmojis(emojiSet)
 
-      // Recent messages
       const { data: rows, error } = await supabase
         .from('chat_messages')
         .select('id,user_id,content,created_at,profiles(username,display_name,equipped_avatar,equipped_title)')
@@ -148,7 +177,6 @@ export default function ChatClient({ userId }: { userId: string }) {
       })
       setMessages(msgs)
 
-      // Reactions for loaded messages
       if (msgs.length > 0) {
         const { data: rxData } = await supabase
           .from('chat_reactions').select('message_id,emoji,user_id')
@@ -165,7 +193,6 @@ export default function ChatClient({ userId }: { userId: string }) {
         }
       }
 
-      // Realtime — messages
       msgCh = supabase.channel('wc_chat_messages')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, async (payload: any) => {
           const row = payload.new as { id: string; user_id: string; content: string; created_at: string }
@@ -180,7 +207,6 @@ export default function ChatClient({ userId }: { userId: string }) {
           setMessages(prev => [...prev, { ...row, profile }])
         }).subscribe()
 
-      // Realtime — reactions
       rxCh = supabase.channel('wc_chat_reactions')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_reactions' }, (payload: any) => {
           const { message_id, emoji, user_id } = payload.new
@@ -191,7 +217,6 @@ export default function ChatClient({ userId }: { userId: string }) {
           setReactions(prev => removeRx(prev, message_id, emoji, user_id, userId))
         }).subscribe()
 
-      // Presence
       presCh = supabase.channel('wc_chat_presence', { config: { presence: { key: userId } } })
         .on('presence', { event: 'sync' }, () => {
           setOnlineCount(Object.keys(presCh!.presenceState()).length)
@@ -234,8 +259,6 @@ export default function ChatClient({ userId }: { userId: string }) {
     if (!FREE_REACTIONS.includes(emoji) && !ownedEmojis.has(emoji)) return
     const supabase = createClient()
     const reacted = reactions[messageId]?.find(g => g.emoji === emoji)?.reacted
-
-    // Optimistic update — show reaction immediately without waiting for realtime
     if (reacted) {
       setReactions(prev => removeRx(prev, messageId, emoji, userId, userId))
       const { error } = await supabase.from('chat_reactions').delete().match({ message_id: messageId, user_id: userId, emoji })
@@ -247,7 +270,7 @@ export default function ChatClient({ userId }: { userId: string }) {
     }
   }
 
-  // ── Not set up ───────────────────────────────────────────────────────
+  // ── Not set up ────────────────────────────────────────────────────────
   if (!tableReady) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10">
@@ -284,182 +307,211 @@ export default function ChatClient({ userId }: { userId: string }) {
     )
   }
 
-  // ── Main UI ──────────────────────────────────────────────────────────
+  // ── Main UI ───────────────────────────────────────────────────────────
   return (
+    <>
     <div className="flex flex-col flex-1 min-h-0" style={{ height: 'calc(100vh - 56px)' }}>
-      <div className="max-w-3xl w-full mx-auto flex flex-col h-full px-4 pt-5 pb-4 gap-3">
+      <div className="max-w-3xl w-full mx-auto flex flex-col h-full">
 
-        {/* Header */}
-        <div className="flex items-center justify-between shrink-0">
-          <div>
-            <h1 className="font-head font-bold text-gold tracking-widest text-lg leading-none">🌐 HUNTER CHAT</h1>
-            <p className="text-text-muted font-head text-xs mt-1">Global chat · everyone sees this</p>
-          </div>
-          {onlineCount > 0 && (
-            <div className="flex items-center gap-1.5 bg-navy-light border border-white/10 px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
-              <span className="text-green-400 font-head font-bold text-xs tracking-wider">
-                {onlineCount} {onlineCount === 1 ? 'HUNTER' : 'HUNTERS'} HERE
-              </span>
+        {/* ── Header ── */}
+        <div className="shrink-0 border-b border-white/8 px-5 py-3 flex items-center justify-between bg-navy-light/60 backdrop-blur">
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col">
+              <div className="font-head font-bold text-white tracking-widest text-sm leading-none">HUNTER CHAT</div>
+              <div className="text-text-muted font-head text-[10px] tracking-wider mt-0.5">Global · everyone online sees this</div>
             </div>
-          )}
+          </div>
+          <div className="flex items-center gap-3">
+            {onlineCount > 0 && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 border border-green-400/20 bg-green-400/5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+                <span className="text-green-400 font-head font-bold text-[10px] tracking-widest">
+                  {onlineCount} {onlineCount === 1 ? 'ONLINE' : 'ONLINE'}
+                </span>
+              </div>
+            )}
+            <Link href="/shop" className="text-[10px] font-head text-text-muted hover:text-gold transition-colors tracking-widest">
+              🪙 REACTIONS
+            </Link>
+          </div>
         </div>
 
-        {/* Messages */}
-        <div ref={scrollRef} onScroll={() => { if (nearBottom()) setShowScrollBtn(false) }}
-             className="flex-1 overflow-y-auto min-h-0 flex flex-col"
-             style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.07) transparent' }}>
-
+        {/* ── Messages ── */}
+        <div
+          ref={scrollRef}
+          onScroll={() => {
+            if (nearBottom()) setShowScrollBtn(false)
+            if (pickerMsgId) closePicker()
+          }}
+          className="flex-1 overflow-y-auto min-h-0 px-4 py-2"
+          style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.06) transparent' }}
+        >
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center flex-1 gap-3 opacity-40 select-none">
+            <div className="flex flex-col items-center justify-center h-full gap-3 opacity-30 select-none">
               <span className="text-5xl">💬</span>
-              <span className="text-text-muted font-head text-sm tracking-widest">NO MESSAGES YET</span>
+              <span className="text-text-muted font-head text-xs tracking-[0.3em]">NO MESSAGES YET — SAY HELLO</span>
             </div>
           )}
 
-          <div className="flex flex-col gap-0">
-            {messages.map((msg, i) => {
-              const prev    = messages[i - 1]
-              const isMine  = msg.user_id === userId
-              const grouped = prev?.user_id === msg.user_id &&
-                new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000
-              const msgRx   = reactions[msg.id] ?? []
-              const msgId   = msg.id
+          {messages.map((msg, i) => {
+            const prev    = messages[i - 1]
+            const isMine  = msg.user_id === userId
+            const grouped = prev?.user_id === msg.user_id &&
+              new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000
+            const msgRx = reactions[msg.id] ?? []
+            const msgId = msg.id
 
-              // Reaction pills + picker — plain JSX, no nested component
-              const rxRow = (
-                <div className="flex flex-wrap gap-1 mt-1.5 items-center">
-                  {[...msgRx].sort((a, b) => b.count - a.count).map(g => (
-                    <button key={g.emoji} onClick={() => toggleReaction(msgId, g.emoji)}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all ${
-                        g.reacted
-                          ? 'bg-gold/15 border-gold/40 text-gold'
-                          : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:border-white/25 hover:text-white/90'
-                      }`}>
-                      <span>{g.emoji}</span>
-                      <span className="font-mono text-[11px]">{g.count}</span>
-                    </button>
-                  ))}
+            const reactionRow = (msgRx.length > 0 || true) && (
+              <div className="flex flex-wrap gap-1 mt-1.5 items-center">
+                {[...msgRx].sort((a, b) => b.count - a.count).map(g => (
+                  <button key={g.emoji} onClick={() => toggleReaction(msgId, g.emoji)}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all ${
+                      g.reacted
+                        ? 'bg-gold/15 border-gold/40 text-gold'
+                        : 'bg-white/5 border-white/10 text-white/55 hover:bg-white/10 hover:border-white/25 hover:text-white/90'
+                    }`}>
+                    <span>{g.emoji}</span>
+                    <span className="font-mono text-[11px] leading-none">{g.count}</span>
+                  </button>
+                ))}
 
-                  {/* Add-reaction trigger */}
-                  <div className="relative" data-picker>
-                    <button
-                      onClick={() => setPickerMsgId(pickerMsgId === msgId ? null : msgId)}
-                      className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs border border-white/10 text-white/30 hover:text-white/70 hover:border-white/25 transition-all ${msgRx.length === 0 ? 'opacity-0 group-hover:opacity-100' : ''}`}
-                      title="Add reaction"
-                    >
-                      <span>😊</span><span className="font-bold">+</span>
-                    </button>
+                {/* Add-reaction trigger */}
+                <div data-picker>
+                  <button
+                    onClick={e => openPicker(msgId, e)}
+                    className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs border transition-all
+                      ${pickerMsgId === msgId
+                        ? 'border-gold/40 bg-gold/10 text-gold'
+                        : 'border-white/10 text-white/25 hover:text-white/60 hover:border-white/25'}
+                      ${msgRx.length === 0 ? 'opacity-0 group-hover:opacity-100' : ''}`}
+                    title="Add reaction"
+                  >
+                    <span className="text-base leading-none">😊</span>
+                    <span className="font-bold text-[10px]">+</span>
+                  </button>
+                </div>
+              </div>
+            )
 
-                    {pickerMsgId === msgId && (
-                      <div className="absolute bottom-full left-0 mb-1 z-50 p-2 border border-white/15 bg-[#0c1423] shadow-2xl flex flex-wrap gap-1.5 w-56">
-                        <div className="w-full text-[9px] font-head text-text-muted/60 tracking-widest mb-0.5">FREE</div>
-                        {FREE_REACTIONS.map(e => (
-                          <button key={e} onClick={() => { toggleReaction(msgId, e); setPickerMsgId(null) }}
-                            className={`w-8 h-8 flex items-center justify-center text-xl hover:bg-white/10 rounded transition-all ${msgRx.find(g => g.emoji === e)?.reacted ? 'bg-gold/15 ring-1 ring-gold/40' : ''}`}>
-                            {e}
-                          </button>
-                        ))}
-                        {ownedEmojis.size > 0 && (
-                          <>
-                            <div className="w-full border-t border-white/10 mt-0.5" />
-                            <div className="w-full text-[9px] font-head text-gold/60 tracking-widest mb-0.5">YOUR REACTIONS</div>
-                            {[...ownedEmojis].map(e => (
-                              <button key={e} onClick={() => { toggleReaction(msgId, e); setPickerMsgId(null) }}
-                                className={`w-8 h-8 flex items-center justify-center text-xl hover:bg-white/10 rounded transition-all ${msgRx.find(g => g.emoji === e)?.reacted ? 'bg-gold/15 ring-1 ring-gold/40' : ''}`}>
-                                {e}
-                              </button>
-                            ))}
-                          </>
-                        )}
-                        <div className="w-full border-t border-white/10 mt-0.5 pt-1 text-center">
-                          <Link href="/shop" onClick={() => setPickerMsgId(null)}
-                            className="text-[10px] font-head text-gold/50 hover:text-gold transition-colors">
-                            🪙 unlock more reactions
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            if (grouped) {
+              return (
+                <div key={msg.id} className="flex flex-col pl-[42px] py-0.5 group hover:bg-white/[0.015] rounded px-1 -mx-1">
+                  <p className="text-white/80 text-sm break-words leading-relaxed">{msg.content}</p>
+                  {reactionRow}
                 </div>
               )
+            }
 
-              if (grouped) {
-                return (
-                  <div key={msg.id} className="flex flex-col pl-10 px-1 py-0.5 group hover:bg-white/[0.02] rounded">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-8 shrink-0" />
-                      <p className="text-white/85 text-sm break-words leading-relaxed flex-1 min-w-0">{msg.content}</p>
-                      <span className="text-white/20 font-mono text-xs shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+            return (
+              <div key={msg.id} className="flex flex-col px-1 -mx-1 pt-3 pb-0.5 group hover:bg-white/[0.015] rounded">
+                <div className="flex items-start gap-2.5">
+                  <AvatarBubble src={msg.profile.equipped_avatar} mine={isMine} size={8} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className={`font-head font-bold text-sm leading-none ${isMine ? 'text-gold' : 'text-white'}`}>
+                        {msg.profile.display_name || msg.profile.username}
+                      </span>
+                      {msg.profile.equipped_title && (
+                        <span className="text-[10px] font-head text-text-muted border border-white/10 px-1.5 py-0.5 leading-none">
+                          {msg.profile.equipped_title}
+                        </span>
+                      )}
+                      <span className="font-mono text-[11px] text-white/20 ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         {timeStr(msg.created_at)}
                       </span>
                     </div>
-                    <div className="pl-8">{rxRow}</div>
-                  </div>
-                )
-              }
-
-              return (
-                <div key={msg.id} className="flex flex-col px-1 pt-3 pb-0.5 hover:bg-white/[0.02] rounded group">
-                  <div className="flex items-start gap-2.5">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg shrink-0 mt-0.5 ${isMine ? 'bg-gold/15 ring-1 ring-gold/30' : 'bg-white/8'}`}>
-                      {msg.profile.equipped_avatar ?? '🌍'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className={`font-head font-bold text-sm leading-none ${isMine ? 'text-gold' : 'text-white'}`}>
-                          {msg.profile.display_name || msg.profile.username}
-                        </span>
-                        {msg.profile.equipped_title && (
-                          <span className="text-text-muted font-head text-xs">· {msg.profile.equipped_title}</span>
-                        )}
-                        <span className="font-mono text-xs text-white/25 ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          {timeStr(msg.created_at)}
-                        </span>
-                      </div>
-                      <p className="text-white/85 text-sm mt-1 break-words leading-relaxed">{msg.content}</p>
-                      {rxRow}
-                    </div>
+                    <p className="text-white/80 text-sm mt-1 break-words leading-relaxed">{msg.content}</p>
+                    {reactionRow}
                   </div>
                 </div>
-              )
-            })}
-          </div>
-          <div ref={bottomRef} className="h-1" />
+              </div>
+            )
+          })}
+
+          <div ref={bottomRef} className="h-2" />
         </div>
 
+        {/* ── Scroll-to-bottom pill ── */}
         {showScrollBtn && (
-          <div className="shrink-0 flex justify-center -mt-1">
+          <div className="shrink-0 flex justify-center py-1.5">
             <button onClick={() => { scrollToBottom(true); setShowScrollBtn(false) }}
-              className="text-xs font-head text-gold border border-gold/30 px-4 py-1 hover:border-gold hover:bg-gold/5 transition-all">
+              className="text-[10px] font-head text-gold border border-gold/30 px-4 py-1.5 tracking-widest hover:border-gold hover:bg-gold/5 transition-all">
               ↓ NEW MESSAGES
             </button>
           </div>
         )}
 
-        {/* Input bar */}
-        <div className="shrink-0 border border-white/10 bg-navy-light flex items-center gap-3 px-3 py-2">
-          <div className="w-7 h-7 rounded-full bg-gold/15 ring-1 ring-gold/30 flex items-center justify-center text-base shrink-0">
-            {myProfile.equipped_avatar ?? '🌍'}
-          </div>
-          <input ref={inputRef} type="text" value={input}
+        {/* ── Input bar ── */}
+        <div className="shrink-0 border-t border-white/8 bg-navy-light/60 backdrop-blur px-4 py-3 flex items-center gap-3">
+          <AvatarBubble src={myProfile.equipped_avatar} mine size={7} />
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
             onChange={e => setInput(e.target.value.slice(0, 300))}
             onKeyDown={e => { if (e.key === 'Enter') send() }}
-            placeholder="Message all hunters… (Enter to send)"
-            className="flex-1 bg-transparent text-white font-head text-sm placeholder:text-text-muted outline-none py-1 min-w-0"
+            placeholder="Message all hunters…"
+            className="flex-1 bg-transparent text-white/90 font-head text-sm placeholder:text-white/20 outline-none min-w-0"
           />
-          {input.length > 0 && (
+          {input.length > 250 && (
             <span className={`font-mono text-xs shrink-0 ${input.length > 280 ? 'text-danger' : 'text-text-muted'}`}>
-              {input.length}/300
+              {300 - input.length}
             </span>
           )}
-          <button onClick={send} disabled={!input.trim() || sending}
-            className="px-4 py-1.5 bg-gold text-navy font-head font-bold text-xs tracking-widest hover:bg-gold-dim transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
+          <button
+            onClick={send}
+            disabled={!input.trim() || sending}
+            className="px-4 py-1.5 bg-gold text-navy font-head font-bold text-xs tracking-widest hover:bg-gold-dim transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+          >
             {sending ? '···' : 'SEND'}
           </button>
         </div>
 
       </div>
     </div>
+
+    {/* ── Reaction picker — fixed, always on-screen ── */}
+    {pickerMsgId && pickerPos && (
+      <div data-picker
+        className="fixed z-[200] p-2.5 border border-white/15 bg-[#0c1423]/95 backdrop-blur shadow-2xl w-60"
+        style={pickerPos}>
+        <div className="text-[9px] font-head text-text-muted/50 tracking-widest mb-1.5">FREE REACTIONS</div>
+        <div className="flex flex-wrap gap-1">
+          {FREE_REACTIONS.map(e => {
+            const active = reactions[pickerMsgId]?.find(g => g.emoji === e)?.reacted
+            return (
+              <button key={e} onClick={() => { toggleReaction(pickerMsgId, e); closePicker() }}
+                className={`w-9 h-9 flex items-center justify-center text-xl rounded transition-all hover:bg-white/10 ${active ? 'bg-gold/15 ring-1 ring-gold/40' : ''}`}>
+                {e}
+              </button>
+            )
+          })}
+        </div>
+        {ownedEmojis.size > 0 && (
+          <>
+            <div className="border-t border-white/10 my-2" />
+            <div className="text-[9px] font-head text-gold/50 tracking-widest mb-1.5">YOUR REACTIONS</div>
+            <div className="flex flex-wrap gap-1">
+              {[...ownedEmojis].map(e => {
+                const active = reactions[pickerMsgId]?.find(g => g.emoji === e)?.reacted
+                return (
+                  <button key={e} onClick={() => { toggleReaction(pickerMsgId, e); closePicker() }}
+                    className={`w-9 h-9 flex items-center justify-center text-xl rounded transition-all hover:bg-white/10 ${active ? 'bg-gold/15 ring-1 ring-gold/40' : ''}`}>
+                    {e}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
+        <div className="border-t border-white/10 mt-2 pt-2 text-center">
+          <Link href="/shop" onClick={closePicker}
+            className="text-[10px] font-head text-gold/40 hover:text-gold transition-colors tracking-wide">
+            🪙 unlock more reactions
+          </Link>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
