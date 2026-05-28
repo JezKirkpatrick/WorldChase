@@ -18,17 +18,17 @@ export default async function FriendsPage() {
   const { data: rows } = await supabase
     .from('friendships')
     .select('id,status,requester_id,addressee_id,requester:profiles!requester_id(id,username,display_name,equipped_avatar),addressee:profiles!addressee_id(id,username,display_name,equipped_avatar)')
-    .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+    .or(`requester_id.eq.${user!.id},addressee_id.eq.${user!.id}`)
     .neq('status', 'declined')
 
   const friendships = rows ?? []
 
   function friendOf(f: any): FriendProfile {
-    return f.requester_id === user.id ? f.addressee : f.requester
+    return f.requester_id === user!.id ? f.addressee : f.requester
   }
 
   const accepted   = friendships.filter((f: any) => f.status === 'accepted')
-  const pendingIn  = friendships.filter((f: any) => f.status === 'pending' && f.addressee_id === user.id)
+  const pendingIn  = friendships.filter((f: any) => f.status === 'pending' && f.addressee_id === user!.id)
 
   return (
     <div className="min-h-screen bg-navy text-text">

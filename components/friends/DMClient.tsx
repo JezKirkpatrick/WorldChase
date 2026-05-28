@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import Link from 'next/link'
 
-type DMMessage = { id: string; sender_id: string; content: string; created_at: string }
+type DMMessage = { id: string; sender_id: string; recipient_id?: string; content: string; created_at: string }
 type FriendProfile = { id: string; username: string; display_name: string | null; equipped_avatar: string | null }
 
 function timeStr(ts: string) {
