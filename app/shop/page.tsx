@@ -444,9 +444,8 @@ export default function ShopPage() {
       </div>
     </div>
 
-    {showUploadModal && userId && (
+    {showUploadModal && (
       <AvatarUploadModal
-        userId={userId}
         onSuccess={(url) => {
           setEquipped(prev => ({ ...prev, avatar: url }))
           setShowUploadModal(false)

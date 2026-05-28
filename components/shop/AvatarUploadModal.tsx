@@ -1,14 +1,12 @@
 'use client'
 import { useState, useRef } from 'react'
-import { createClient } from '@/lib/supabase'
 
 interface Props {
-  userId: string
   onSuccess: (url: string) => void
   onClose: () => void
 }
 
-export default function AvatarUploadModal({ userId, onSuccess, onClose }: Props) {
+export default function AvatarUploadModal({ onSuccess, onClose }: Props) {
   const [preview, setPreview]   = useState<string | null>(null)
   const [blob, setBlob]         = useState<Blob | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -50,25 +48,12 @@ export default function AvatarUploadModal({ userId, onSuccess, onClose }: Props)
     setUploading(true)
     setError('')
     try {
-      const supabase = createClient()
-      const path = `${userId}/avatar.jpg`
-
-      const { error: upErr } = await supabase.storage
-        .from('avatars')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: true })
-      if (upErr) throw upErr
-
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      // Cache-bust so the browser shows the new image immediately
-      const url = `${publicUrl}?t=${Date.now()}`
-
-      const { error: profErr } = await supabase
-        .from('profiles')
-        .update({ equipped_avatar: url })
-        .eq('id', userId)
-      if (profErr) throw profErr
-
-      onSuccess(url)
+      const formData = new FormData()
+      formData.append('file', blob, 'avatar.jpg')
+      const res = await fetch('/api/avatar/upload', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      onSuccess(data.url)
     } catch (e: any) {
       setError(e.message ?? 'Upload failed — please try again')
     }
