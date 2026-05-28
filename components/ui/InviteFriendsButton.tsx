@@ -5,20 +5,24 @@ const FB_APP_ID = '1613984633019651'
 export default function InviteFriendsButton({ className }: { className?: string }) {
   async function handleClick() {
     const gameUrl = window.location.origin
-    const text = 'Come play WorldChase with me! 🌍 Race to name locations around the globe.'
+    const encoded = encodeURIComponent(gameUrl)
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
 
-    // Mobile: native share sheet lets user pick Messenger, WhatsApp, SMS, etc.
-    if (typeof navigator !== 'undefined' && navigator.share) {
+    if (isMobile && navigator.share) {
+      // Mobile: native share sheet — user can pick Messenger, WhatsApp, SMS, etc.
       try {
-        await navigator.share({ title: 'WorldChase', text, url: gameUrl })
+        await navigator.share({
+          title: 'WorldChase',
+          text: 'Come play WorldChase with me! 🌍 Race to name locations around the globe.',
+          url: gameUrl,
+        })
         return
       } catch {
-        // User cancelled or browser blocked — fall through to Messenger dialog
+        // Cancelled or failed — fall through to Messenger dialog
       }
     }
 
-    // Desktop: Facebook Send Dialog (opens pre-filled Messenger share)
-    const encoded = encodeURIComponent(gameUrl)
+    // Desktop (and mobile fallback): Facebook Send Dialog → opens directly in Messenger
     window.open(
       `https://www.facebook.com/dialog/send?app_id=${FB_APP_ID}&link=${encoded}&redirect_uri=${encoded}`,
       'fb-messenger-send',
