@@ -71,7 +71,8 @@ create policy "read_rx" on public.chat_reactions for select using (auth.role() =
 create policy "insert_rx" on public.chat_reactions for insert with check (auth.uid() = user_id);
 create policy "delete_rx" on public.chat_reactions for delete using (auth.uid() = user_id);
 create index if not exists chat_reactions_message_idx on public.chat_reactions(message_id);
-alter publication supabase_realtime add table public.chat_reactions;`
+alter publication supabase_realtime add table public.chat_reactions;
+alter table public.chat_reactions replica identity full;`
 
 // ── Component ─────────────────────────────────────────────────────────
 export default function ChatClient({ userId }: { userId: string }) {
@@ -233,10 +234,16 @@ export default function ChatClient({ userId }: { userId: string }) {
     if (!FREE_REACTIONS.includes(emoji) && !ownedEmojis.has(emoji)) return
     const supabase = createClient()
     const reacted = reactions[messageId]?.find(g => g.emoji === emoji)?.reacted
+
+    // Optimistic update — show reaction immediately without waiting for realtime
     if (reacted) {
-      await supabase.from('chat_reactions').delete().match({ message_id: messageId, user_id: userId, emoji })
+      setReactions(prev => removeRx(prev, messageId, emoji, userId, userId))
+      const { error } = await supabase.from('chat_reactions').delete().match({ message_id: messageId, user_id: userId, emoji })
+      if (error) setReactions(prev => addRx(prev, messageId, emoji, userId, userId))
     } else {
-      await supabase.from('chat_reactions').insert({ message_id: messageId, user_id: userId, emoji })
+      setReactions(prev => addRx(prev, messageId, emoji, userId, userId))
+      const { error } = await supabase.from('chat_reactions').insert({ message_id: messageId, user_id: userId, emoji })
+      if (error) setReactions(prev => removeRx(prev, messageId, emoji, userId, userId))
     }
   }
 

@@ -107,21 +107,32 @@ export async function POST(req: NextRequest) {
         : 0
       const score = calculateScore(challenge.difficulty, progress.clues_revealed, wrongAttempts, timeTaken)
 
-      await Promise.all([
-        supabase.from('player_progress').update({
-          status: 'completed', attempts: newAttempts, score_earned: score.finalScore,
-          completed_at: new Date().toISOString(), time_taken_seconds: timeTaken,
-          speed_bonus_earned: score.speedBonus > 0,
-        }).eq('id', progress.id),
-        supabase.rpc('adjust_tokens', { p_user_id: userId, p_amount: 1 }),
-        supabase.from('token_transactions').insert({
-          user_id: userId, type: 'earned_round', amount: 1, challenge_id: challengeId,
-          description: `Completed round: ${challenge.location_name}`,
-        }),
-        supabase.rpc('update_player_leaderboard', {
-          p_user_id: userId, p_event_id: challenge.event_id, p_score: score.finalScore,
-        }),
-      ])
+      // Easy challenges earn no tokens — only medium/hard/extreme reward tokens
+      const tokenReward = challenge.difficulty === 'easy' ? 0 : 1
+
+      const progressUpdate = supabase.from('player_progress').update({
+        status: 'completed', attempts: newAttempts, score_earned: score.finalScore,
+        completed_at: new Date().toISOString(), time_taken_seconds: timeTaken,
+        speed_bonus_earned: score.speedBonus > 0,
+      }).eq('id', progress.id)
+
+      const leaderboardUpdate = supabase.rpc('update_player_leaderboard', {
+        p_user_id: userId, p_event_id: challenge.event_id, p_score: score.finalScore,
+      })
+
+      if (tokenReward > 0) {
+        await Promise.all([
+          progressUpdate,
+          supabase.rpc('adjust_tokens', { p_user_id: userId, p_amount: tokenReward }),
+          supabase.from('token_transactions').insert({
+            user_id: userId, type: 'earned_round', amount: tokenReward, challenge_id: challengeId,
+            description: `Completed round: ${challenge.location_name}`,
+          }),
+          leaderboardUpdate,
+        ])
+      } else {
+        await Promise.all([progressUpdate, leaderboardUpdate])
+      }
 
       return NextResponse.json({ is_correct: true, feedback, score })
     } else {

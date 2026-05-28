@@ -7,6 +7,7 @@ import { getUser } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import Avatar from '@/components/ui/Avatar'
 import AchievementGrid from '@/components/profile/AchievementGrid'
+import InviteFriendsButton from '@/components/ui/InviteFriendsButton'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 
@@ -144,7 +145,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-up stagger-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 animate-fade-up stagger-4">
           <Link href="/shop"
             className="border border-gold/30 py-3 text-center font-head font-bold text-xs tracking-widest text-gold hover:bg-gold/10 transition-all">
             🛍 SHOP
@@ -161,6 +162,7 @@ export default async function ProfilePage() {
             className="border border-white/10 py-3 text-center font-head font-bold text-xs tracking-widest text-text-muted hover:border-electric/30 hover:text-electric transition-all">
             🆘 SUPPORT
           </Link>
+          <InviteFriendsButton className="border border-[#1877f2]/40 py-3 text-center font-head font-bold text-xs tracking-widest text-[#1877f2] hover:bg-[#1877f2]/10 hover:border-[#1877f2] transition-all" />
         </div>
       </div>
     </div>

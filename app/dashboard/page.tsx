@@ -10,6 +10,7 @@ import StreakWidget from '@/components/dashboard/StreakWidget'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import OnboardingGuide from '@/components/ui/OnboardingGuide'
 import UsernameSetupBanner from '@/components/ui/UsernameSetupBanner'
+import InviteFriendsButton from '@/components/ui/InviteFriendsButton'
 
 const RANK_STYLE = ['text-gold', 'text-slate-300', 'text-amber-600']
 const RANK_EMOJI = ['👑', '🥈', '🥉']
@@ -284,7 +285,7 @@ export default async function DashboardPage() {
         )}
 
         {/* ── QUICK LINKS ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 animate-fade-up" style={{ animationDelay: '0.4s', opacity: 0, animationFillMode: 'forwards' }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 animate-fade-up" style={{ animationDelay: '0.4s', opacity: 0, animationFillMode: 'forwards' }}>
           {[
             { href: '/leaderboard', label: '🏆 LEADERBOARD', border: 'hover:border-gold/40 hover:text-gold' },
             { href: '/shop',        label: '🛍 SHOP',        border: 'hover:border-electric/40 hover:text-electric' },
@@ -296,6 +297,7 @@ export default async function DashboardPage() {
               {l.label}
             </Link>
           ))}
+          <InviteFriendsButton className="border border-[#1877f2]/40 py-3 text-center font-head font-bold text-xs tracking-widest text-[#1877f2] hover:bg-[#1877f2]/10 hover:border-[#1877f2] transition-all" />
         </div>
       </div>
     </div>
