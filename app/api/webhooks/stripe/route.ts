@@ -22,13 +22,23 @@ export async function POST(req: NextRequest) {
     if (!userId || !tokens) return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
 
     const supabase = createServiceClient()
-    const tokenAmount = parseInt(tokens)
+    const paymentIntentId = session.payment_intent as string
 
+    // Idempotency guard: Stripe delivers webhooks at-least-once; skip if already processed
+    const { data: existing } = await supabase
+      .from('token_transactions')
+      .select('id')
+      .eq('stripe_payment_id', paymentIntentId)
+      .maybeSingle()
+
+    if (existing) return NextResponse.json({ received: true })
+
+    const tokenAmount = parseInt(tokens)
     await Promise.all([
       supabase.rpc('adjust_tokens', { p_user_id: userId, p_amount: tokenAmount }),
       supabase.from('token_transactions').insert({
         user_id: userId, type: 'purchase', amount: tokenAmount,
-        stripe_payment_id: session.payment_intent as string,
+        stripe_payment_id: paymentIntentId,
         description: `Purchased ${tokenAmount} tokens`,
       }),
     ])

@@ -1,17 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createAuthClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
+  // Verify identity from session cookie — never trust body
+  const authClient = createAuthClient()
+  const { data: { user } } = await authClient.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const userId = user.id
+
+  // Service role needed: profile auto-creation requires auth.admin + bypasses RLS
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
   try {
-    const { userId } = await req.json()
-    if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
-
     let { data: profile } = await supabase
       .from('profiles')
       .select('current_streak,last_login_date,tokens')
@@ -20,7 +25,6 @@ export async function POST(req: NextRequest) {
 
     // Auto-create profile for new users on their first login after signup
     if (!profile) {
-      // Try to get real username from auth metadata (set during signup or via OAuth)
       let username = `hunter_${userId.slice(0, 8)}`
       let displayName: string | null = null
       try {
@@ -37,27 +41,18 @@ export async function POST(req: NextRequest) {
       const { data: newProfile, error: createError } = await supabase
         .from('profiles')
         .insert({
-          id: userId,
-          username,
-          display_name: displayName,
-          tokens: 1,   // 1 starter token on account creation
-          current_streak: 0,
-          last_login_date: null,
+          id: userId, username, display_name: displayName,
+          tokens: 1, current_streak: 0, last_login_date: null,
         })
         .select('current_streak,last_login_date,tokens')
         .single()
 
       if (createError?.code === '23505') {
-        // Username conflict — retry with guaranteed-unique fallback
         const { data: retryProfile, error: retryError } = await supabase
           .from('profiles')
           .insert({
-            id: userId,
-            username: `hunter_${userId.slice(0, 8)}`,
-            display_name: displayName,
-            tokens: 1,   // 1 starter token on account creation
-            current_streak: 0,
-            last_login_date: null,
+            id: userId, username: `hunter_${userId.slice(0, 8)}`,
+            display_name: displayName, tokens: 1, current_streak: 0, last_login_date: null,
           })
           .select('current_streak,last_login_date,tokens')
           .single()
@@ -72,33 +67,42 @@ export async function POST(req: NextRequest) {
     }
 
     const today = new Date().toISOString().split('T')[0]
-    const last = profile.last_login_date
+    const last  = profile.last_login_date
 
-    // Already processed today — return current streak without updating
     if (last === today) return NextResponse.json({ streak: profile.current_streak, bonus: 0 })
 
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-    const newStreak = last === yesterday ? (profile.current_streak ?? 0) + 1 : 1
+    const newStreak  = last === yesterday ? (profile.current_streak ?? 0) + 1 : 1
 
-    // Milestone bonuses: 7 days = +1, 30 days = +3
     const milestones: Record<number, number> = { 7: 1, 30: 3 }
     const bonus = milestones[newStreak] ?? 0
-    const newTokens = (profile.tokens ?? 0) + bonus
 
-    await supabase.from('profiles').update({
+    // Atomic streak update — only writes if not already processed today (concurrent-request guard)
+    const { data: updated } = await supabase.from('profiles').update({
       current_streak: newStreak,
       last_login_date: today,
-      tokens: newTokens,
     }).eq('id', userId)
+      .or(`last_login_date.is.null,last_login_date.neq.${today}`)
+      .select('id')
 
-    if (bonus > 0) {
-      await supabase.from('token_transactions').insert({
-        user_id: userId, type: 'earned_login', amount: bonus,
-        description: `${newStreak}-day login streak bonus`,
-      })
+    if (!updated || updated.length === 0) {
+      // Another concurrent request already processed today's login
+      return NextResponse.json({ streak: profile.current_streak, bonus: 0 })
     }
 
-    return NextResponse.json({ streak: newStreak, bonus, newTokenBalance: newTokens })
+    // Award bonus tokens atomically via RPC
+    if (bonus > 0) {
+      await Promise.all([
+        supabase.rpc('adjust_tokens', { p_user_id: userId, p_amount: bonus }),
+        supabase.from('token_transactions').insert({
+          user_id: userId, type: 'earned_login', amount: bonus,
+          description: `${newStreak}-day login streak bonus`,
+        }),
+      ])
+    }
+
+    const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).single()
+    return NextResponse.json({ streak: newStreak, bonus, newTokenBalance: profileData?.tokens ?? null })
   } catch (err: any) {
     console.error('daily-login error:', err)
     return NextResponse.json({ error: err?.message }, { status: 500 })

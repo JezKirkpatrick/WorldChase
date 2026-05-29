@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createClient as createAuthClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,10 +11,22 @@ function randomOffset(km: number) {
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  // Allow internal server-to-server calls via CRON_SECRET header
+  const internalSecret = req.headers.get('x-internal-secret')
+  const isInternal = internalSecret && internalSecret === process.env.CRON_SECRET
+
+  if (!isInternal) {
+    // Otherwise require an authenticated admin user
+    const authClient = createAuthClient()
+    const { data: { user } } = await authClient.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+    const { data: profile } = await admin.from('profiles').select('is_admin').eq('id', user.id).single()
+    if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   try {
     const { challengeId, centerLat, centerLng, count = 3 } = await req.json()
 

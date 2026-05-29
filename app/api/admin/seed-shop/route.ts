@@ -191,8 +191,13 @@ async function runSeed() {
   return NextResponse.json({ ok: true, results })
 }
 
-// ── GET: open for one-time seeding (idempotent — safe to expose) ──
+// ── GET: admin-only seeding trigger ──────────────────────────────
 export async function GET() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+  if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   return runSeed()
 }
 

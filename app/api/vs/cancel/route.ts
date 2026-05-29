@@ -21,9 +21,19 @@ export async function POST(req: NextRequest) {
   if (match.challenger_id !== user.id) return NextResponse.json({ error: 'Only the challenger can cancel' }, { status: 403 })
   if (match.status !== 'pending') return NextResponse.json({ error: 'Can only cancel pending duels' }, { status: 400 })
 
-  // Mark cancelled and refund
+  // Cancel first — atomic guard prevents double-refund if called concurrently
+  const { data: cancelled } = await admin.from('vs_matches')
+    .update({ status: 'cancelled' })
+    .eq('id', matchId)
+    .eq('status', 'pending')
+    .select('id')
+
+  if (!cancelled || cancelled.length === 0) {
+    return NextResponse.json({ error: 'Duel is no longer cancellable' }, { status: 409 })
+  }
+
+  // Status confirmed cancelled — now refund
   await Promise.all([
-    admin.from('vs_matches').update({ status: 'cancelled' }).eq('id', matchId),
     admin.rpc('adjust_tokens', { p_user_id: user.id, p_amount: match.wager }),
     admin.from('token_transactions').insert({
       user_id: user.id,

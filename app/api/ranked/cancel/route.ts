@@ -28,24 +28,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Match already started — cannot cancel' }, { status: 400 })
     }
 
-    // Remove this player
-    const { error: delErr } = await service
+    // Remove this player — check actual row was deleted before refunding
+    const { data: deleted, error: delErr } = await service
       .from('ranked_match_players')
       .delete()
       .eq('match_id', matchId)
       .eq('user_id', user.id)
+      .select('id')
 
     if (delErr) throw delErr
+    if (!deleted || deleted.length === 0) {
+      return NextResponse.json({ error: 'You are not in this match' }, { status: 400 })
+    }
 
-    // Refund wager
+    // Confirmed delete — refund wager
     const wager = ARENA_WAGERS[match.arena_level]
-    await service.rpc('adjust_tokens', { p_user_id: user.id, p_amount: wager })
-    await service.from('token_transactions').insert({
-      user_id: user.id,
-      type: 'ranked_refund',
-      amount: wager,
-      description: `Ranked queue cancelled — refund`,
-    })
+    await Promise.all([
+      service.rpc('adjust_tokens', { p_user_id: user.id, p_amount: wager }),
+      service.from('token_transactions').insert({
+        user_id: user.id,
+        type: 'ranked_refund',
+        amount: wager,
+        description: `Ranked queue cancelled — refund`,
+      }),
+    ])
 
     // Cancel match if no players remain
     const { count } = await service

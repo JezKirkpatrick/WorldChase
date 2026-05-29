@@ -27,7 +27,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Not enough tokens (need ${match.wager})` }, { status: 400 })
   }
 
-  // Deduct opponent's wager
+  // Atomically claim the match — UPDATE only succeeds if status is still 'pending',
+  // preventing two players from joining the same duel simultaneously
+  const now = new Date().toISOString()
+  const { data: claimed } = await admin.from('vs_matches').update({
+    opponent_id: user.id,
+    status: 'active',
+    started_at: now,
+  }).eq('id', matchId).eq('status', 'pending').select('id')
+
+  if (!claimed || claimed.length === 0) {
+    return NextResponse.json({ error: 'Duel is no longer available' }, { status: 409 })
+  }
+
+  // Match claimed — deduct opponent's wager
   await Promise.all([
     admin.rpc('adjust_tokens', { p_user_id: user.id, p_amount: -match.wager }),
     admin.from('token_transactions').insert({
@@ -37,14 +50,6 @@ export async function POST(req: NextRequest) {
       description: `VS Duel — wager staked (${match.wager} tokens)`,
     }),
   ])
-
-  // Activate the match — realtime will push this to the challenger's waiting screen
-  const now = new Date().toISOString()
-  await admin.from('vs_matches').update({
-    opponent_id: user.id,
-    status: 'active',
-    started_at: now,
-  }).eq('id', matchId)
 
   return NextResponse.json({ success: true })
 }

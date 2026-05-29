@@ -33,10 +33,9 @@ export async function POST(req: NextRequest) {
       service.from('token_discoveries').select('hidden_token_id').eq('user_id', user.id).eq('challenge_id', challengeId),
     ])
 
-    const tokens = tokensRes.data ?? []
+    const tokens     = tokensRes.data ?? []
     const discovered = new Set((discoveredRes.data ?? []).map(d => d.hidden_token_id))
     const discoveries: string[] = []
-
     const blips = []
 
     for (const token of tokens) {
@@ -48,16 +47,39 @@ export async function POST(req: NextRequest) {
       }
 
       if (dist <= token.radius_meters && !discovered.has(token.id)) {
-        discoveries.push(token.id)
-        await service.from('token_discoveries').insert({ user_id: user.id, hidden_token_id: token.id, challenge_id: challengeId })
-        await service.rpc('adjust_tokens', { p_user_id: user.id, p_amount: token.token_value })
-        await service.from('token_transactions').insert({
-          user_id: user.id, type: 'earned_hidden', amount: token.token_value,
-          hidden_token_id: token.id, challenge_id: challengeId, description: 'Hidden token found',
+        // Attempt atomic insert — unique constraint on (user_id, hidden_token_id) prevents duplicates
+        const { error: insErr } = await service.from('token_discoveries').insert({
+          user_id: user.id, hidden_token_id: token.id, challenge_id: challengeId,
         })
-        await service.from('player_progress').update({ hidden_tokens_found: 1 })
-          .eq('user_id', user.id).eq('challenge_id', challengeId)
+
+        if (!insErr) {
+          // Insert succeeded — token not yet claimed by this user
+          discoveries.push(token.id)
+          discovered.add(token.id) // prevent double-spend within this same request
+
+          await Promise.all([
+            service.rpc('adjust_tokens', { p_user_id: user.id, p_amount: token.token_value }),
+            service.from('token_transactions').insert({
+              user_id: user.id, type: 'earned_hidden', amount: token.token_value,
+              hidden_token_id: token.id, challenge_id: challengeId, description: 'Hidden token found',
+            }),
+          ])
+        }
+        // If insErr is a unique violation (23505), another request already claimed it — skip silently
       }
+    }
+
+    // Increment hidden_tokens_found counter once for all new discoveries
+    if (discoveries.length > 0) {
+      const { data: prog } = await service.from('player_progress')
+        .select('hidden_tokens_found')
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId)
+        .single()
+
+      await service.from('player_progress').update({
+        hidden_tokens_found: (prog?.hidden_tokens_found ?? 0) + discoveries.length,
+      }).eq('user_id', user.id).eq('challenge_id', challengeId)
     }
 
     return NextResponse.json({ blips, discoveries })
