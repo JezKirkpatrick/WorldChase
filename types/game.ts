@@ -124,7 +124,7 @@ export interface ScoreCalculation {
   basePoints: number
   clueMultiplier: number
   attemptPenalty: number
-  speedBonus: number
+  speedMultiplier: number  // 2.0 at instant → 1.0 at 5 min → 0.5 floor at 10 min+
   finalScore: number
 }
 

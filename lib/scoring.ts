@@ -1,9 +1,9 @@
 import type { Difficulty, ScoreCalculation } from '@/types/game'
 
 const BASE_POINTS: Record<Difficulty, number> = {
-  easy: 500,
-  medium: 1000,
-  hard: 2500,
+  easy:    500,
+  medium:  1000,
+  hard:    2500,
   extreme: 5000,
 }
 
@@ -15,9 +15,20 @@ const CLUE_MULTIPLIERS: Record<number, number> = {
 }
 
 const ATTEMPT_PENALTY_PER_WRONG = 0.05
-const MAX_ATTEMPT_PENALTY = 0.25
-const SPEED_BONUS_MULTIPLIER = 0.10
-const SPEED_BONUS_WINDOW_SECONDS = 600
+const MAX_ATTEMPT_PENALTY       = 0.25
+
+// Speed multiplier: exponential decay centred on 5 minutes
+// t = 0s  → 2.0×  (you knew it cold)
+// t = 5m  → 1.0×  (neutral baseline)
+// t = 10m → 0.5×  (floor — same as Googling)
+const SPEED_HALF_LIFE   = 300   // seconds until multiplier halves (= 5 min = 1.0×)
+const SPEED_MAX         = 2.0
+const SPEED_FLOOR       = 0.5
+
+function calcSpeedMultiplier(seconds: number): number {
+  const k = Math.LN2 / SPEED_HALF_LIFE
+  return Math.max(SPEED_FLOOR, SPEED_MAX * Math.exp(-k * seconds))
+}
 
 export function calculateScore(
   difficulty: Difficulty,
@@ -25,24 +36,24 @@ export function calculateScore(
   wrongAttempts: number,
   timeTakenSeconds: number
 ): ScoreCalculation {
-  const basePoints = BASE_POINTS[difficulty]
-  const clueMultiplier = CLUE_MULTIPLIERS[Math.min(cluesRevealed, 3)]
-  const attemptPenalty = Math.min(wrongAttempts * ATTEMPT_PENALTY_PER_WRONG, MAX_ATTEMPT_PENALTY)
-  const speedBonus = timeTakenSeconds <= SPEED_BONUS_WINDOW_SECONDS ? SPEED_BONUS_MULTIPLIER : 0
+  const basePoints      = BASE_POINTS[difficulty]
+  const clueMultiplier  = CLUE_MULTIPLIERS[Math.min(cluesRevealed, 3)]
+  const attemptPenalty  = Math.min(wrongAttempts * ATTEMPT_PENALTY_PER_WRONG, MAX_ATTEMPT_PENALTY)
+  const speedMultiplier = calcSpeedMultiplier(timeTakenSeconds)
 
-  const afterClues = basePoints * clueMultiplier
+  const afterClues    = basePoints * clueMultiplier
   const afterAttempts = afterClues * (1 - attemptPenalty)
-  const afterSpeed = afterAttempts * (1 + speedBonus)
-  const finalScore = Math.round(afterSpeed)
+  const finalScore    = Math.round(afterAttempts * speedMultiplier)
 
-  return { basePoints, clueMultiplier, attemptPenalty, speedBonus, finalScore }
+  return { basePoints, clueMultiplier, attemptPenalty, speedMultiplier, finalScore }
 }
 
 export function getMaxScore(difficulty: Difficulty): number {
-  return BASE_POINTS[difficulty]
+  return Math.round(BASE_POINTS[difficulty] * SPEED_MAX)  // perfect score now 2× base
 }
 
 export function getPreviewScore(difficulty: Difficulty, cluesRevealed: number, wrongAttempts: number): number {
-  const { finalScore } = calculateScore(difficulty, cluesRevealed, wrongAttempts, 9999)
+  // Preview assumes neutral speed (5-minute answer)
+  const { finalScore } = calculateScore(difficulty, cluesRevealed, wrongAttempts, SPEED_HALF_LIFE)
   return finalScore
 }

@@ -69,15 +69,27 @@ export default function ScorePopup({
           {score.attemptPenalty > 0 && (
             <div className="flex justify-between text-text-muted">
               <span>ATTEMPT PENALTY</span>
-              <span className="text-danger">−{Math.round(score.basePoints * score.attemptPenalty).toLocaleString()} PTS</span>
+              <span className="text-danger">−{Math.round(score.basePoints * score.clueMultiplier * score.attemptPenalty).toLocaleString()} PTS</span>
             </div>
           )}
-          {score.speedBonus > 0 && (
-            <div className="flex justify-between text-text-muted">
-              <span>⚡ SPEED BONUS</span>
-              <span className="text-success">+{Math.round(score.finalScore * score.speedBonus).toLocaleString()} PTS</span>
-            </div>
-          )}
+          {(() => {
+            const m = score.speedMultiplier
+            const preSpeed = Math.round(score.basePoints * score.clueMultiplier * (1 - score.attemptPenalty))
+            const effect = Math.abs(Math.round(preSpeed * (m - 1)))
+            if (m > 1.05) return (
+              <div className="flex justify-between text-text-muted">
+                <span>⚡ SPEED BONUS ×{m.toFixed(2)}</span>
+                <span className="text-success">+{effect.toLocaleString()} PTS</span>
+              </div>
+            )
+            if (m < 0.95) return (
+              <div className="flex justify-between text-text-muted">
+                <span>🐌 SPEED PENALTY ×{m.toFixed(2)}</span>
+                <span className="text-danger">−{effect.toLocaleString()} PTS</span>
+              </div>
+            )
+            return null
+          })()}
           <div className="h-px bg-white/10 my-2" />
           <div className="flex justify-between text-gold font-bold text-lg">
             <span>FINAL SCORE</span>

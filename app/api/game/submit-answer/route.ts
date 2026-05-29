@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       const progressUpdate = supabase.from('player_progress').update({
         status: 'completed', attempts: newAttempts, score_earned: score.finalScore,
         completed_at: new Date().toISOString(), time_taken_seconds: timeTaken,
-        speed_bonus_earned: score.speedBonus > 0,
+        speed_bonus_earned: score.speedMultiplier > 1.0,
       }).eq('id', progress.id)
 
       const leaderboardUpdate = supabase.rpc('update_player_leaderboard', {
