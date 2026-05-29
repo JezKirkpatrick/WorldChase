@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getUser } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import FriendButton from '@/components/ui/FriendButton'
-import { flagEmoji } from '@/lib/flagEmoji'
+import { flagUrl } from '@/lib/flagEmoji'
 import type { FriendStatus } from '@/components/ui/FriendButton'
 
 type FriendProfile = { id: string; username: string | null; display_name: string | null; equipped_avatar: string | null; country_code: string | null }
@@ -70,7 +70,7 @@ export default async function FriendsPage() {
                     <div className="relative shrink-0 text-2xl leading-none">
                       <span>{friend.equipped_avatar ?? '🌍'}</span>
                       {friend.country_code && (
-                        <span className="absolute -bottom-1 -right-1 text-sm leading-none">{flagEmoji(friend.country_code)}</span>
+                        <img src={flagUrl(friend.country_code)} alt="" aria-hidden className="absolute -bottom-1 -right-1 w-4 h-3 rounded-sm shadow-sm pointer-events-none" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
@@ -114,7 +114,7 @@ export default async function FriendsPage() {
                     <div className="relative shrink-0 text-2xl leading-none">
                       <span>{friend.equipped_avatar ?? '🌍'}</span>
                       {friend.country_code && (
-                        <span className="absolute -bottom-1 -right-1 text-sm leading-none">{flagEmoji(friend.country_code)}</span>
+                        <img src={flagUrl(friend.country_code)} alt="" aria-hidden className="absolute -bottom-1 -right-1 w-4 h-3 rounded-sm shadow-sm pointer-events-none" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">

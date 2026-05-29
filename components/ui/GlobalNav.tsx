@@ -3,7 +3,7 @@ import { getUser, getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase-server'
 import LogoutButton from '@/components/ui/LogoutButton'
 import ShareButton from '@/components/ui/ShareButton'
-import { flagEmoji } from '@/lib/flagEmoji'
+import { flagUrl } from '@/lib/flagEmoji'
 
 const BORDER_RING: Record<string, string> = {
   gold:      'ring-2 ring-gold shadow-gold/40',
@@ -74,10 +74,14 @@ export default async function GlobalNav() {
           <span>🪙</span>
           <span>{profile?.tokens ?? 0}</span>
         </Link>
-        {profile?.country_code && (
-          <span className="text-xl leading-none" title={profile.country_code}>
-            {flagEmoji(profile.country_code)}
-          </span>
+        {profile?.country_code && flagUrl(profile.country_code) && (
+          <img
+            src={flagUrl(profile.country_code)}
+            alt={profile.country_code}
+            title={profile.country_code}
+            width={24} height={18}
+            className="rounded-sm shadow-sm shrink-0"
+          />
         )}
         <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105 block shrink-0`} title="Profile">
           {avatar.startsWith('http')

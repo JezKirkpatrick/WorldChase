@@ -1,5 +1,5 @@
 'use client'
-import { flagEmoji } from '@/lib/flagEmoji'
+import { flagUrl } from '@/lib/flagEmoji'
 
 // ── Size tokens ────────────────────────────────────────────────────
 const SIZE_PX: Record<string, number> = {
@@ -43,7 +43,7 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
   const emSize   = EMOJI_SIZE[size] ?? 'text-2xl'
   const flagFont = FLAG_FONT[size ?? 'md'] ?? 15
   const gap      = 4  // border thickness in px
-  const flag     = flagEmoji(countryCode)
+  const flag     = flagUrl(countryCode)
 
   if (!border || !RICH.has(border)) {
     const ring = RING[border ?? 'none'] ?? ''
@@ -58,12 +58,10 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
             : emoji}
         </div>
         {flag && (
-          <span
-            className="absolute -bottom-0.5 -right-0.5 z-10 leading-none select-none pointer-events-none"
-            style={{ fontSize: flagFont }}
-          >
-            {flag}
-          </span>
+          <img src={flag} alt="" aria-hidden
+            className="absolute -bottom-1 -right-1 z-10 rounded-sm shadow-sm pointer-events-none"
+            style={{ width: flagFont, height: Math.round(flagFont * 0.75) }}
+          />
         )}
       </div>
     )
@@ -105,12 +103,10 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
 
       {/* ── Country flag badge ── */}
       {flag && (
-        <span
-          className="absolute z-[4] leading-none select-none pointer-events-none"
-          style={{ bottom: gap - 2, right: gap - 2, fontSize: flagFont }}
-        >
-          {flag}
-        </span>
+        <img src={flag} alt="" aria-hidden
+          className="absolute z-[4] rounded-sm shadow-sm pointer-events-none"
+          style={{ bottom: gap - 2, right: gap - 2, width: flagFont, height: Math.round(flagFont * 0.75) }}
+        />
       )}
     </div>
   )

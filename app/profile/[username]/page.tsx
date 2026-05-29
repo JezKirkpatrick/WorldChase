@@ -10,7 +10,7 @@ import FriendButton from '@/components/ui/FriendButton'
 import type { FriendStatus } from '@/components/ui/FriendButton'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
-import { flagEmoji } from '@/lib/flagEmoji'
+import { flagUrl } from '@/lib/flagEmoji'
 
 export default async function PublicProfilePage({ params }: { params: { username: string } }) {
   const supabase = createClient()
@@ -118,7 +118,9 @@ export default async function PublicProfilePage({ params }: { params: { username
               </div>
               <div className="flex items-center gap-2 text-text-muted font-head text-sm">
                 <span>@{profile.username}</span>
-                {profile.country_code && <span className="text-lg leading-none">{flagEmoji(profile.country_code)}</span>}
+                {profile.country_code && flagUrl(profile.country_code) && (
+                  <img src={flagUrl(profile.country_code)} alt={profile.country_code} width={24} height={18} className="rounded-sm shadow-sm" />
+                )}
               </div>
               {profile.equipped_title && (
                 <div className="text-gold font-head text-sm font-bold mt-1">{profile.equipped_title}</div>
