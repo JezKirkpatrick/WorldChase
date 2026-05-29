@@ -70,7 +70,7 @@ export default async function FriendsPage() {
                     <div className="relative shrink-0 text-2xl leading-none">
                       <span>{friend.equipped_avatar ?? '🌍'}</span>
                       {friend.country_code && (
-                        <span className="absolute -bottom-0.5 -right-0.5 text-[10px] leading-none">{flagEmoji(friend.country_code)}</span>
+                        <span className="absolute -bottom-1 -right-1 text-sm leading-none">{flagEmoji(friend.country_code)}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
@@ -114,7 +114,7 @@ export default async function FriendsPage() {
                     <div className="relative shrink-0 text-2xl leading-none">
                       <span>{friend.equipped_avatar ?? '🌍'}</span>
                       {friend.country_code && (
-                        <span className="absolute -bottom-0.5 -right-0.5 text-[10px] leading-none">{flagEmoji(friend.country_code)}</span>
+                        <span className="absolute -bottom-1 -right-1 text-sm leading-none">{flagEmoji(friend.country_code)}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0 overflow-hidden">

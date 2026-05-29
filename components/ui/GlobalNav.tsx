@@ -81,7 +81,7 @@ export default async function GlobalNav() {
               : avatar}
           </Link>
           {profile?.country_code && (
-            <span className="absolute -bottom-0.5 -right-0.5 text-[10px] leading-none select-none pointer-events-none z-10">
+            <span className="absolute -bottom-1 -right-1 text-sm leading-none select-none pointer-events-none z-10">
               {flagEmoji(profile.country_code)}
             </span>
           )}

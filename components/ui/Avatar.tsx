@@ -10,7 +10,7 @@ const EMOJI_SIZE: Record<string, string> = {
 }
 // Flag badge font-size relative to avatar size
 const FLAG_FONT: Record<string, number> = {
-  xs: 10, sm: 12, md: 15, lg: 20, xl: 28,
+  xs: 13, sm: 15, md: 17, lg: 22, xl: 30,
 }
 
 // ── Simple ring borders (arena progression) ─────────────────────

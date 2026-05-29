@@ -101,7 +101,7 @@ export default async function PublicProfilePage({ params }: { params: { username
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold/0 via-gold/50 to-gold/0" />
           <div className="relative flex items-center gap-5">
             <div className="animate-float">
-              <Avatar emoji={profile.equipped_avatar ?? '🌍'} border={profile.equipped_border ?? 'none'} size="xl" />
+              <Avatar emoji={profile.equipped_avatar ?? '🌍'} border={profile.equipped_border ?? 'none'} size="xl" countryCode={profile.country_code} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
