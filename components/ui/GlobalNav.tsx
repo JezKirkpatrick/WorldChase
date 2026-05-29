@@ -47,6 +47,7 @@ export default async function GlobalNav() {
       <div className="hidden sm:flex items-center gap-6">
         <ShareButton className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors" />
         <Link href="/play"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
+        <Link href="/vs"           className="text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors">VS DUEL</Link>
         <Link href="/leaderboard"  className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
         <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
@@ -86,6 +87,7 @@ export default async function GlobalNav() {
         {/* Mobile links */}
         <div className="sm:hidden flex items-center gap-3">
           <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
+          <Link href="/vs"          className="text-xs font-head text-gold hover:text-white">VS</Link>
           <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
           <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
           <Link href="/chat"    className="text-xs font-head text-electric hover:text-white">CHAT</Link>
