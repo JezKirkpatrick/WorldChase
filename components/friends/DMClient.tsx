@@ -2,20 +2,34 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import Link from 'next/link'
+import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 
 type DMMessage = { id: string; sender_id: string; recipient_id?: string; content: string; created_at: string }
-type FriendProfile = { id: string; username: string; display_name: string | null; equipped_avatar: string | null }
+type FriendProfile = { id: string; username: string | null; display_name: string | null; equipped_avatar: string | null }
 
 function timeStr(ts: string) {
   return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function isUrl(s?: string | null) { return typeof s === 'string' && s.startsWith('http') }
+
+function AvatarImg({ src, size = 8 }: { src?: string | null; size?: number }) {
+  const px = size * 4
+  const avatar = src ?? '🌍'
+  return (
+    <div className="rounded-full flex items-center justify-center shrink-0 overflow-hidden bg-navy border border-white/10"
+      style={{ width: px, height: px, fontSize: px * 0.5 }}>
+      {isUrl(avatar) ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" /> : avatar}
+    </div>
+  )
 }
 
 export default function DMClient({ myId, friend }: { myId: string; friend: FriendProfile }) {
   const [messages, setMessages] = useState<DMMessage[]>([])
   const [input, setInput]       = useState('')
   const [sending, setSending]   = useState(false)
-  const bottomRef  = useRef<HTMLDivElement>(null)
-  const inputRef   = useRef<HTMLInputElement>(null)
+  const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef  = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -31,20 +45,14 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
       setMessages((data ?? []) as DMMessage[])
       setTimeout(() => bottomRef.current?.scrollIntoView(), 50)
 
-      // Subscribe to new incoming messages
       ch = supabase.channel(`wc_dm_${[myId, friend.id].sort().join('_')}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, (payload: any) => {
           const row = payload.new as DMMessage
           if ((row.sender_id === friend.id && row.recipient_id === myId) ||
               (row.sender_id === myId && row.recipient_id === friend.id)) {
             setMessages(prev => {
-              // Replace optimistic placeholder if it exists, otherwise append
               const idx = prev.findIndex(m => m.id.startsWith('opt_') && m.content === row.content && m.sender_id === row.sender_id)
-              if (idx !== -1) {
-                const next = [...prev]
-                next[idx] = row
-                return next
-              }
+              if (idx !== -1) { const next = [...prev]; next[idx] = row; return next }
               return [...prev, row]
             })
             setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
@@ -63,14 +71,11 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
     if (!content || sending) return
     setSending(true)
     setInput('')
-
     const opt: DMMessage = { id: `opt_${Date.now()}`, sender_id: myId, content, created_at: new Date().toISOString() }
     setMessages(prev => [...prev, opt])
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
-
     const supabase = createClient()
     await supabase.from('direct_messages').insert({ sender_id: myId, recipient_id: friend.id, content: content.slice(0, 300) })
-
     setSending(false)
     inputRef.current?.focus()
   }
@@ -81,10 +86,10 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
       <div className="shrink-0 border-b border-white/10 bg-navy-light px-4 py-3 flex items-center gap-3">
         <Link href="/friends" className="text-text-muted hover:text-white font-head text-xs tracking-widest transition-colors">← FRIENDS</Link>
         <div className="w-px h-4 bg-white/20" />
-        <span className="text-xl">{friend.equipped_avatar ?? '🌍'}</span>
+        <AvatarImg src={friend.equipped_avatar} size={8} />
         <div>
-          <div className="font-head font-bold text-white text-sm">{friend.display_name || friend.username}</div>
-          <div className="text-text-muted font-head text-xs">@{friend.username}</div>
+          <div className="font-head font-bold text-white text-sm">{safeDisplayName(friend)}</div>
+          <div className="text-text-muted font-head text-xs">@{safeHandle(friend)}</div>
         </div>
       </div>
 
@@ -102,19 +107,28 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
           const prev    = messages[i - 1]
           const grouped = prev?.sender_id === msg.sender_id &&
             new Date(msg.created_at).getTime() - new Date(prev.created_at).getTime() < 300_000
+
           return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${grouped ? 'mt-0.5' : 'mt-3'}`}>
-              {!isMine && !grouped && <span className="text-xl mr-2 mt-0.5 shrink-0">{friend.equipped_avatar ?? '🌍'}</span>}
-              {!isMine &&  grouped && <div className="w-7 mr-2 shrink-0" />}
-              <div className="max-w-[72%] group">
-                <div className={`px-3 py-2 font-head text-sm leading-relaxed break-words ${
+            <div key={msg.id} className={`flex items-end gap-2 flex-row ${grouped ? 'mt-0.5' : 'mt-3'}`}>
+              {/* Avatar — only on first message in a group */}
+              {!grouped
+                ? <AvatarImg src={isMine ? undefined : friend.equipped_avatar} size={7} />
+                : <div style={{ width: 28 }} className="shrink-0" />
+              }
+              <div className="group" style={{ maxWidth: '68%' }}>
+                {!grouped && (
+                  <div className={`font-head text-xs mb-0.5 ${isMine ? 'text-gold/60' : 'text-text-muted'}`}>
+                    {isMine ? 'You' : safeDisplayName(friend)}
+                  </div>
+                )}
+                <div className={`px-3 py-2 font-head text-sm leading-relaxed break-words rounded-tr-xl rounded-tl-sm rounded-br-xl ${
                   isMine
-                    ? 'bg-gold/15 border border-gold/25 text-white rounded-tl rounded-bl rounded-br'
-                    : 'bg-white/8 border border-white/10 text-white rounded-tr rounded-br rounded-bl'
+                    ? 'bg-gold/15 border border-gold/30 text-white'
+                    : 'bg-white/8 border border-white/10 text-white'
                 } ${msg.id.startsWith('opt_') ? 'opacity-60' : ''}`}>
                   {msg.content}
                 </div>
-                <div className={`font-mono text-xs mt-0.5 text-white/20 opacity-0 group-hover:opacity-100 transition-opacity ${isMine ? 'text-right' : 'text-left'}`}>
+                <div className="font-mono text-xs mt-0.5 text-white/20 opacity-0 group-hover:opacity-100 transition-opacity text-left">
                   {timeStr(msg.created_at)}
                 </div>
               </div>
@@ -129,7 +143,7 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
         <input ref={inputRef} type="text" value={input}
           onChange={e => setInput(e.target.value.slice(0, 300))}
           onKeyDown={e => { if (e.key === 'Enter') send() }}
-          placeholder={`Message ${friend.display_name || friend.username}…`}
+          placeholder={`Message ${safeDisplayName(friend)}…`}
           className="flex-1 bg-transparent text-white font-head text-sm placeholder:text-text-muted outline-none py-1 min-w-0"
         />
         {input.length > 0 && (
