@@ -2,11 +2,11 @@
 import { useState, useRef, useEffect } from 'react'
 
 const SHARE_TEXT = 'Come play WorldChase 🌍 — a daily geography hunt. Race to name locations around the globe!'
+const FB_APP_ID  = '1613984633019651'
 
 export default function ShareButton({ className }: { className?: string }) {
-  const [open, setOpen]           = useState(false)
-  const [copied, setCopied]       = useState(false)
-  const [msgCopied, setMsgCopied] = useState(false)
+  const [open, setOpen]     = useState(false)
+  const [copied, setCopied] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
@@ -45,16 +45,19 @@ export default function ShareButton({ className }: { className?: string }) {
     setOpen(false)
   }
 
-  async function shareToMessenger() {
+  function shareToMessenger() {
     const rawUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const encoded = encodeURIComponent(rawUrl)
     if (isMobile) {
       window.location.href = `fb-messenger://share/?link=${encoded}`
-      setOpen(false)
     } else {
-      try { await navigator.clipboard.writeText(rawUrl) } catch {}
-      setMsgCopied(true)
+      window.open(
+        `https://www.facebook.com/dialog/send?app_id=${FB_APP_ID}&link=${encoded}&redirect_uri=${encoded}`,
+        'fb-messenger-send',
+        'width=600,height=500,resizable=yes'
+      )
     }
+    setOpen(false)
   }
 
   const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -81,21 +84,10 @@ export default function ShareButton({ className }: { className?: string }) {
             <span>🔗</span> Copy link
           </button>
 
-          {msgCopied ? (
-            <div className="px-3 py-2 flex flex-col gap-1.5 border-y border-[#1877f2]/20 bg-[#1877f2]/5">
-              <span className="text-[11px] font-head text-green-400 font-bold">✓ Link copied!</span>
-              <a href="https://www.messenger.com/new" target="_blank" rel="noopener noreferrer"
-                onClick={() => { setMsgCopied(false); setOpen(false) }}
-                className="text-[11px] font-head text-[#1877f2] hover:text-white transition-colors">
-                Open Messenger → paste &amp; send
-              </a>
-            </div>
-          ) : (
-            <button onClick={shareToMessenger}
-              className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
-              <span className="text-[#1877f2] font-bold">f</span> Messenger
-            </button>
-          )}
+          <button onClick={shareToMessenger}
+            className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
+            <span className="text-[#1877f2] font-bold">f</span> Messenger
+          </button>
 
           <button onClick={() => openUrl(`https://twitter.com/intent/tweet?text=${text}&url=${link}`)}
             className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
