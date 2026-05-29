@@ -43,6 +43,7 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
         .order('created_at', { ascending: true })
         .limit(100)
       setMessages((data ?? []) as DMMessage[])
+      localStorage.setItem(`wc_dm_read_${myId}_${friend.id}`, String(Date.now()))
       setTimeout(() => bottomRef.current?.scrollIntoView(), 50)
 
       ch = supabase.channel(`wc_dm_${[myId, friend.id].sort().join('_')}`)
@@ -55,6 +56,7 @@ export default function DMClient({ myId, friend }: { myId: string; friend: Frien
               if (idx !== -1) { const next = [...prev]; next[idx] = row; return next }
               return [...prev, row]
             })
+            localStorage.setItem(`wc_dm_read_${myId}_${friend.id}`, String(Date.now()))
             setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
           }
         })

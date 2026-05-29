@@ -4,6 +4,7 @@ import { getUser, getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase-server'
 import LogoutButton from '@/components/ui/LogoutButton'
 import ShareButton from '@/components/ui/ShareButton'
+import UnreadDMsBadge from '@/components/ui/UnreadDMsBadge'
 import { flagUrl } from '@/lib/flagEmoji'
 
 const getPendingCount = cache(async (userId: string) => {
@@ -67,6 +68,7 @@ export default async function GlobalNav() {
               {pendingCount}
             </span>
           )}
+          {user && <UnreadDMsBadge myId={user.id} />}
         </Link>
         <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
         <Link href="/support"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
@@ -109,7 +111,9 @@ export default async function GlobalNav() {
           <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
           <Link href="/chat"    className="text-xs font-head text-electric hover:text-white">CHAT</Link>
           <Link href="/friends" className="relative text-xs font-head text-text-muted hover:text-white">
-            👥{pendingCount > 0 && <span className="absolute -top-1 -right-1.5 bg-electric text-navy font-mono text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{pendingCount}</span>}
+            👥
+            {pendingCount > 0 && <span className="absolute -top-1 -right-1.5 bg-electric text-navy font-mono text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{pendingCount}</span>}
+            {user && <UnreadDMsBadge myId={user.id} />}
           </Link>
           <LogoutButton />
         </div>

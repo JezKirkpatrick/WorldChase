@@ -9,6 +9,7 @@ import FriendButton from '@/components/ui/FriendButton'
 import Avatar from '@/components/ui/Avatar'
 import type { FriendStatus } from '@/components/ui/FriendButton'
 import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
+import FriendUnreadDot from '@/components/friends/FriendUnreadDot'
 
 type FriendProfile = {
   id: string
@@ -116,7 +117,10 @@ export default async function FriendsPage() {
                       </div>
                       <div className="text-text-muted font-head text-xs truncate">@{safeHandle(friend)}</div>
                     </div>
-                    <span className="text-text-muted font-head text-xs group-hover:text-electric transition-colors shrink-0">💬 MESSAGE →</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <FriendUnreadDot myId={user!.id} friendId={friend.id} />
+                      <span className="text-text-muted font-head text-xs group-hover:text-electric transition-colors">💬 MESSAGE →</span>
+                    </div>
                   </Link>
                 )
               })}
