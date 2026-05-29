@@ -90,6 +90,7 @@ export default function LeaderboardTable({ eventId, currentUserId }: Leaderboard
                       emoji={profile?.equipped_avatar ?? '🌍'}
                       border={profile?.equipped_border ?? 'none'}
                       size="xs"
+                      countryCode={profile?.country_code}
                     />
                   </div>
                   <div className="min-w-0">

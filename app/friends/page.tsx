@@ -6,9 +6,10 @@ import { createClient } from '@/lib/supabase-server'
 import { getUser } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import FriendButton from '@/components/ui/FriendButton'
+import { flagEmoji } from '@/lib/flagEmoji'
 import type { FriendStatus } from '@/components/ui/FriendButton'
 
-type FriendProfile = { id: string; username: string | null; display_name: string | null; equipped_avatar: string | null }
+type FriendProfile = { id: string; username: string | null; display_name: string | null; equipped_avatar: string | null; country_code: string | null }
 
 function isUUID(s: string | null | undefined) {
   return !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
@@ -32,7 +33,7 @@ export default async function FriendsPage() {
   const supabase = createClient()
   const { data: rows } = await supabase
     .from('friendships')
-    .select('id,status,requester_id,addressee_id,requester:profiles!requester_id(id,username,display_name,equipped_avatar),addressee:profiles!addressee_id(id,username,display_name,equipped_avatar)')
+    .select('id,status,requester_id,addressee_id,requester:profiles!requester_id(id,username,display_name,equipped_avatar,country_code),addressee:profiles!addressee_id(id,username,display_name,equipped_avatar,country_code)')
     .or(`requester_id.eq.${user!.id},addressee_id.eq.${user!.id}`)
     .neq('status', 'declined')
 
@@ -66,7 +67,12 @@ export default async function FriendsPage() {
                 const friend = friendOf(f)
                 return (
                   <div key={f.id} className="bg-navy-light border border-electric/20 p-4 flex items-center gap-3">
-                    <span className="text-2xl shrink-0">{friend.equipped_avatar ?? '🌍'}</span>
+                    <div className="relative shrink-0 text-2xl leading-none">
+                      <span>{friend.equipped_avatar ?? '🌍'}</span>
+                      {friend.country_code && (
+                        <span className="absolute -bottom-0.5 -right-0.5 text-[10px] leading-none">{flagEmoji(friend.country_code)}</span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="font-head font-bold text-white text-sm truncate">{friendDisplayName(friend)}</div>
                       <div className="text-text-muted font-head text-xs truncate">@{friendHandle(friend)}</div>
@@ -105,7 +111,12 @@ export default async function FriendsPage() {
                 return (
                   <Link key={f.id} href={`/friends/${friendHandle(friend)}`}
                     className="bg-navy-light border border-white/10 p-4 flex items-center gap-3 hover:border-electric/30 hover:bg-navy-mid/30 transition-all group">
-                    <span className="text-2xl shrink-0">{friend.equipped_avatar ?? '🌍'}</span>
+                    <div className="relative shrink-0 text-2xl leading-none">
+                      <span>{friend.equipped_avatar ?? '🌍'}</span>
+                      {friend.country_code && (
+                        <span className="absolute -bottom-0.5 -right-0.5 text-[10px] leading-none">{flagEmoji(friend.country_code)}</span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="font-head font-bold text-white text-sm group-hover:text-electric transition-colors truncate">
                         {friendDisplayName(friend)}

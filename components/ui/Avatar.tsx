@@ -1,4 +1,5 @@
 'use client'
+import { flagEmoji } from '@/lib/flagEmoji'
 
 // ── Size tokens ────────────────────────────────────────────────────
 const SIZE_PX: Record<string, number> = {
@@ -6,6 +7,10 @@ const SIZE_PX: Record<string, number> = {
 }
 const EMOJI_SIZE: Record<string, string> = {
   xs: 'text-sm', sm: 'text-xl', md: 'text-2xl', lg: 'text-4xl', xl: 'text-6xl',
+}
+// Flag badge font-size relative to avatar size
+const FLAG_FONT: Record<string, number> = {
+  xs: 10, sm: 12, md: 15, lg: 20, xl: 28,
 }
 
 // ── Simple ring borders (arena progression) ─────────────────────
@@ -27,24 +32,39 @@ interface AvatarProps {
   emoji?: string
   border?: string
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  countryCode?: string | null
   className?: string
 }
 
 const isUrl = (s?: string) => typeof s === 'string' && s.startsWith('http')
 
-export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', className = '' }: AvatarProps) {
-  const px     = SIZE_PX[size]  ?? 48
-  const emSize = EMOJI_SIZE[size] ?? 'text-2xl'
-  const gap    = 4  // border thickness in px
+export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', countryCode, className = '' }: AvatarProps) {
+  const px       = SIZE_PX[size]  ?? 48
+  const emSize   = EMOJI_SIZE[size] ?? 'text-2xl'
+  const flagFont = FLAG_FONT[size ?? 'md'] ?? 15
+  const gap      = 4  // border thickness in px
+  const flag     = flagEmoji(countryCode)
 
   if (!border || !RICH.has(border)) {
     const ring = RING[border ?? 'none'] ?? ''
+    // Wrap in a relative container so the flag badge can sit outside overflow-hidden
     return (
-      <div className={`rounded-full bg-[#0B1628] flex items-center justify-center shrink-0 overflow-hidden ${isUrl(emoji) ? '' : emSize} ${ring} ${className}`}
-           style={{ width: px, height: px }}>
-        {isUrl(emoji)
-          ? <img src={emoji} alt="avatar" className="w-full h-full object-cover" />
-          : emoji}
+      <div className={`relative shrink-0 inline-flex ${className}`} style={{ width: px, height: px }}>
+        <div
+          className={`absolute inset-0 rounded-full bg-[#0B1628] flex items-center justify-center overflow-hidden ${isUrl(emoji) ? '' : emSize} ${ring}`}
+        >
+          {isUrl(emoji)
+            ? <img src={emoji} alt="avatar" className="w-full h-full object-cover" />
+            : emoji}
+        </div>
+        {flag && (
+          <span
+            className="absolute -bottom-0.5 -right-0.5 z-10 leading-none select-none pointer-events-none"
+            style={{ fontSize: flagFont }}
+          >
+            {flag}
+          </span>
+        )}
       </div>
     )
   }
@@ -80,6 +100,16 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
         <span className="absolute z-[3] left-1/2 -translate-x-1/2 select-none pointer-events-none leading-none"
               style={{ top: -Math.round(px * 0.15), fontSize: Math.round(px * 0.32) }}>
           👑
+        </span>
+      )}
+
+      {/* ── Country flag badge ── */}
+      {flag && (
+        <span
+          className="absolute z-[4] leading-none select-none pointer-events-none"
+          style={{ bottom: gap - 2, right: gap - 2, fontSize: flagFont }}
+        >
+          {flag}
         </span>
       )}
     </div>
