@@ -6,24 +6,17 @@ import { createClient } from '@/lib/supabase-server'
 import { getUser } from '@/lib/auth'
 import GlobalNav from '@/components/ui/GlobalNav'
 import FriendButton from '@/components/ui/FriendButton'
-import { flagUrl } from '@/lib/flagEmoji'
+import Avatar from '@/components/ui/Avatar'
 import type { FriendStatus } from '@/components/ui/FriendButton'
+import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 
-type FriendProfile = { id: string; username: string | null; display_name: string | null; equipped_avatar: string | null; country_code: string | null }
-
-function isUUID(s: string | null | undefined) {
-  return !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
-}
-
-function friendDisplayName(f: FriendProfile) {
-  if (f.display_name) return f.display_name
-  if (!f.username || isUUID(f.username)) return 'Hunter'
-  return f.username
-}
-
-function friendHandle(f: FriendProfile) {
-  if (!f.username || isUUID(f.username)) return 'new-player'
-  return f.username
+type FriendProfile = {
+  id: string
+  username: string | null
+  display_name: string | null
+  equipped_avatar: string | null
+  equipped_border: string | null
+  country_code: string | null
 }
 
 export default async function FriendsPage() {
@@ -33,7 +26,7 @@ export default async function FriendsPage() {
   const supabase = createClient()
   const { data: rows } = await supabase
     .from('friendships')
-    .select('id,status,requester_id,addressee_id,requester:profiles!requester_id(id,username,display_name,equipped_avatar,country_code),addressee:profiles!addressee_id(id,username,display_name,equipped_avatar,country_code)')
+    .select('id,status,requester_id,addressee_id,requester:profiles!requester_id(id,username,display_name,equipped_avatar,equipped_border,country_code),addressee:profiles!addressee_id(id,username,display_name,equipped_avatar,equipped_border,country_code)')
     .or(`requester_id.eq.${user!.id},addressee_id.eq.${user!.id}`)
     .neq('status', 'declined')
 
@@ -43,8 +36,8 @@ export default async function FriendsPage() {
     return f.requester_id === user!.id ? f.addressee : f.requester
   }
 
-  const accepted   = friendships.filter((f: any) => f.status === 'accepted')
-  const pendingIn  = friendships.filter((f: any) => f.status === 'pending' && f.addressee_id === user!.id)
+  const accepted  = friendships.filter((f: any) => f.status === 'accepted')
+  const pendingIn = friendships.filter((f: any) => f.status === 'pending' && f.addressee_id === user!.id)
 
   return (
     <div className="min-h-screen bg-navy text-text">
@@ -67,19 +60,19 @@ export default async function FriendsPage() {
                 const friend = friendOf(f)
                 return (
                   <div key={f.id} className="bg-navy-light border border-electric/20 p-4 flex items-center gap-3">
-                    <div className="relative shrink-0 text-2xl leading-none">
-                      <span>{friend.equipped_avatar ?? '🌍'}</span>
-                      {friend.country_code && (
-                        <img src={flagUrl(friend.country_code)} alt="" aria-hidden className="absolute -bottom-1 -right-1 w-4 h-3 rounded-sm shadow-sm pointer-events-none" />
-                      )}
-                    </div>
+                    <Avatar
+                      emoji={friend.equipped_avatar ?? '🌍'}
+                      border={friend.equipped_border ?? 'none'}
+                      size="sm"
+                      countryCode={friend.country_code}
+                    />
                     <div className="flex-1 min-w-0 overflow-hidden">
-                      <div className="font-head font-bold text-white text-sm truncate">{friendDisplayName(friend)}</div>
-                      <div className="text-text-muted font-head text-xs truncate">@{friendHandle(friend)}</div>
+                      <div className="font-head font-bold text-white text-sm truncate">{safeDisplayName(friend)}</div>
+                      <div className="text-text-muted font-head text-xs truncate">@{safeHandle(friend)}</div>
                     </div>
                     <FriendButton
                       targetUserId={friend.id}
-                      targetUsername={friendHandle(friend)}
+                      targetUsername={safeHandle(friend)}
                       initialStatus={'pending_received' as FriendStatus}
                     />
                   </div>
@@ -109,19 +102,19 @@ export default async function FriendsPage() {
               {accepted.map((f: any) => {
                 const friend = friendOf(f)
                 return (
-                  <Link key={f.id} href={`/friends/${friendHandle(friend)}`}
+                  <Link key={f.id} href={`/friends/${safeHandle(friend)}`}
                     className="bg-navy-light border border-white/10 p-4 flex items-center gap-3 hover:border-electric/30 hover:bg-navy-mid/30 transition-all group">
-                    <div className="relative shrink-0 text-2xl leading-none">
-                      <span>{friend.equipped_avatar ?? '🌍'}</span>
-                      {friend.country_code && (
-                        <img src={flagUrl(friend.country_code)} alt="" aria-hidden className="absolute -bottom-1 -right-1 w-4 h-3 rounded-sm shadow-sm pointer-events-none" />
-                      )}
-                    </div>
+                    <Avatar
+                      emoji={friend.equipped_avatar ?? '🌍'}
+                      border={friend.equipped_border ?? 'none'}
+                      size="sm"
+                      countryCode={friend.country_code}
+                    />
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="font-head font-bold text-white text-sm group-hover:text-electric transition-colors truncate">
-                        {friendDisplayName(friend)}
+                        {safeDisplayName(friend)}
                       </div>
-                      <div className="text-text-muted font-head text-xs truncate">@{friendHandle(friend)}</div>
+                      <div className="text-text-muted font-head text-xs truncate">@{safeHandle(friend)}</div>
                     </div>
                     <span className="text-text-muted font-head text-xs group-hover:text-electric transition-colors shrink-0">💬 MESSAGE →</span>
                   </Link>
