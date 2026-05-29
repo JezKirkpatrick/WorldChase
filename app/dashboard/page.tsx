@@ -99,6 +99,14 @@ export default async function DashboardPage() {
               {leaderboardEntry?.rank && (
                 <div className="text-gold font-mono font-bold text-sm mt-1">#{leaderboardEntry.rank} · {leaderboardEntry.total_score?.toLocaleString()} PTS</div>
               )}
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <Link href="/tokens" className="flex items-center gap-1.5 font-mono font-bold text-gold text-base hover:text-gold-dim transition-colors">
+                  🪙 {profile?.tokens ?? 0}
+                </Link>
+                <Link href="/tokens" className="text-[11px] font-head font-bold text-electric tracking-widest hover:text-white transition-colors border border-electric/30 px-2 py-0.5 hover:border-electric/60">
+                  + GET TOKENS
+                </Link>
+              </div>
             </div>
             <Link href="/shop" className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 hover:border-gold transition-all hidden sm:block">
               SHOP →
