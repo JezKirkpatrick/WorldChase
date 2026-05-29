@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // This user is the winner — award the full pot
-  const totalPot = match.wager * 2
+  // This user is the winner — award tokens + Hall of Fame points
+  const totalPot     = match.wager * 2
+  const HOF_POINTS   = 100
   await Promise.all([
     admin.rpc('adjust_tokens', { p_user_id: user.id, p_amount: totalPot }),
     admin.from('token_transactions').insert({
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
       amount: totalPot,
       description: `VS Duel winner — +${totalPot} tokens`,
     }),
+    admin.rpc('increment_vs_stats', { p_user_id: user.id, p_score: HOF_POINTS }),
   ])
 
   const { data: updatedProfile } = await admin

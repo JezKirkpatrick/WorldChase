@@ -103,7 +103,7 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
             <span>RANK</span>
             <span>HUNTER</span>
             <span className="text-right">SCORE</span>
-            <span className="text-right">ROUNDS</span>
+            <span className="text-right">WINS</span>
             <span className="text-right">EVENTS</span>
           </div>
 
@@ -169,7 +169,7 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
                   {entry.all_time_score.toLocaleString()}
                 </span>
 
-                {/* Rounds won */}
+                {/* Wins (monthly rounds + VS duels) */}
                 <span className="text-right font-mono text-sm text-text-muted">
                   {entry.rounds_won}
                 </span>

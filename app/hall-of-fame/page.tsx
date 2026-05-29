@@ -20,7 +20,7 @@ export default async function HallOfFamePage() {
           <div className="text-xs text-gold font-head tracking-[0.3em] mb-1">ALL TIME</div>
           <h1 className="font-head font-bold text-3xl text-white">HALL OF FAME</h1>
           <p className="text-text-muted font-head text-sm mt-1">
-            The greatest hunters across every event — ranked by total points earned.
+            The greatest hunters across every event and VS duel — ranked by total points earned.
           </p>
         </div>
 
@@ -29,7 +29,7 @@ export default async function HallOfFamePage() {
           {[
             { icon: '🥇', label: 'TOP SCORE',    desc: 'Highest all-time point total' },
             { icon: '🌍', label: 'GLOBAL STAGE', desc: 'Hunters from every corner of the world' },
-            { icon: '📅', label: 'ALL EVENTS',   desc: 'Scores accumulated across every monthly event' },
+            { icon: '📅', label: 'ALL EVENTS',   desc: 'Monthly events + VS duel wins all count' },
           ].map(s => (
             <div key={s.label} className="border border-white/10 bg-navy-light p-4 text-center">
               <div className="text-2xl mb-1">{s.icon}</div>
