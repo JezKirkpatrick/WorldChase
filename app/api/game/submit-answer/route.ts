@@ -6,15 +6,18 @@ import { calculateScore } from '@/lib/scoring'
 
 export const dynamic = 'force-dynamic'
 
-// ── Simple in-memory rate limiter: max 10 AI calls per user per minute ──
-const aiCallLog = new Map<string, number[]>()
-function checkRateLimit(userId: string): boolean {
-  const now    = Date.now()
-  const cutoff = now - 60_000
-  const calls  = (aiCallLog.get(userId) ?? []).filter(t => t > cutoff)
-  if (calls.length >= 10) return false
-  aiCallLog.set(userId, [...calls, now])
-  return true
+// ── DB-backed rate limit: max 10 AI calls per user per minute ──────────
+// Uses the guesses table (already written to on every attempt) so the
+// limit works correctly across all Vercel function instances.
+async function checkRateLimit(supabase: any, userId: string): Promise<boolean> {
+  const since = new Date(Date.now() - 60_000).toISOString()
+  const { count } = await supabase
+    .from('guesses')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('is_correct', false)
+    .gte('created_at', since)
+  return (count ?? 0) < 10
 }
 
 function keywordMatch(guess: string, keywords: string[]): boolean {
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
       feedback   = 'Confirmed! Your geographical instincts are razor sharp.'
       confidence = 1.0
     } else {
-      if (!checkRateLimit(userId)) {
+      if (!await checkRateLimit(supabase, userId)) {
         return NextResponse.json({ error: 'Too many attempts — wait a moment and try again.' }, { status: 429 })
       }
       const aiResponse = await anthropic.messages.create({

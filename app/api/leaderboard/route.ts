@@ -14,10 +14,12 @@ export async function GET(req: NextRequest) {
 
     // Fetch all profiles + event leaderboard entries in parallel
     // All profiles are included so every registered player appears (even 0-scorers)
+    // .limit(10000) overrides PostgREST's default 1000-row cap
     const [profilesRes, lbRes] = await Promise.all([
       supabase
         .from('profiles')
-        .select('id, username, display_name, equipped_avatar, equipped_border, equipped_badge, equipped_title, country, country_code'),
+        .select('id, username, display_name, equipped_avatar, equipped_border, equipped_badge, equipped_title, country, country_code')
+        .limit(10000),
       eventId
         ? supabase.from('leaderboard').select('user_id, total_score, challenges_completed, previous_rank').eq('event_id', eventId)
         : Promise.resolve({ data: [], error: null }),
