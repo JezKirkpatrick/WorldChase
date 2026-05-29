@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import LogoutButton from '@/components/ui/LogoutButton'
 import ShareButton from '@/components/ui/ShareButton'
 import UnreadDMsBadge from '@/components/ui/UnreadDMsBadge'
+import { PlayDot, VsDot, ChatDot } from '@/components/ui/NavActivityDots'
 import { flagUrl } from '@/lib/flagEmoji'
 
 const getPendingCount = cache(async (userId: string) => {
@@ -55,12 +56,12 @@ export default async function GlobalNav() {
       {/* Centre — links */}
       <div className="hidden sm:flex items-center gap-6">
         <ShareButton className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors" />
-        <Link href="/play"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY</Link>
-        <Link href="/vs"           className="text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors">VS DUEL</Link>
+        <Link href="/play"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY{user && <PlayDot userId={user.id} />}</Link>
+        <Link href="/vs"           className="relative text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors">VS DUEL{user && <VsDot userId={user.id} />}</Link>
         <Link href="/leaderboard"  className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
         <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
-        <Link href="/chat"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT</Link>
+        <Link href="/chat"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT{user && <ChatDot userId={user.id} />}</Link>
         <Link href="/friends"     className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">
           FRIENDS
           {pendingCount > 0 && (
@@ -105,8 +106,8 @@ export default async function GlobalNav() {
         </div>
         {/* Mobile links */}
         <div className="sm:hidden flex items-center gap-3">
-          <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white">PLAY</Link>
-          <Link href="/vs"          className="text-xs font-head text-gold hover:text-white">VS</Link>
+          <Link href="/play"        className="relative text-xs font-head text-text-muted hover:text-white">PLAY{user && <PlayDot userId={user.id} />}</Link>
+          <Link href="/vs"          className="relative text-xs font-head text-gold hover:text-white">VS{user && <VsDot userId={user.id} />}</Link>
           <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
           <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
           <Link href="/chat"    className="text-xs font-head text-electric hover:text-white">CHAT</Link>

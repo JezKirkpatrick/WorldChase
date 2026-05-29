@@ -149,6 +149,8 @@ export default function ChatClient({ userId }: { userId: string }) {
     let rxCh:   ReturnType<typeof supabase.channel> | null = null
     let presCh: ReturnType<typeof supabase.channel> | null = null
 
+    localStorage.setItem('wc_chat_last_visit', String(Date.now()))
+
     async function init() {
       const { data: me } = await supabase
         .from('profiles').select('username,display_name,equipped_avatar,equipped_title')
