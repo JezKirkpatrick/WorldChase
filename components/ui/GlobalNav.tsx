@@ -74,18 +74,16 @@ export default async function GlobalNav() {
           <span>🪙</span>
           <span>{profile?.tokens ?? 0}</span>
         </Link>
-        <div className="relative shrink-0 w-9 h-9">
-          <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105 block`} title="Profile">
-            {avatar.startsWith('http')
-              ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
-              : avatar}
-          </Link>
-          {profile?.country_code && (
-            <span className="absolute -bottom-1 -right-1 text-sm leading-none select-none pointer-events-none z-10">
-              {flagEmoji(profile.country_code)}
-            </span>
-          )}
-        </div>
+        {profile?.country_code && (
+          <span className="text-xl leading-none" title={profile.country_code}>
+            {flagEmoji(profile.country_code)}
+          </span>
+        )}
+        <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105 block shrink-0`} title="Profile">
+          {avatar.startsWith('http')
+            ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
+            : avatar}
+        </Link>
         <div className="hidden sm:flex items-center gap-2">
           <Link href="/settings" className="text-xl text-text-muted hover:text-white transition-colors px-2 py-1" title="Account settings">
             ⚙
