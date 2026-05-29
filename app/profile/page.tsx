@@ -12,6 +12,7 @@ import ShareButton from '@/components/ui/ShareButton'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 import { flagUrl } from '@/lib/flagEmoji'
+import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 
 export default async function ProfilePage() {
   const user = await getUser()
@@ -84,7 +85,7 @@ export default async function ProfilePage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-head font-bold text-2xl text-white">
-                  {profile?.display_name || profile?.username}
+                  {safeDisplayName(profile)}
                 </h1>
                 {featuredAchievement && (
                   <div className="badge-wrap">
@@ -94,7 +95,7 @@ export default async function ProfilePage() {
                 )}
               </div>
               <div className="flex items-center gap-2 text-text-muted font-head text-sm">
-                <span>@{profile?.username}</span>
+                <span>@{safeHandle(profile)}</span>
                 {profile?.country_code && flagUrl(profile.country_code) && (
                   <img src={flagUrl(profile.country_code)} alt={profile.country_code} width={24} height={18} className="rounded-sm shadow-sm" />
                 )}

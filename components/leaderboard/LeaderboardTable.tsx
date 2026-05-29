@@ -5,6 +5,7 @@ import Link from 'next/link'
 import RankBadge from './RankBadge'
 import Avatar from '@/components/ui/Avatar'
 import { ACHIEVEMENTS } from '@/lib/achievements'
+import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 import type { LeaderboardEntry } from '@/types/game'
 
 interface LeaderboardTableProps {
@@ -69,7 +70,7 @@ export default function LeaderboardTable({ eventId, currentUserId }: Leaderboard
               transition={{ delay: Math.min(i * 0.025, 0.5), duration: 0.3 }}
             >
               <Link
-                href={`/profile/${profile?.username ?? entry.user_id}`}
+                href={`/profile/${safeHandle(profile) === 'new-player' ? entry.user_id : safeHandle(profile)}`}
                 className={`grid grid-cols-[56px_1fr_80px_100px_90px] gap-2 px-4 py-3 border items-center transition-all cursor-pointer group
                   ${isMe ? 'border-gold/50 bg-gold/8' : podiumStyle}
                   ${glowStyle}
@@ -96,7 +97,7 @@ export default function LeaderboardTable({ eventId, currentUserId }: Leaderboard
                   <div className="min-w-0">
                     <div className={`flex items-center gap-1.5 font-head font-bold text-sm truncate group-hover:text-gold transition-colors ${isMe ? 'text-gold' : 'text-white'}`}>
                       <span className="truncate">
-                        {profile?.display_name || (profile?.username ?? 'Anonymous')}
+                        {safeDisplayName(profile)}
                         {isMe && <span className="text-xs text-gold/60 ml-1">(you)</span>}
                       </span>
                       {profile?.equipped_badge && (() => {

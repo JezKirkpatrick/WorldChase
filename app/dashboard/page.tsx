@@ -12,6 +12,7 @@ import OnboardingGuide from '@/components/ui/OnboardingGuide'
 import UsernameSetupBanner from '@/components/ui/UsernameSetupBanner'
 import InviteFriendsButton from '@/components/ui/InviteFriendsButton'
 import ShareButton from '@/components/ui/ShareButton'
+import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 
 const RANK_STYLE = ['text-gold', 'text-slate-300', 'text-amber-600']
 const RANK_EMOJI = ['👑', '🥈', '🥉']
@@ -209,7 +210,7 @@ export default async function DashboardPage() {
                 const p = entry.profiles
                 const isMe = entry.user_id === user.id
                 return (
-                  <Link href={`/profile/${p?.username ?? entry.user_id}`} key={entry.user_id}
+                  <Link href={`/profile/${safeHandle(p) === 'new-player' ? entry.user_id : safeHandle(p)}`} key={entry.user_id}
                     className={`flex items-center gap-2.5 px-2 py-2 transition-all cursor-pointer ${isMe ? 'bg-gold/10 border border-gold/25' : 'hover:bg-white/5 border border-transparent'}`}>
                     <span className={`font-mono font-bold text-sm w-6 text-center shrink-0 ${RANK_STYLE[i] ?? 'text-text-muted'}`}>
                       {RANK_EMOJI[i] ?? `#${entry.rank}`}
@@ -217,7 +218,7 @@ export default async function DashboardPage() {
                     <Avatar emoji={p?.equipped_avatar ?? '🌍'} border={p?.equipped_border ?? 'none'} size="xs" countryCode={p?.country_code} />
                     <div className="flex-1 min-w-0">
                       <div className={`flex items-center gap-1 font-head text-xs font-bold ${isMe ? 'text-gold' : 'text-white'}`}>
-                        <span className="truncate">{p?.username ?? 'Hunter'}{isMe ? ' (you)' : ''}</span>
+                        <span className="truncate">{safeDisplayName(p)}{isMe ? ' (you)' : ''}</span>
                         {p?.equipped_badge && (() => {
                           const badge = ACHIEVEMENTS.find(a => a.id === p.equipped_badge)
                           return badge ? (

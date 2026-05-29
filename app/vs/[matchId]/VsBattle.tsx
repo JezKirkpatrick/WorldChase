@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { flagUrl } from '@/lib/flagEmoji'
+import { safeDisplayName } from '@/lib/userDisplay'
 
 interface VsMatch {
   id: string
@@ -231,7 +232,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
               </div>
               <div>
                 <div className="font-head font-bold text-white text-sm">
-                  {challenger?.display_name || challenger?.username || 'Hunter'}
+                  {safeDisplayName(challenger)}
                 </div>
                 <div className="text-text-muted font-head text-xs">is challenging you to a duel</div>
               </div>
@@ -288,7 +289,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
               ? 'Wagers returned to both hunters.'
               : iWon
                 ? `+${match.wager * 2} tokens added to your balance.`
-                : `${theirProfile?.display_name || theirProfile?.username || 'Opponent'} was faster.`}
+                : `${safeDisplayName(theirProfile)} was faster.`}
           </p>
 
           {reveal && (
@@ -343,7 +344,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
 
           <div className="flex items-center gap-1.5">
             <span className="font-head text-xs text-text-muted truncate max-w-[80px]">
-              {theirProfile?.display_name || theirProfile?.username || 'Hunter'}
+              {safeDisplayName(theirProfile)}
             </span>
             <div className="relative shrink-0">
               <span className="text-base leading-none">{theirProfile?.equipped_avatar ?? '🌍'}</span>

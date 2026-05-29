@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Avatar from '@/components/ui/Avatar'
 import { ACHIEVEMENTS } from '@/lib/achievements'
+import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 
 type Country  = { code: string; name: string }
 type HofEntry = {
@@ -110,7 +111,7 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
             const isMe    = entry.user_id === currentUserId
             const profile = entry.profiles
             const style   = RANK_STYLES[entry.rank] ?? { row: 'border-white/5', score: 'text-white' }
-            const name    = profile?.display_name || (profile?.username ?? 'Anonymous')
+            const name    = safeDisplayName(profile)
             const badge   = profile?.equipped_badge
               ? ACHIEVEMENTS.find(a => a.id === profile.equipped_badge)
               : null
@@ -118,7 +119,7 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
             return (
               <Link
                 key={entry.user_id}
-                href={`/profile/${profile?.username ?? entry.user_id}`}
+                href={`/profile/${safeHandle(profile) === 'new-player' ? entry.user_id : safeHandle(profile)}`}
                 className={`grid grid-cols-[56px_1fr_90px_90px_80px] gap-2 px-4 py-3 border items-center transition-all group
                   ${isMe ? 'border-gold/50 bg-gold/8' : style.row}
                   hover:border-gold/30 hover:bg-white/[0.03]`}

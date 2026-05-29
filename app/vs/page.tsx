@@ -7,6 +7,7 @@ import { createServiceClient } from '@/lib/supabase-server'
 import GlobalNav from '@/components/ui/GlobalNav'
 import CreateDuelButton from '@/components/vs/CreateDuelButton'
 import Avatar from '@/components/ui/Avatar'
+import { safeDisplayName } from '@/lib/userDisplay'
 
 export default async function VsPage() {
   const user = await getUser()
@@ -64,7 +65,7 @@ export default async function VsPage() {
                 const other = isChallenger ? m.opponent : m.challenger
                 const statusLabel = m.status === 'pending'
                   ? '⏳ Waiting for opponent'
-                  : `⚔️ vs ${other?.display_name || other?.username || 'Hunter'}`
+                  : `⚔️ vs ${safeDisplayName(other)}`
 
                 return (
                   <Link
@@ -110,7 +111,7 @@ export default async function VsPage() {
                   <Avatar emoji={m.challenger?.equipped_avatar ?? '🌍'} border={m.challenger?.equipped_border ?? 'none'} size="sm" countryCode={m.challenger?.country_code} />
                   <div className="flex-1 min-w-0">
                     <div className="font-head font-bold text-white text-sm truncate">
-                      {m.challenger?.display_name || m.challenger?.username || 'Hunter'} is challenging
+                      {safeDisplayName(m.challenger)} is challenging
                     </div>
                     <div className="text-text-muted font-head text-xs">
                       Wager {m.wager} tokens each &nbsp;·&nbsp; Winner takes {m.wager * 2}
