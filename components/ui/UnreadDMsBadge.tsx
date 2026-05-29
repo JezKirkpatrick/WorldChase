@@ -1,9 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 
 export default function UnreadDMsBadge({ myId }: { myId: string }) {
   const [count, setCount] = useState(0)
+  const chName = useRef(`wc_dm_nav_badge_${Math.random().toString(36).slice(2)}`)
 
   async function refresh() {
     const supabase = createClient()
@@ -32,7 +33,7 @@ export default function UnreadDMsBadge({ myId }: { myId: string }) {
   useEffect(() => {
     refresh()
     const supabase = createClient()
-    const ch = supabase.channel('wc_dm_nav_badge')
+    const ch = supabase.channel(chName.current)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, (p: any) => {
         if (p.new.recipient_id === myId) refresh()
       })
