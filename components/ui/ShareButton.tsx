@@ -44,13 +44,15 @@ export default function ShareButton({ className }: { className?: string }) {
     setOpen(false)
   }
 
-  function shareToMessenger() {
+  async function shareToMessenger() {
     const rawUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const encoded = encodeURIComponent(rawUrl)
     if (isMobile) {
       window.location.href = `fb-messenger://share/?link=${encoded}`
     } else {
-      navigator.clipboard.writeText(rawUrl).catch(() => window.prompt('Copy and paste in Messenger:', rawUrl))
+      // Copy link so user can paste it, then open Messenger web
+      try { await navigator.clipboard.writeText(rawUrl) } catch {}
+      window.open('https://www.messenger.com', '_blank', 'noopener,noreferrer')
     }
     setOpen(false)
   }
