@@ -7,31 +7,55 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const eventId = searchParams.get('eventId')
-    const limit   = Math.min(parseInt(searchParams.get('limit') ?? '100'), 200)
+    const limit   = Math.min(parseInt(searchParams.get('limit') ?? '200'), 500)
     const offset  = parseInt(searchParams.get('offset') ?? '0')
-
-    if (!eventId) return NextResponse.json({ entries: [] })
 
     const supabase = createServiceClient()
 
-    // DB-side join, sort, and pagination — avoids full-table scan + JS sort at scale
-    const { data: lbEntries, error } = await supabase
-      .from('leaderboard')
-      .select('user_id, total_score, challenges_completed, previous_rank, profiles(id, username, display_name, equipped_avatar, equipped_border, equipped_badge, equipped_title, country, country_code)')
-      .eq('event_id', eventId)
-      .order('total_score', { ascending: false })
-      .range(offset, offset + limit - 1)
+    // Fetch all profiles + event leaderboard entries in parallel
+    // All profiles are included so every registered player appears (even 0-scorers)
+    const [profilesRes, lbRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, username, display_name, equipped_avatar, equipped_border, equipped_badge, equipped_title, country, country_code'),
+      eventId
+        ? supabase.from('leaderboard').select('user_id, total_score, challenges_completed, previous_rank').eq('event_id', eventId)
+        : Promise.resolve({ data: [], error: null }),
+    ])
 
-    if (error) throw error
+    if (profilesRes.error) throw profilesRes.error
 
-    const entries = (lbEntries ?? []).map((e, i) => ({
-      user_id:              e.user_id,
-      profiles:             e.profiles,
-      total_score:          e.total_score          ?? 0,
-      challenges_completed: e.challenges_completed ?? 0,
-      previous_rank:        e.previous_rank        ?? null,
-      rank:                 offset + i + 1,
+    // Build score map from leaderboard entries
+    const scoreMap: Record<string, { total_score: number; challenges_completed: number; previous_rank: number | null }> = {}
+    for (const row of (lbRes as any).data ?? []) {
+      scoreMap[row.user_id] = {
+        total_score:          row.total_score          ?? 0,
+        challenges_completed: row.challenges_completed ?? 0,
+        previous_rank:        row.previous_rank        ?? null,
+      }
+    }
+
+    // Merge: every profile gets a leaderboard entry (defaulting to 0 if not yet played)
+    const merged = (profilesRes.data ?? []).map(p => ({
+      user_id:              p.id,
+      profiles:             p,
+      total_score:          scoreMap[p.id]?.total_score          ?? 0,
+      challenges_completed: scoreMap[p.id]?.challenges_completed ?? 0,
+      previous_rank:        scoreMap[p.id]?.previous_rank        ?? null,
     }))
+
+    // Sort by score desc, then alphabetically for ties
+    merged.sort((a, b) =>
+      b.total_score - a.total_score ||
+      (a.profiles.display_name || a.profiles.username || '').localeCompare(
+        b.profiles.display_name || b.profiles.username || ''
+      )
+    )
+
+    // Paginate + assign rank
+    const entries = merged
+      .slice(offset, offset + limit)
+      .map((e, i) => ({ ...e, rank: offset + i + 1 }))
 
     return NextResponse.json({ entries }, {
       headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=5' }
