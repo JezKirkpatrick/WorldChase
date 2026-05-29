@@ -41,7 +41,7 @@ export default async function DashboardPage() {
       supabase.from('leaderboard').select('rank,total_score').eq('user_id', user.id).eq('event_id', event.id).maybeSingle(),
       supabase.from('player_progress').select('status').eq('user_id', user.id).eq('event_id', event.id),
       supabase.from('leaderboard')
-        .select('rank,total_score,challenges_completed,user_id,profiles(username,equipped_avatar,equipped_border,equipped_title,equipped_badge)')
+        .select('rank,total_score,challenges_completed,user_id,profiles(username,equipped_avatar,equipped_border,equipped_title,equipped_badge,country_code)')
         .eq('event_id', event.id)
         .order('rank', { ascending: true })
         .limit(5),
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
   // Past events with top 3 each
   const pastWithPodiums = await Promise.all(pastEvents.map(async (e: any) => {
     const { data: podium } = await supabase.from('leaderboard')
-      .select('rank,total_score,user_id,profiles(username,equipped_avatar,equipped_border)')
+      .select('rank,total_score,user_id,profiles(username,equipped_avatar,equipped_border,country_code)')
       .eq('event_id', e.id)
       .order('rank', { ascending: true })
       .limit(3)
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
           <div className="lg:col-span-2 animate-fade-up stagger-1 bg-navy-light border border-white/10 p-5 flex items-center gap-4 card-hover"
             style={{ background: 'linear-gradient(135deg, #0f1535 0%, #111830 100%)' }}>
             <div className="animate-float">
-              <Avatar emoji={profile?.equipped_avatar ?? '🌍'} border={profile?.equipped_border ?? 'none'} size="lg" />
+              <Avatar emoji={profile?.equipped_avatar ?? '🌍'} border={profile?.equipped_border ?? 'none'} size="lg" countryCode={profile?.country_code} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-text-muted font-head text-xs tracking-widest mb-0.5">WELCOME BACK, HUNTER</div>
@@ -206,7 +206,7 @@ export default async function DashboardPage() {
                     <span className={`font-mono font-bold text-sm w-6 text-center shrink-0 ${RANK_STYLE[i] ?? 'text-text-muted'}`}>
                       {RANK_EMOJI[i] ?? `#${entry.rank}`}
                     </span>
-                    <span className="text-base shrink-0">{p?.equipped_avatar ?? '🌍'}</span>
+                    <Avatar emoji={p?.equipped_avatar ?? '🌍'} border={p?.equipped_border ?? 'none'} size="xs" countryCode={p?.country_code} />
                     <div className="flex-1 min-w-0">
                       <div className={`flex items-center gap-1 font-head text-xs font-bold ${isMe ? 'text-gold' : 'text-white'}`}>
                         <span className="truncate">{p?.username ?? 'Hunter'}{isMe ? ' (you)' : ''}</span>
@@ -248,7 +248,7 @@ export default async function DashboardPage() {
                   <div className="flex items-end justify-center gap-2 mb-3">
                     {e.podium[1] && (
                       <div className="flex flex-col items-center gap-1">
-                        <Avatar emoji={e.podium[1].profiles?.equipped_avatar ?? '🌍'} border={e.podium[1].profiles?.equipped_border ?? 'none'} size="sm" />
+                        <Avatar emoji={e.podium[1].profiles?.equipped_avatar ?? '🌍'} border={e.podium[1].profiles?.equipped_border ?? 'none'} size="sm" countryCode={e.podium[1].profiles?.country_code} />
                         <div className="text-xs">🥈</div>
                         <div className="w-12 h-8 bg-slate-500/20 border-t border-slate-400/30 flex items-end justify-center pb-1">
                           <span className="text-slate-300 font-mono text-xs font-bold">2</span>
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
                     )}
                     {e.podium[0] && (
                       <div className="flex flex-col items-center gap-1 -mb-2">
-                        <Avatar emoji={e.podium[0].profiles?.equipped_avatar ?? '🌍'} border={e.podium[0].profiles?.equipped_border ?? 'none'} size="md" />
+                        <Avatar emoji={e.podium[0].profiles?.equipped_avatar ?? '🌍'} border={e.podium[0].profiles?.equipped_border ?? 'none'} size="md" countryCode={e.podium[0].profiles?.country_code} />
                         <div className="text-base">👑</div>
                         <div className="w-12 h-12 border-t-2 border-gold bg-gold/10 flex items-end justify-center pb-1">
                           <span className="text-gold font-mono text-sm font-bold">1</span>
@@ -266,7 +266,7 @@ export default async function DashboardPage() {
                     )}
                     {e.podium[2] && (
                       <div className="flex flex-col items-center gap-1">
-                        <Avatar emoji={e.podium[2].profiles?.equipped_avatar ?? '🌍'} border={e.podium[2].profiles?.equipped_border ?? 'none'} size="sm" />
+                        <Avatar emoji={e.podium[2].profiles?.equipped_avatar ?? '🌍'} border={e.podium[2].profiles?.equipped_border ?? 'none'} size="sm" countryCode={e.podium[2].profiles?.country_code} />
                         <div className="text-xs">🥉</div>
                         <div className="w-12 h-6 bg-amber-800/20 border-t border-amber-600/30 flex items-end justify-center pb-1">
                           <span className="text-amber-600 font-mono text-xs font-bold">3</span>

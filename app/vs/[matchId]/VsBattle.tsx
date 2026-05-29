@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { flagUrl } from '@/lib/flagEmoji'
 
 interface VsMatch {
   id: string
@@ -30,6 +31,8 @@ interface HunterProfile {
   username: string | null
   display_name: string | null
   equipped_avatar: string | null
+  equipped_border?: string | null
+  country_code?: string | null
 }
 
 interface Props {
@@ -220,7 +223,12 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
 
           <div className="bg-navy-light border border-gold/30 p-6 mb-4">
             <div className="flex items-center gap-3 mb-5">
-              <span className="text-3xl shrink-0">{challenger?.equipped_avatar ?? '🌍'}</span>
+              <div className="relative shrink-0">
+                <span className="text-3xl leading-none">{challenger?.equipped_avatar ?? '🌍'}</span>
+                {challenger?.country_code && flagUrl(challenger.country_code) && (
+                  <img src={flagUrl(challenger.country_code)} alt="" aria-hidden className="absolute -bottom-1 -right-1 w-4 h-3 rounded-sm shadow-sm pointer-events-none" />
+                )}
+              </div>
               <div>
                 <div className="font-head font-bold text-white text-sm">
                   {challenger?.display_name || challenger?.username || 'Hunter'}
@@ -321,7 +329,12 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
         {/* Player indicators */}
         <div className="flex-1 flex items-center justify-center gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-base leading-none">{myProfile?.equipped_avatar ?? '🌍'}</span>
+            <div className="relative shrink-0">
+              <span className="text-base leading-none">{myProfile?.equipped_avatar ?? '🌍'}</span>
+              {myProfile?.country_code && flagUrl(myProfile.country_code) && (
+                <img src={flagUrl(myProfile.country_code)} alt="" aria-hidden className="absolute -bottom-0.5 -right-0.5 w-3 h-2 rounded-sm pointer-events-none" />
+              )}
+            </div>
             <span className="font-head text-xs text-white font-bold">YOU</span>
             {mySolvedAt && <span className="text-success text-sm">✓</span>}
           </div>
@@ -332,7 +345,12 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
             <span className="font-head text-xs text-text-muted truncate max-w-[80px]">
               {theirProfile?.display_name || theirProfile?.username || 'Hunter'}
             </span>
-            <span className="text-base leading-none">{theirProfile?.equipped_avatar ?? '🌍'}</span>
+            <div className="relative shrink-0">
+              <span className="text-base leading-none">{theirProfile?.equipped_avatar ?? '🌍'}</span>
+              {theirProfile?.country_code && flagUrl(theirProfile.country_code) && (
+                <img src={flagUrl(theirProfile.country_code)} alt="" aria-hidden className="absolute -bottom-0.5 -right-0.5 w-3 h-2 rounded-sm pointer-events-none" />
+              )}
+            </div>
             {theirSolvedAt && <span className="text-success text-sm">✓</span>}
           </div>
         </div>

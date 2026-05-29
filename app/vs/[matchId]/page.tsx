@@ -36,7 +36,7 @@ export default async function VsMatchPage({ params }: PageProps) {
   const participantIds = [match.challenger_id, match.opponent_id].filter(Boolean) as string[]
   const { data: profiles } = await admin
     .from('profiles')
-    .select('id, username, display_name, equipped_avatar')
+    .select('id, username, display_name, equipped_avatar, equipped_border, country_code')
     .in('id', participantIds)
 
   const challenger = profiles?.find(p => p.id === match.challenger_id) ?? null

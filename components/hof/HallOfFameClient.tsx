@@ -136,6 +136,7 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
                     emoji={profile?.equipped_avatar ?? '🌍'}
                     border={profile?.equipped_border ?? 'none'}
                     size="xs"
+                    countryCode={profile?.country_code}
                     className="shrink-0"
                   />
                   <div className="min-w-0">

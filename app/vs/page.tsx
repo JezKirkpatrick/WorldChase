@@ -6,6 +6,7 @@ import { getUser, getProfile } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase-server'
 import GlobalNav from '@/components/ui/GlobalNav'
 import CreateDuelButton from '@/components/vs/CreateDuelButton'
+import Avatar from '@/components/ui/Avatar'
 
 export default async function VsPage() {
   const user = await getUser()
@@ -16,7 +17,7 @@ export default async function VsPage() {
   // My active/pending matches
   const { data: myMatches } = await admin
     .from('vs_matches')
-    .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar), opponent:profiles!opponent_id(username,display_name,equipped_avatar)')
+    .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar,country_code), opponent:profiles!opponent_id(username,display_name,equipped_avatar,country_code)')
     .or(`challenger_id.eq.${user.id},opponent_id.eq.${user.id}`)
     .in('status', ['pending', 'active'])
     .order('created_at', { ascending: false })
@@ -24,7 +25,7 @@ export default async function VsPage() {
   // Open challenges from other players
   const { data: openMatches } = await admin
     .from('vs_matches')
-    .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar)')
+    .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar,equipped_border,country_code)')
     .eq('status', 'pending')
     .neq('challenger_id', user.id)
     .gt('expires_at', new Date().toISOString())
@@ -106,7 +107,7 @@ export default async function VsPage() {
                   href={`/vs/${m.id}`}
                   className="flex items-center gap-4 bg-navy-light border border-white/10 p-4 hover:border-gold/30 transition-all group"
                 >
-                  <span className="text-2xl shrink-0">{m.challenger?.equipped_avatar ?? '🌍'}</span>
+                  <Avatar emoji={m.challenger?.equipped_avatar ?? '🌍'} border={m.challenger?.equipped_border ?? 'none'} size="sm" countryCode={m.challenger?.country_code} />
                   <div className="flex-1 min-w-0">
                     <div className="font-head font-bold text-white text-sm truncate">
                       {m.challenger?.display_name || m.challenger?.username || 'Hunter'} is challenging
