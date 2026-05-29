@@ -44,15 +44,19 @@ export default function ShareButton({ className }: { className?: string }) {
     setOpen(false)
   }
 
-  async function shareToMessenger() {
+  function shareToMessenger() {
     const rawUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const encoded = encodeURIComponent(rawUrl)
     if (isMobile) {
+      // Opens Messenger app directly with the link pre-filled
       window.location.href = `fb-messenger://share/?link=${encoded}`
     } else {
-      // Copy link so user can paste it, then open Messenger web
-      try { await navigator.clipboard.writeText(rawUrl) } catch {}
-      window.open('https://www.messenger.com', '_blank', 'noopener,noreferrer')
+      // Desktop: Facebook share popup — link is pre-loaded, user can hit Send to forward via Messenger
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encoded}`,
+        'fb-share',
+        'width=580,height=480,toolbar=0,menubar=0,location=0'
+      )
     }
     setOpen(false)
   }
@@ -83,7 +87,7 @@ export default function ShareButton({ className }: { className?: string }) {
 
           <button onClick={shareToMessenger}
             className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
-            <span className="text-[#1877f2] font-bold">f</span> Messenger
+            <span className="text-[#1877f2] font-bold">f</span> {isMobile ? 'Messenger' : 'Facebook / Messenger'}
           </button>
 
           <button onClick={() => openUrl(`https://twitter.com/intent/tweet?text=${text}&url=${link}`)}
