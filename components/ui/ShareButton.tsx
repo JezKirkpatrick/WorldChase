@@ -44,6 +44,17 @@ export default function ShareButton({ className }: { className?: string }) {
     setOpen(false)
   }
 
+  function shareToMessenger() {
+    const rawUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const encoded = encodeURIComponent(rawUrl)
+    if (isMobile) {
+      window.location.href = `fb-messenger://share/?link=${encoded}`
+    } else {
+      navigator.clipboard.writeText(rawUrl).catch(() => window.prompt('Copy and paste in Messenger:', rawUrl))
+    }
+    setOpen(false)
+  }
+
   const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
   const hasNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
@@ -68,9 +79,9 @@ export default function ShareButton({ className }: { className?: string }) {
             <span>🔗</span> Copy link
           </button>
 
-          <button onClick={() => openUrl(`https://www.facebook.com/sharer/sharer.php?u=${link}`)}
+          <button onClick={shareToMessenger}
             className="w-full text-left px-3 py-2 text-xs font-head text-white hover:bg-white/8 transition-colors flex items-center gap-2">
-            <span className="text-[#1877f2] font-bold">f</span> Facebook
+            <span className="text-[#1877f2] font-bold">f</span> Messenger
           </button>
 
           <button onClick={() => openUrl(`https://twitter.com/intent/tweet?text=${text}&url=${link}`)}
