@@ -1,9 +1,20 @@
 import Link from 'next/link'
+import { cache } from 'react'
 import { getUser, getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase-server'
 import LogoutButton from '@/components/ui/LogoutButton'
 import ShareButton from '@/components/ui/ShareButton'
 import { flagUrl } from '@/lib/flagEmoji'
+
+const getPendingCount = cache(async (userId: string) => {
+  const supabase = createClient()
+  const { count } = await supabase
+    .from('friendships')
+    .select('id', { count: 'exact', head: true })
+    .eq('addressee_id', userId)
+    .eq('status', 'pending')
+  return count ?? 0
+})
 
 const BORDER_RING: Record<string, string> = {
   gold:      'ring-2 ring-gold shadow-gold/40',
@@ -21,16 +32,12 @@ export default async function GlobalNav() {
   let profile = null
   let pendingCount = 0
   if (user) {
-    const supabase = createClient()
-    const [profileData, { count }] = await Promise.all([
+    const [profileData, count] = await Promise.all([
       getProfile(user.id),
-      supabase.from('friendships')
-        .select('id', { count: 'exact', head: true })
-        .eq('addressee_id', user.id)
-        .eq('status', 'pending'),
+      getPendingCount(user.id),
     ])
     profile      = profileData
-    pendingCount = count ?? 0
+    pendingCount = count
   }
 
   const avatar = profile?.equipped_avatar ?? '🌍'
