@@ -6,6 +6,7 @@ import LogoutButton from '@/components/ui/LogoutButton'
 import ShareButton from '@/components/ui/ShareButton'
 import UnreadDMsBadge from '@/components/ui/UnreadDMsBadge'
 import { PlayDot, VsDot, ChatDot } from '@/components/ui/NavActivityDots'
+import VsNotifier from '@/components/vs/VsNotifier'
 import { flagUrl } from '@/lib/flagEmoji'
 
 const getPendingCount = cache(async (userId: string) => {
@@ -47,6 +48,8 @@ export default async function GlobalNav() {
   const ring = BORDER_RING[border] ?? ''
 
   return (
+    <>
+    {user && <VsNotifier myId={user.id} />}
     <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
       {/* Left — logo */}
       <Link href="/dashboard" className="font-head font-bold text-gold tracking-widest text-base hover:text-gold-dim transition-colors whitespace-nowrap">
@@ -120,5 +123,6 @@ export default async function GlobalNav() {
         </div>
       </div>
     </nav>
+    </>
   )
 }

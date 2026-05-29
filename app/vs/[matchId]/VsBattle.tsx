@@ -12,6 +12,8 @@ interface VsMatch {
   opponent_id: string | null
   wager: number
   status: string
+  match_type: string
+  invited_friend_id: string | null
   winner_id: string | null
   challenger_solved_at: string | null
   opponent_solved_at: string | null
@@ -163,50 +165,98 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
 
   // ── PENDING — challenger waiting ──────────────────────────────────────────
   if (match.status === 'pending' && isChallenger) {
+    const isQueue = match.match_type === 'queue'
+
     return (
       <div className="min-h-screen bg-navy flex flex-col items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="text-5xl mb-3">⚔️</div>
-            <h1 className="font-head font-bold text-2xl text-white">DUEL CREATED</h1>
-            <p className="text-text-muted font-head text-sm mt-2">
-              Wager: <span className="text-gold font-bold">{match.wager}</span> tokens each &nbsp;·&nbsp;
-              Pot: <span className="text-gold font-bold">{match.wager * 2}</span> tokens
-            </p>
-          </div>
+          {isQueue ? (
+            /* ── VS WORLD queue waiting ── */
+            <div className="text-center">
+              <div className="text-xs text-gold font-head tracking-[0.3em] mb-3">VS WORLD</div>
+              <h1 className="font-head font-bold text-2xl text-white mb-1">SEARCHING THE GLOBE</h1>
+              <p className="text-text-muted font-head text-sm mb-10">
+                Wager: <span className="text-gold font-bold">{match.wager}</span> tokens each &nbsp;·&nbsp;
+                Pot: <span className="text-gold font-bold">{match.wager * 2}</span> tokens
+              </p>
 
-          <div className="bg-navy-light border border-electric/30 p-6 mb-4">
-            <div className="text-xs font-head text-electric tracking-widest mb-3 flex items-center gap-2">
-              <span className="w-2 h-2 bg-electric rounded-full animate-pulse" />
-              WAITING FOR OPPONENT
-            </div>
-            <p className="text-text-muted font-head text-sm mb-3">Share this link to challenge a hunter:</p>
-            <div className="flex gap-2">
-              <input
-                readOnly
-                value={shareUrl}
-                className="flex-1 bg-navy border border-white/20 px-3 py-2 font-mono text-xs text-text truncate"
-              />
+              {/* Radar animation */}
+              <div className="relative w-24 h-24 mx-auto mb-10">
+                <div className="absolute inset-0 rounded-full border border-electric/20 animate-ping" style={{ animationDuration: '2s' }} />
+                <div className="absolute inset-3 rounded-full border border-electric/30 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.4s' }} />
+                <div className="absolute inset-6 rounded-full border border-electric/50 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.8s' }} />
+                <div className="absolute inset-9 rounded-full bg-electric/20 border border-electric flex items-center justify-center">
+                  <span className="text-electric text-xs">🌍</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-1.5 mb-10">
+                <span className="text-electric font-head text-sm tracking-[0.3em]">FINDING OPPONENT</span>
+                <span className="w-1.5 h-1.5 bg-electric rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 bg-electric rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 bg-electric rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+
               <button
-                onClick={copyLink}
-                className="px-4 py-2 border border-gold/40 font-head text-xs font-bold text-gold hover:bg-gold/10 transition-all whitespace-nowrap"
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="w-full py-2.5 border border-danger/30 text-danger font-head text-xs tracking-widest hover:bg-danger/10 transition-colors disabled:opacity-40"
               >
-                {copied ? '✓' : 'COPY'}
+                {cancelling ? 'LEAVING...' : 'LEAVE QUEUE (tokens refunded)'}
               </button>
             </div>
-          </div>
+          ) : (
+            /* ── Open / friend invite — share link ── */
+            <>
+              <div className="text-center mb-8">
+                <div className="text-5xl mb-3">⚔️</div>
+                <h1 className="font-head font-bold text-2xl text-white">
+                  {match.match_type === 'friend_invite' ? 'CHALLENGE SENT' : 'DUEL CREATED'}
+                </h1>
+                <p className="text-text-muted font-head text-sm mt-2">
+                  Wager: <span className="text-gold font-bold">{match.wager}</span> tokens each &nbsp;·&nbsp;
+                  Pot: <span className="text-gold font-bold">{match.wager * 2}</span> tokens
+                </p>
+              </div>
 
-          <button
-            onClick={handleCancel}
-            disabled={cancelling}
-            className="w-full py-2.5 border border-danger/30 text-danger font-head text-xs tracking-widest hover:bg-danger/10 transition-colors disabled:opacity-40"
-          >
-            {cancelling ? 'CANCELLING...' : 'CANCEL DUEL (tokens refunded)'}
-          </button>
+              <div className="bg-navy-light border border-electric/30 p-6 mb-4">
+                <div className="text-xs font-head text-electric tracking-widest mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-electric rounded-full animate-pulse" />
+                  {match.match_type === 'friend_invite' ? 'WAITING FOR FRIEND' : 'WAITING FOR OPPONENT'}
+                </div>
+                <p className="text-text-muted font-head text-sm mb-3">
+                  {match.match_type === 'friend_invite'
+                    ? 'Your friend has been notified. You can also share this link:'
+                    : 'Share this link to challenge a hunter:'}
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    readOnly
+                    value={shareUrl}
+                    className="flex-1 bg-navy border border-white/20 px-3 py-2 font-mono text-xs text-text truncate"
+                  />
+                  <button
+                    onClick={copyLink}
+                    className="px-4 py-2 border border-gold/40 font-head text-xs font-bold text-gold hover:bg-gold/10 transition-all whitespace-nowrap"
+                  >
+                    {copied ? '✓' : 'COPY'}
+                  </button>
+                </div>
+              </div>
 
-          <div className="mt-6 text-center">
-            <a href="/vs" className="text-text-muted font-head text-sm hover:text-white transition-colors">← All duels</a>
-          </div>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="w-full py-2.5 border border-danger/30 text-danger font-head text-xs tracking-widest hover:bg-danger/10 transition-colors disabled:opacity-40"
+              >
+                {cancelling ? 'CANCELLING...' : 'CANCEL DUEL (tokens refunded)'}
+              </button>
+
+              <div className="mt-6 text-center">
+                <a href="/vs" className="text-text-muted font-head text-sm hover:text-white transition-colors">← All duels</a>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )

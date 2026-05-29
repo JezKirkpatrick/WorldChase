@@ -5,19 +5,15 @@ import { createClient } from '@supabase/supabase-js'
 export const dynamic = 'force-dynamic'
 
 const VALID_WAGERS = [10, 25, 50, 100]
-type MatchType = 'open' | 'friend_invite'
 
 export async function POST(req: NextRequest) {
   const serverClient = createServerClient()
   const { data: { user } } = await serverClient.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { wager, matchType = 'open', friendId } = await req.json()
+  const { wager } = await req.json()
   if (!VALID_WAGERS.includes(wager)) {
     return NextResponse.json({ error: 'Invalid wager amount' }, { status: 400 })
-  }
-  if (!['open', 'friend_invite'].includes(matchType)) {
-    return NextResponse.json({ error: 'Invalid match type' }, { status: 400 })
   }
 
   const admin = createClient(
@@ -27,24 +23,50 @@ export async function POST(req: NextRequest) {
 
   const { data: profile } = await admin.from('profiles').select('tokens').eq('id', user.id).single()
   if (!profile || profile.tokens < wager) {
-    return NextResponse.json({ error: `Not enough tokens (need ${wager}, have ${profile?.tokens ?? 0})` }, { status: 400 })
+    return NextResponse.json({ error: `Not enough tokens (need ${wager})` }, { status: 400 })
   }
 
-  // Validate friendship when issuing a direct challenge
-  if (matchType === 'friend_invite') {
-    if (!friendId) return NextResponse.json({ error: 'Friend ID required for friend invite' }, { status: 400 })
-    if (friendId === user.id) return NextResponse.json({ error: 'Cannot challenge yourself' }, { status: 400 })
+  const now = new Date().toISOString()
 
-    const { data: friendship } = await admin
-      .from('friendships')
+  // Look for an open queue match with the same wager (not our own, not expired)
+  const { data: existing } = await admin
+    .from('vs_matches')
+    .select('id')
+    .eq('match_type', 'queue')
+    .eq('wager', wager)
+    .eq('status', 'pending')
+    .neq('challenger_id', user.id)
+    .gt('expires_at', now)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (existing) {
+    // Atomically claim the match — prevents two players joining simultaneously
+    const { data: claimed } = await admin
+      .from('vs_matches')
+      .update({ opponent_id: user.id, status: 'active', started_at: now })
+      .eq('id', existing.id)
+      .eq('status', 'pending')
       .select('id')
-      .or(`and(requester_id.eq.${user.id},addressee_id.eq.${friendId}),and(requester_id.eq.${friendId},addressee_id.eq.${user.id})`)
-      .eq('status', 'accepted')
-      .maybeSingle()
 
-    if (!friendship) return NextResponse.json({ error: 'You are not friends with this player' }, { status: 403 })
+    if (claimed && claimed.length > 0) {
+      // Successfully joined — deduct wager
+      await Promise.all([
+        admin.rpc('adjust_tokens', { p_user_id: user.id, p_amount: -wager }),
+        admin.from('token_transactions').insert({
+          user_id: user.id,
+          type: 'vs_wager',
+          amount: -wager,
+          description: `VS World — wager staked (${wager} tokens)`,
+        }),
+      ])
+      return NextResponse.json({ matchId: existing.id, matched: true })
+    }
+    // Race: someone else got it — fall through to create our own
   }
 
+  // No open match found — pick a challenge and create a queue slot
   const { data: event } = await admin.from('monthly_events').select('id').eq('status', 'active').maybeSingle()
   if (!event) return NextResponse.json({ error: 'No active event running' }, { status: 400 })
 
@@ -59,30 +81,20 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       type: 'vs_wager',
       amount: -wager,
-      description: `VS Duel — wager staked (${wager} tokens)`,
+      description: `VS World — wager staked (${wager} tokens)`,
     }),
   ])
 
-  const insertData: Record<string, unknown> = {
-    challenge_id: picked.id,
-    challenger_id: user.id,
-    wager,
-    match_type: matchType,
-  }
-  if (matchType === 'friend_invite' && friendId) {
-    insertData.invited_friend_id = friendId
-  }
-
   const { data: match, error } = await admin
     .from('vs_matches')
-    .insert(insertData)
+    .insert({ challenge_id: picked.id, challenger_id: user.id, wager, match_type: 'queue' })
     .select('id')
     .single()
 
   if (error || !match) {
     await admin.rpc('adjust_tokens', { p_user_id: user.id, p_amount: wager })
-    return NextResponse.json({ error: 'Failed to create duel' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to enter queue' }, { status: 500 })
   }
 
-  return NextResponse.json({ matchId: match.id })
+  return NextResponse.json({ matchId: match.id, matched: false })
 }

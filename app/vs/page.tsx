@@ -15,7 +15,9 @@ export default async function VsPage() {
 
   const [profile, admin] = [await getProfile(user.id), createServiceClient()]
 
-  // My active/pending matches
+  const now = new Date().toISOString()
+
+  // My active/pending matches (any type)
   const { data: myMatches } = await admin
     .from('vs_matches')
     .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar,country_code), opponent:profiles!opponent_id(username,display_name,equipped_avatar,country_code)')
@@ -23,13 +25,23 @@ export default async function VsPage() {
     .in('status', ['pending', 'active'])
     .order('created_at', { ascending: false })
 
-  // Open challenges from other players
+  // Friend challenges directed at me
+  const { data: friendChallenges } = await admin
+    .from('vs_matches')
+    .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar,equipped_border,country_code)')
+    .eq('invited_friend_id', user.id)
+    .eq('status', 'pending')
+    .gt('expires_at', now)
+    .order('created_at', { ascending: false })
+
+  // Open public challenges from other players (open type only)
   const { data: openMatches } = await admin
     .from('vs_matches')
     .select('*, challenger:profiles!challenger_id(username,display_name,equipped_avatar,equipped_border,country_code)')
     .eq('status', 'pending')
+    .eq('match_type', 'open')
     .neq('challenger_id', user.id)
-    .gt('expires_at', new Date().toISOString())
+    .gt('expires_at', now)
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -45,14 +57,48 @@ export default async function VsPage() {
           <div className="text-xs text-gold font-head tracking-[0.3em] mb-1">COMPETITIVE</div>
           <h1 className="font-head font-bold text-3xl text-white">⚔️ VS DUEL</h1>
           <p className="text-text-muted font-head text-sm mt-2 leading-relaxed">
-            Wager tokens against another hunter. Both see the same riddle at the same time. First correct answer wins the full pot. No clue unlocks — pure knowledge.
+            Wager tokens against another hunter. Both see the same riddle at the same time. First correct answer wins the full pot.
           </p>
         </div>
 
-        {/* Create new duel */}
+        {/* Create / Queue panel */}
         <CreateDuelButton tokens={tokens} />
 
-        {/* My active duels */}
+        {/* Friend challenges — highlighted, prominent */}
+        {friendChallenges && friendChallenges.length > 0 && (
+          <div className="mt-10">
+            <div className="text-xs font-head text-gold tracking-widest mb-3 flex items-center gap-2">
+              <span className="w-2 h-2 bg-gold rounded-full animate-pulse" />
+              FRIEND CHALLENGES
+              <span className="bg-gold text-navy font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-full">{friendChallenges.length}</span>
+              <div className="flex-1 h-px bg-gold/20" />
+            </div>
+            <div className="space-y-2">
+              {(friendChallenges as any[]).map(m => (
+                <Link
+                  key={m.id}
+                  href={`/vs/${m.id}`}
+                  className="flex items-center gap-4 bg-navy-light border border-gold/40 p-4 hover:border-gold transition-all group shadow-[0_0_12px_rgba(255,197,66,0.08)]"
+                >
+                  <Avatar emoji={m.challenger?.equipped_avatar ?? '🌍'} border={m.challenger?.equipped_border ?? 'none'} size="sm" countryCode={m.challenger?.country_code} />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-head font-bold text-white text-sm truncate">
+                      {safeDisplayName(m.challenger)} challenged you!
+                    </div>
+                    <div className="text-text-muted font-head text-xs">
+                      Wager {m.wager} tokens each &nbsp;·&nbsp; Winner takes {m.wager * 2}
+                    </div>
+                  </div>
+                  <span className={`font-head text-xs font-bold shrink-0 transition-colors ${tokens >= m.wager ? 'text-gold group-hover:text-white' : 'text-white/20'}`}>
+                    {tokens >= m.wager ? 'ACCEPT →' : `need ${m.wager}`}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* My active / pending duels */}
         {myMatches && myMatches.length > 0 && (
           <div className="mt-10">
             <div className="text-xs font-head text-electric tracking-widest mb-3 flex items-center gap-2">
@@ -63,8 +109,9 @@ export default async function VsPage() {
               {(myMatches as any[]).map(m => {
                 const isChallenger = m.challenger_id === user.id
                 const other = isChallenger ? m.opponent : m.challenger
+                const isQueue = m.match_type === 'queue'
                 const statusLabel = m.status === 'pending'
-                  ? '⏳ Waiting for opponent'
+                  ? isQueue ? '🌍 Searching for opponent...' : '⏳ Waiting for opponent'
                   : `⚔️ vs ${safeDisplayName(other)}`
 
                 return (
@@ -76,6 +123,7 @@ export default async function VsPage() {
                     <div>
                       <div className="font-head text-white text-sm font-bold">{statusLabel}</div>
                       <div className="text-text-muted font-head text-xs mt-0.5">
+                        {m.match_type === 'friend_invite' ? '👥 Friend duel · ' : m.match_type === 'queue' ? '🌍 World · ' : ''}
                         Wager {m.wager} · Pot {m.wager * 2} tokens
                       </div>
                     </div>
@@ -98,7 +146,7 @@ export default async function VsPage() {
             <div className="text-center py-12 bg-navy-light border border-white/5">
               <div className="text-4xl mb-3 opacity-30">⚔️</div>
               <div className="text-text-muted font-head text-sm">No open duels yet.</div>
-              <div className="text-text-muted font-head text-xs mt-1 opacity-60">Create one above and share the link.</div>
+              <div className="text-text-muted font-head text-xs mt-1 opacity-60">Create one above or use VS World to find an opponent instantly.</div>
             </div>
           ) : (
             <div className="space-y-2">

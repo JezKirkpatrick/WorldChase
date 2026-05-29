@@ -29,16 +29,26 @@ export function PlayDot({ userId }: { userId: string }) {
   return show ? <span className={DOT} /> : null
 }
 
-// ── VS dot — pending or active duels waiting ─────────────────────────
+// ── VS dot — pending/active duels or incoming friend challenges ──────
 export function VsDot({ userId }: { userId: string }) {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('vs_matches').select('id', { count: 'exact', head: true })
-      .or(`challenger_id.eq.${userId},opponent_id.eq.${userId}`)
-      .in('status', ['pending', 'active'])
-      .then(({ count }) => setShow((count ?? 0) > 0))
+    const now = new Date().toISOString()
+    Promise.all([
+      // My own active/pending duels
+      supabase.from('vs_matches').select('id', { count: 'exact', head: true })
+        .or(`challenger_id.eq.${userId},opponent_id.eq.${userId}`)
+        .in('status', ['pending', 'active']),
+      // Friend challenges sent to me
+      supabase.from('vs_matches').select('id', { count: 'exact', head: true })
+        .eq('invited_friend_id', userId)
+        .eq('status', 'pending')
+        .gt('expires_at', now),
+    ]).then(([mine, invites]) => {
+      setShow(((mine.count ?? 0) + (invites.count ?? 0)) > 0)
+    })
   }, [userId])
 
   return show ? <span className={DOT} /> : null
