@@ -8,7 +8,22 @@ import GlobalNav from '@/components/ui/GlobalNav'
 import FriendButton from '@/components/ui/FriendButton'
 import type { FriendStatus } from '@/components/ui/FriendButton'
 
-type FriendProfile = { id: string; username: string; display_name: string | null; equipped_avatar: string | null }
+type FriendProfile = { id: string; username: string | null; display_name: string | null; equipped_avatar: string | null }
+
+function isUUID(s: string | null | undefined) {
+  return !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
+}
+
+function friendDisplayName(f: FriendProfile) {
+  if (f.display_name) return f.display_name
+  if (!f.username || isUUID(f.username)) return 'Hunter'
+  return f.username
+}
+
+function friendHandle(f: FriendProfile) {
+  if (!f.username || isUUID(f.username)) return 'new-player'
+  return f.username
+}
 
 export default async function FriendsPage() {
   const user = await getUser()
@@ -51,14 +66,14 @@ export default async function FriendsPage() {
                 const friend = friendOf(f)
                 return (
                   <div key={f.id} className="bg-navy-light border border-electric/20 p-4 flex items-center gap-3">
-                    <span className="text-2xl">{friend.equipped_avatar ?? '🌍'}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-head font-bold text-white text-sm truncate">{friend.display_name || friend.username}</div>
-                      <div className="text-text-muted font-head text-xs">@{friend.username}</div>
+                    <span className="text-2xl shrink-0">{friend.equipped_avatar ?? '🌍'}</span>
+                    <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="font-head font-bold text-white text-sm truncate">{friendDisplayName(friend)}</div>
+                      <div className="text-text-muted font-head text-xs truncate">@{friendHandle(friend)}</div>
                     </div>
                     <FriendButton
                       targetUserId={friend.id}
-                      targetUsername={friend.username}
+                      targetUsername={friendHandle(friend)}
                       initialStatus={'pending_received' as FriendStatus}
                     />
                   </div>
@@ -88,14 +103,14 @@ export default async function FriendsPage() {
               {accepted.map((f: any) => {
                 const friend = friendOf(f)
                 return (
-                  <Link key={f.id} href={`/friends/${friend.username}`}
+                  <Link key={f.id} href={`/friends/${friendHandle(friend)}`}
                     className="bg-navy-light border border-white/10 p-4 flex items-center gap-3 hover:border-electric/30 hover:bg-navy-mid/30 transition-all group">
-                    <span className="text-2xl">{friend.equipped_avatar ?? '🌍'}</span>
-                    <div className="flex-1 min-w-0">
+                    <span className="text-2xl shrink-0">{friend.equipped_avatar ?? '🌍'}</span>
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="font-head font-bold text-white text-sm group-hover:text-electric transition-colors truncate">
-                        {friend.display_name || friend.username}
+                        {friendDisplayName(friend)}
                       </div>
-                      <div className="text-text-muted font-head text-xs">@{friend.username}</div>
+                      <div className="text-text-muted font-head text-xs truncate">@{friendHandle(friend)}</div>
                     </div>
                     <span className="text-text-muted font-head text-xs group-hover:text-electric transition-colors shrink-0">💬 MESSAGE →</span>
                   </Link>

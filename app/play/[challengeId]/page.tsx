@@ -248,7 +248,7 @@ export default function GamePage({ params }: PageProps) {
   const nextRound = challenge.round_number < 20 ? challenge.round_number + 1 : null
 
   return (
-    <div ref={mapContainerRef} className="h-screen flex flex-col bg-navy overflow-hidden">
+    <div ref={mapContainerRef} className="h-dvh flex flex-col bg-navy overflow-hidden">
       <BattleHUD
         round={challenge.round_number}
         totalRounds={20}
@@ -261,8 +261,8 @@ export default function GamePage({ params }: PageProps) {
         onToggleSound={toggleSound}
       />
 
-      {/* pt-12 clears the fixed BattleHUD (h-12 = 48px) | pb-16 md:pb-0 reserves space for mobile tab bar */}
-      <div className="pt-12 pb-16 md:pb-0 flex flex-col flex-1 overflow-hidden">
+      {/* pt-12 clears the BattleHUD | on mobile: pb = tab bar height + safe area */}
+      <div className="pt-12 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 flex flex-col flex-1 overflow-hidden">
         <TimerBar elapsed={timeElapsed} limit={challenge.time_limit_seconds} />
 
         <div className="flex flex-1 overflow-hidden relative">
