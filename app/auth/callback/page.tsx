@@ -19,9 +19,12 @@ async function createProfileIfNeeded(supabase: ReturnType<typeof createClient>, 
   const cleaned = rawName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20)
   const username = cleaned.length >= 3 ? cleaned : `hunter_${user.id.slice(0, 8)}`
 
+  const countryCode = meta.country_code && meta.country_code.length === 2 ? meta.country_code : null
+
   const { error: insertError } = await supabase.from('profiles').insert({
     id: user.id, username,
     display_name: meta.display_name || meta.full_name || meta.name || null,
+    country_code: countryCode,
     tokens: 2, current_streak: 0, last_login_date: null,
   })
 
@@ -30,6 +33,7 @@ async function createProfileIfNeeded(supabase: ReturnType<typeof createClient>, 
       id: user.id,
       username: `hunter_${user.id.slice(0, 8)}`,
       display_name: meta.display_name || meta.full_name || meta.name || null,
+      country_code: countryCode,
       tokens: 2, current_streak: 0, last_login_date: null,
     })
   }

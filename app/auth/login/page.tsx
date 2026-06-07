@@ -37,16 +37,16 @@ export default function LoginPage() {
           <p className="text-text-muted font-head text-sm mt-2 tracking-wider">HUNTER AUTHENTICATION</p>
         </div>
 
-        <div className="bg-navy-light border border-white/10 bracket-box p-8">
+        <div className="bg-navy-light border border-white/10 bracket-box p-6 sm:p-8">
           <form onSubmit={handleLogin} className="space-y-4">
             {error && <div className="text-danger text-sm font-head border border-danger/30 bg-danger/10 px-3 py-2">{error}</div>}
             <div>
-              <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">EMAIL</label>
+              <label className="block text-sm font-head text-text-muted tracking-widest mb-1.5">EMAIL</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                 className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head placeholder-text-muted/40" placeholder="hunter@example.com" />
             </div>
             <div>
-              <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">PASSWORD</label>
+              <label className="block text-sm font-head text-text-muted tracking-widest mb-1.5">PASSWORD</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
                 className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head" placeholder="••••••••" />
             </div>

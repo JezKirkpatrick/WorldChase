@@ -39,11 +39,11 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
           >
             {title && (
               <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-                <h2 className="font-head font-bold text-gold text-lg tracking-widest uppercase">{title}</h2>
+                <h2 className="font-head font-bold text-gold text-base sm:text-lg tracking-widest uppercase break-words">{title}</h2>
                 <button onClick={onClose} className="text-text-muted hover:text-white transition-colors text-xl leading-none">✕</button>
               </div>
             )}
-            <div className="p-6">{children}</div>
+            <div className="p-4 sm:p-6">{children}</div>
           </motion.div>
         </motion.div>
       )}

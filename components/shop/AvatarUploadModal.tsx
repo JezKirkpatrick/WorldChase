@@ -144,19 +144,19 @@ export default function AvatarUploadModal({ onSuccess, onClose }: Props) {
               className="w-40 h-40 rounded-full border-2 border-dashed border-white/20 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-gold/50 transition-colors"
               onClick={() => inputRef.current?.click()}>
               <span className="text-4xl">📸</span>
-              <span className="text-[10px] font-head text-text-muted tracking-widest">CLICK TO CHOOSE</span>
+              <span className="text-xs font-head text-text-muted tracking-widest">CLICK TO CHOOSE</span>
             </div>
             <button onClick={() => inputRef.current?.click()}
               className="w-full py-2.5 border border-white/20 text-xs font-head font-bold tracking-widest text-text-muted hover:text-white hover:border-white/40 transition-all">
               CHOOSE IMAGE
             </button>
             {error && <div className="text-danger text-xs font-head text-center">{error}</div>}
-            <p className="text-center text-[10px] text-text-muted font-head">JPG · PNG · WebP · GIF &nbsp;·&nbsp; Max 8 MB</p>
+            <p className="text-center text-xs text-text-muted font-head">JPG · PNG · WebP · GIF &nbsp;·&nbsp; Max 8 MB</p>
           </div>
         ) : (
           /* ── Step 2: Crop & adjust ── */
           <div className="flex flex-col items-center gap-4">
-            <p className="text-[10px] font-head text-text-muted tracking-wider text-center">
+            <p className="text-xs font-head text-text-muted tracking-wider text-center">
               DRAG TO REPOSITION &nbsp;·&nbsp; SCROLL / SLIDER TO ZOOM
             </p>
 

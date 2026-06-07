@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-server'
 import SeedShopButton from '@/components/admin/SeedShopButton'
+import FixAvatarsButton from '@/components/admin/FixAvatarsButton'
 import ChatSqlBlock from '@/components/admin/ChatSqlBlock'
 
 export default async function AdminPage() {
@@ -52,6 +53,7 @@ export default async function AdminPage() {
             { href: '/admin/events', label: 'MANAGE EVENTS', desc: 'Create and edit monthly events' },
             { href: '/admin/challenges', label: 'MANAGE CHALLENGES', desc: 'Edit rounds, generate with AI' },
             { href: '/admin/players', label: 'MANAGE PLAYERS', desc: 'Search, ban, grant tokens' },
+            { href: '/admin/geo-quiz', label: 'GEO QUIZ', desc: 'Schedule, generate questions, run live quiz' },
           ].map(l => (
             <Link key={l.href} href={l.href} className="border border-white/10 p-6 hover:border-gold/30 transition-all group">
               <div className="font-head font-bold text-white group-hover:text-gold transition-colors tracking-wider text-sm mb-1">{l.label}</div>
@@ -65,6 +67,15 @@ export default async function AdminPage() {
           <div className="text-xs font-head text-electric tracking-widest mb-1">SHOP TOOLS</div>
           <div className="text-text-muted font-head text-xs mb-4">Seed the shop with avatars, borders and titles. Safe to run once — skips if already seeded.</div>
           <SeedShopButton />
+        </div>
+
+        {/* ── Avatar fix ── */}
+        <div className="mt-4 border border-danger/20 p-6">
+          <div className="text-xs font-head text-danger tracking-widest mb-1">AVATAR CLEANUP</div>
+          <div className="text-text-muted font-head text-xs mb-4">
+            Replaces all avatar cosmetics with the new clean set — removes the duplicate globe variants (🌎 🌏) and adds better avatars (🦈 🌋 ⛵ 👑 etc). Run once.
+          </div>
+          <FixAvatarsButton />
         </div>
 
         {/* ── Chat setup ── */}

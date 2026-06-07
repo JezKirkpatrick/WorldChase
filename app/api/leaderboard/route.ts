@@ -1,67 +1,139 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+async function pgRest(path: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    cache: 'no-store',
+    headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+  })
+  if (!res.ok) throw new Error(`PostgREST ${res.status}: ${path}`)
+  return res.json()
+}
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const eventId = searchParams.get('eventId')
-    const limit   = Math.min(parseInt(searchParams.get('limit') ?? '200'), 500)
+    const userId  = searchParams.get('userId')
+    const mode    = searchParams.get('mode')
+    const limit   = Math.min(parseInt(searchParams.get('limit') ?? '50'), 500)
     const offset  = parseInt(searchParams.get('offset') ?? '0')
 
-    const supabase = createServiceClient()
+    // ── ALL-TIME aggregate mode ───────────────────────────────────────────
+    // Sums scores across ALL events per user — no eventId needed
+    if (mode === 'alltime') {
+      const [allLbRows, profiles] = await Promise.all([
+        pgRest('leaderboard?select=user_id,total_score,challenges_completed&limit=100000'),
+        pgRest('profiles?select=id,username,display_name,equipped_avatar,equipped_border,equipped_badge,equipped_title,country_code&limit=10000'),
+      ])
 
-    // Fetch all profiles + event leaderboard entries in parallel
-    // All profiles are included so every registered player appears (even 0-scorers)
-    // .limit(10000) overrides PostgREST's default 1000-row cap
-    const [profilesRes, lbRes] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('id, username, display_name, equipped_avatar, equipped_border, equipped_badge, equipped_title, country, country_code')
-        .limit(10000),
-      eventId
-        ? supabase.from('leaderboard').select('user_id, total_score, challenges_completed, previous_rank').eq('event_id', eventId)
-        : Promise.resolve({ data: [], error: null }),
-    ])
+      const profileMap: Record<string, any> = {}
+      for (const p of (profiles as any[]) ?? []) profileMap[p.id] = p
 
-    if (profilesRes.error) throw profilesRes.error
-
-    // Build score map from leaderboard entries
-    const scoreMap: Record<string, { total_score: number; challenges_completed: number; previous_rank: number | null }> = {}
-    for (const row of (lbRes as any).data ?? []) {
-      scoreMap[row.user_id] = {
-        total_score:          row.total_score          ?? 0,
-        challenges_completed: row.challenges_completed ?? 0,
-        previous_rank:        row.previous_rank        ?? null,
+      // Aggregate per user across all events
+      const userTotals: Record<string, { total_score: number; challenges_completed: number }> = {}
+      for (const row of (allLbRows as any[]) ?? []) {
+        if (!userTotals[row.user_id]) userTotals[row.user_id] = { total_score: 0, challenges_completed: 0 }
+        userTotals[row.user_id].total_score         += Number(row.total_score) || 0
+        userTotals[row.user_id].challenges_completed += Number(row.challenges_completed) || 0
       }
+
+      // Build merged list — only users who have played at least once
+      const merged = Object.entries(userTotals).map(([uid, stats]) => ({
+        user_id:              uid,
+        profiles:             profileMap[uid] ?? null,
+        total_score:          stats.total_score,
+        challenges_completed: stats.challenges_completed,
+        previous_rank:        null,
+      }))
+
+      merged.sort((a, b) => {
+        const diff = b.total_score - a.total_score
+        if (diff !== 0) return diff
+        const nameA = a.profiles?.display_name || a.profiles?.username || ''
+        const nameB = b.profiles?.display_name || b.profiles?.username || ''
+        return nameA.localeCompare(nameB)
+      })
+
+      const ranked  = merged.map((e, i) => ({ ...e, rank: i + 1 }))
+      const total   = ranked.length
+
+      return NextResponse.json({ entries: ranked, total }, {
+        headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=15' }
+      })
     }
 
-    // Merge: every profile gets a leaderboard entry (defaulting to 0 if not yet played)
-    const merged = (profilesRes.data ?? []).map(p => ({
-      user_id:              p.id,
-      profiles:             p,
-      total_score:          scoreMap[p.id]?.total_score          ?? 0,
-      challenges_completed: scoreMap[p.id]?.challenges_completed ?? 0,
-      previous_rank:        scoreMap[p.id]?.previous_rank        ?? null,
+    // ── Event-scoped modes ────────────────────────────────────────────────
+    if (!eventId) return NextResponse.json({ error: 'eventId required' }, { status: 400 })
+
+    const [lbRows, profiles] = await Promise.all([
+      pgRest(`leaderboard?select=user_id,total_score,challenges_completed,previous_rank&event_id=eq.${eventId}&limit=10000`),
+      pgRest('profiles?select=id,username,display_name,equipped_avatar,equipped_border,equipped_badge,equipped_title,country_code&limit=10000'),
+    ])
+
+    const profileMap: Record<string, any> = {}
+    for (const p of (profiles as any[]) ?? []) profileMap[p.id] = p
+
+    const lbMap: Record<string, any> = {}
+    for (const row of (lbRows as any[]) ?? []) lbMap[row.user_id] = row
+
+    const allUserIds = new Set<string>()
+    for (const p of (profiles as any[]) ?? []) allUserIds.add(p.id)
+
+    const merged = Array.from(allUserIds).map(uid => ({
+      user_id:              uid,
+      profiles:             profileMap[uid] ?? null,
+      total_score:          Number(lbMap[uid]?.total_score)          || 0,
+      challenges_completed: Number(lbMap[uid]?.challenges_completed) || 0,
+      previous_rank:        typeof lbMap[uid]?.previous_rank === 'number' ? lbMap[uid].previous_rank : null,
     }))
 
-    // Sort by score desc, then alphabetically for ties
-    merged.sort((a, b) =>
-      b.total_score - a.total_score ||
-      (a.profiles.display_name || a.profiles.username || '').localeCompare(
-        b.profiles.display_name || b.profiles.username || ''
-      )
-    )
+    merged.sort((a, b) => {
+      const diff = b.total_score - a.total_score
+      if (diff !== 0) return diff
+      const nameA = a.profiles?.display_name || a.profiles?.username || ''
+      const nameB = b.profiles?.display_name || b.profiles?.username || ''
+      return nameA.localeCompare(nameB)
+    })
 
-    // Paginate + assign rank
-    const entries = merged
-      .slice(offset, offset + limit)
-      .map((e, i) => ({ ...e, rank: offset + i + 1 }))
+    const ranked = merged.map((e, i) => ({ ...e, rank: i + 1 }))
+    const total  = ranked.length
 
-    return NextResponse.json({ entries }, {
+    // ── SMART MODE ────────────────────────────────────────────────────────
+    if (mode === 'smart') {
+      const top10 = ranked.slice(0, 10)
+
+      let myRank: number | null = null
+      let neighbourhood: any[] | null = null
+
+      if (userId) {
+        const myIndex = ranked.findIndex(e => e.user_id === userId)
+        if (myIndex !== -1) {
+          myRank = myIndex + 1
+          if (myRank > 10) {
+            const lo = Math.max(10, myIndex - 3)
+            const hi = Math.min(ranked.length - 1, myIndex + 3)
+            neighbourhood = ranked.slice(lo, hi + 1)
+          }
+        }
+      }
+
+      return NextResponse.json({ top: top10, neighbourhood, myRank, total }, {
+        headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=5' }
+      })
+    }
+
+    // ── PAGINATED MODE ────────────────────────────────────────────────────
+    const entries = ranked.slice(offset, offset + limit)
+    return NextResponse.json({ entries, total }, {
       headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=5' }
     })
+
   } catch (err) {
     console.error(err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

@@ -66,11 +66,11 @@ export default function FriendButton({
   if (status === 'pending_received') return (
     <div className="flex gap-2 shrink-0">
       <button onClick={() => respond(true)} disabled={loading}
-        className="px-3 py-2 border border-electric/40 text-electric font-head text-xs font-bold tracking-widest hover:bg-electric/10 transition-all disabled:opacity-50">
+        className="px-4 py-3 bg-electric/10 border border-electric/50 text-electric font-head text-xs font-bold tracking-widest hover:bg-electric/20 transition-all disabled:opacity-50">
         {loading ? '···' : '✓ ACCEPT'}
       </button>
       <button onClick={() => respond(false)} disabled={loading}
-        className="px-3 py-2 border border-white/20 text-text-muted font-head text-xs font-bold hover:border-danger/40 hover:text-danger transition-all disabled:opacity-50">
+        className="px-3 py-3 border border-white/20 text-text-muted font-head text-xs font-bold hover:border-danger/40 hover:text-danger transition-all disabled:opacity-50">
         ✕
       </button>
     </div>

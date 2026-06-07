@@ -74,6 +74,9 @@ const BORDER_TAGLINE: Record<string, string> = {
   gold:      'Golden spin + crown above',
   diamond:   'Fast crystal ice spin + sparkles',
   legendary: 'Slow void cosmic orbit',
+  ocean:     'Deep sea blue wave spin',
+  rainbow:   'Full spectrum colour spin',
+  galaxy:    'Dark nebula with orbiting stars',
   none:      'Clean & minimal',
 }
 
@@ -177,21 +180,21 @@ export default function ShopPage() {
     <div className="min-h-screen bg-navy text-text">
 
       {/* ── Nav ── */}
-      <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-6 sticky top-0 z-30">
-        <Link href="/dashboard" className="font-head font-bold text-gold tracking-widest hover:text-gold-dim transition-colors">
+      <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
+        <Link href="/dashboard" className="font-head font-bold text-gold tracking-widest hover:text-gold-dim transition-colors whitespace-nowrap">
           ≡ WORLD CHASE
         </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
-          <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white transition-colors">PLAY</Link>
-          <span className="font-mono font-bold text-gold">🪙 {tokens}</span>
-          <Link href="/tokens" className="text-xs font-head text-gold/70 hover:text-gold transition-colors border border-gold/30 px-2 py-0.5 hover:border-gold/60">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white transition-colors hidden sm:block">LEADERBOARD</Link>
+          <Link href="/play"        className="text-xs font-head text-text-muted hover:text-white transition-colors hidden sm:block">PLAY</Link>
+          <span className="font-mono font-bold text-gold text-sm">🪙 {tokens}</span>
+          <Link href="/tokens" className="text-xs font-head text-gold/70 hover:text-gold transition-colors border border-gold/30 px-2 py-0.5 hover:border-gold/60 whitespace-nowrap">
             GET MORE →
           </Link>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
 
         {/* ── Header ── */}
         <div className="mb-8">
@@ -203,7 +206,7 @@ export default function ShopPage() {
         </div>
 
         {/* ── Live preview ── */}
-        <div className="border border-white/10 p-6 mb-8 flex items-center gap-6 relative overflow-hidden"
+        <div className="border border-white/10 p-4 sm:p-6 mb-8 flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative overflow-hidden"
              style={{ background: 'linear-gradient(135deg, rgba(245,197,24,0.05) 0%, rgba(15,21,53,1) 55%)' }}>
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold/0 via-gold/40 to-gold/0" />
           <div className="relative shrink-0">
@@ -229,7 +232,7 @@ export default function ShopPage() {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex flex-wrap items-center gap-2 mb-7">
+        <div className="flex items-center gap-2 mb-7 overflow-x-auto pb-1 scrollbar-hide">
           {(['avatar', 'border', 'title', 'chat_emoji'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`flex items-center gap-2 px-4 py-2.5 font-head font-bold text-xs tracking-widest transition-all border ${
@@ -285,7 +288,7 @@ export default function ShopPage() {
                 {equip && <div className="absolute top-0 left-0 right-0 h-0.5 bg-gold z-10" />}
 
                 {/* Rarity pill */}
-                <div className={`absolute top-2.5 right-2.5 text-[9px] font-head font-bold px-1.5 py-0.5 ${r.pill} z-10`}>
+                <div className={`absolute top-2.5 right-2.5 text-xs font-head font-bold px-1.5 py-0.5 ${r.pill} z-10`}>
                   {r.label}
                 </div>
 
@@ -306,7 +309,7 @@ export default function ShopPage() {
                   {c.type === 'border' && (
                     <div className="flex flex-col items-center gap-2">
                       <Avatar emoji={equipped.avatar || '🌍'} border={c.value} size="lg" />
-                      <div className="text-[10px] font-head text-text-muted/70 tracking-wider text-center">
+                      <div className="text-xs font-head text-text-muted/70 tracking-wider text-center">
                         {BORDER_TAGLINE[c.value] ?? ''}
                       </div>
                     </div>
@@ -331,7 +334,7 @@ export default function ShopPage() {
                 <div className="w-full px-4 pb-1 text-center relative">
                   <div className="text-white font-head font-bold text-sm">{c.name}</div>
                   {c.value === 'custom_upload' && (
-                    <div className="mt-1 text-[10px] font-head text-text-muted leading-snug">
+                    <div className="mt-1 text-xs font-head text-text-muted leading-snug">
                       Upload your own photo as your avatar
                     </div>
                   )}
@@ -363,7 +366,7 @@ export default function ShopPage() {
 
                   ) : isOwned && c.value === 'custom_upload' ? (
                     <button onClick={() => setShowUploadModal(true)}
-                      className="w-full py-2 text-xs font-head font-bold transition-all"
+                      className="w-full py-3 text-xs font-head font-bold transition-all"
                       style={{ background: 'linear-gradient(90deg, #f5c518, #00d4ff)', color: '#0a0e27' }}>
                       UPLOAD PHOTO →
                     </button>
@@ -375,13 +378,13 @@ export default function ShopPage() {
 
                   ) : isOwned ? (
                     <button onClick={() => handleEquip(c)}
-                      className="w-full py-2 text-xs font-head font-bold text-white border border-white/25 hover:border-electric hover:text-electric transition-all">
+                      className="w-full py-3 text-xs font-head font-bold text-white border border-white/25 hover:border-electric hover:text-electric transition-all">
                       EQUIP →
                     </button>
 
                   ) : c.token_cost === 0 ? (
                     <button onClick={() => handleBuy(c)}
-                      className="w-full py-2 text-xs font-head font-bold text-success border border-success/30 bg-success/5 hover:bg-success/10 transition-all">
+                      className="w-full py-3 text-xs font-head font-bold text-success border border-success/30 bg-success/5 hover:bg-success/10 transition-all">
                       FREE — CLAIM
                     </button>
 
@@ -389,7 +392,7 @@ export default function ShopPage() {
                     <button
                       onClick={() => handleBuy(c)}
                       disabled={tokens < c.token_cost || buying === c.id}
-                      className={`w-full py-2 text-xs font-head font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${c.rarity !== 'ultimate' ? r.buyBtn : ''}`}
+                      className={`w-full py-3 text-xs font-head font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${c.rarity !== 'ultimate' ? r.buyBtn : ''}`}
                       style={
                         c.rarity === 'ultimate' && tokens >= c.token_cost
                           ? { background: 'linear-gradient(90deg, #f5c518, #00d4ff)', color: '#0a0e27', boxShadow: '0 0 18px rgba(245,197,24,0.35)' }
@@ -420,11 +423,11 @@ export default function ShopPage() {
         <div className="mt-8 flex flex-wrap gap-3 items-center">
           <span className="text-text-muted/50 font-head text-xs tracking-widest">RARITY:</span>
           {(['common', 'rare', 'epic', 'legendary'] as const).map(r => (
-            <span key={r} className={`text-[10px] font-head font-bold px-2 py-1 ${R[r].pill}`}>
+            <span key={r} className={`text-xs font-head font-bold px-2 py-1 ${R[r].pill}`}>
               {R[r].label}
             </span>
           ))}
-          <span className="text-[10px] font-head font-bold px-2 py-1 text-white border border-gold/50"
+          <span className="text-xs font-head font-bold px-2 py-1 text-white border border-gold/50"
             style={{ background: 'linear-gradient(90deg, rgba(245,197,24,0.15), rgba(0,212,255,0.1))' }}>
             ULTIMATE
           </span>

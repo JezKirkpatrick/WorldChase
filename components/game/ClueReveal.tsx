@@ -9,6 +9,8 @@ interface ClueRevealProps {
   revealedCount: number
   tokens: number
   onReveal: (clueIndex: number) => Promise<void>
+  readOnly?: boolean
+  freeClues?: boolean
 }
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%'
@@ -40,12 +42,12 @@ function DecryptText({ text }: { text: string }) {
   return <span className="decrypt-text font-mono text-sm">{displayed}</span>
 }
 
-export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: ClueRevealProps) {
+export default function ClueReveal({ clues, revealedCount, tokens, onReveal, readOnly = false, freeClues = false }: ClueRevealProps) {
   const [confirming, setConfirming] = useState<number | null>(null)
   const [revealing, setRevealing] = useState<number | null>(null)
 
   async function handleReveal(index: number) {
-    if (tokens < 1) return
+    if (!freeClues && tokens < 1) return
     setRevealing(index)
     await onReveal(index)
     sounds.reveal()
@@ -66,7 +68,7 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
         const shortcut = i + 1
 
         return (
-          <div key={clue.order} className={`border p-3 transition-all ${isRevealed ? 'border-gold/20 bg-navy-mid/50' : 'border-white/10 bg-navy/50'}`}>
+          <div key={i} className={`border p-3 transition-all ${isRevealed ? 'border-gold/20 bg-navy-mid/50' : 'border-white/10 bg-navy/50'}`}>
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-mono text-text-muted tracking-wider">
                 INTELLIGENCE FILE {shortcut}
@@ -83,27 +85,31 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
                   animate={{ opacity: 1 }}
                   className="text-text text-sm font-head leading-relaxed select-none"
                 >
-                  {i === revealedCount && !isFree ? <DecryptText text={clue.text} /> : clue.text}
+                  {i === revealedCount && !isFree && !readOnly ? <DecryptText text={clue.text} /> : clue.text}
                 </motion.p>
               </AnimatePresence>
+            ) : readOnly ? (
+              <p className="text-text-muted text-xs font-head italic">— not revealed during this run —</p>
             ) : (
               <div>
                 {confirming === i ? (
                   <div className="space-y-2">
                     <p className="text-xs text-text-muted font-head">
-                      Spend 1 token to reveal Intelligence File {shortcut}? ({tokens} token{tokens !== 1 ? 's' : ''} remaining)
+                      {freeClues
+                        ? `Reveal Intelligence File ${shortcut}? (Free on Easy)`
+                        : `Spend 1 token to reveal Intelligence File ${shortcut}? (${tokens} token${tokens !== 1 ? 's' : ''} remaining)`}
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <button
                         onClick={() => handleReveal(i)}
                         disabled={!!revealing}
-                        className="px-3 py-1 bg-gold text-navy text-xs font-head font-bold tracking-wider hover:bg-gold-dim transition-colors disabled:opacity-50"
+                        className="w-full sm:w-auto px-3 py-3 bg-gold text-navy text-xs font-head font-bold tracking-wider hover:bg-gold-dim transition-colors disabled:opacity-50"
                       >
-                        {revealing === i ? 'DECRYPTING...' : 'CONFIRM (−1 TOKEN)'}
+                        {revealing === i ? 'DECRYPTING...' : freeClues ? 'REVEAL (FREE)' : 'CONFIRM (−1 TOKEN)'}
                       </button>
                       <button
                         onClick={() => setConfirming(null)}
-                        className="px-3 py-1 border border-white/20 text-text-muted text-xs font-head hover:text-white transition-colors"
+                        className="w-full sm:w-auto px-3 py-3 border border-white/20 text-text-muted text-xs font-head hover:text-white transition-colors"
                       >
                         CANCEL
                       </button>
@@ -111,14 +117,14 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal }: C
                   </div>
                 ) : (
                   <button
-                    onClick={() => tokens >= 1 ? setConfirming(i) : undefined}
-                    disabled={tokens < 1}
-                    className={`w-full flex items-center justify-between text-left group ${tokens < 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    onClick={() => (freeClues || tokens >= 1) ? setConfirming(i) : undefined}
+                    disabled={!freeClues && tokens < 1}
+                    className={`w-full flex items-center justify-between text-left group ${!freeClues && tokens < 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <span className="text-xs text-text-muted font-head group-hover:text-gold transition-colors">
-                      🔒 CLASSIFIED — UNLOCK FOR 1 TOKEN
+                      🔒 CLASSIFIED — {freeClues ? 'UNLOCK FREE' : 'UNLOCK FOR 1 TOKEN'}
                     </span>
-                    {tokens < 1 && <span className="text-xs text-danger font-head">NO TOKENS</span>}
+                    {!freeClues && tokens < 1 && <span className="text-xs text-danger font-head">NO TOKENS</span>}
                   </button>
                 )}
               </div>

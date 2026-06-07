@@ -28,6 +28,16 @@ export async function POST(req: NextRequest) {
     const { challengeId, lat, lng } = await req.json()
     const service = createServiceClient()
 
+    // Verify the user has actually started this challenge — prevents scanning tokens on
+    // challenges from other events or challenges the player hasn't legitimately reached
+    const { data: progressCheck } = await service
+      .from('player_progress')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('challenge_id', challengeId)
+      .maybeSingle()
+    if (!progressCheck) return NextResponse.json({ error: 'Challenge not started' }, { status: 403 })
+
     const [tokensRes, discoveredRes] = await Promise.all([
       service.from('hidden_tokens').select('*').eq('challenge_id', challengeId),
       service.from('token_discoveries').select('hidden_token_id').eq('user_id', user.id).eq('challenge_id', challengeId),

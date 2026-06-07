@@ -38,7 +38,7 @@ export default function BattleHUD({
 
       <div className="w-px h-6 bg-white/10" />
 
-      <div className="flex items-center gap-1 text-xs sm:text-sm font-mono text-text-muted">
+      <div className="flex items-center gap-1 text-sm font-mono text-text-muted">
         <span className="text-electric">◈</span>
         <span>R<span className="text-white font-bold">{round}</span>/{totalRounds}</span>
       </div>
@@ -72,7 +72,7 @@ export default function BattleHUD({
       <button
         onClick={onToggleSound}
         title={soundMuted ? 'Unmute (M)' : 'Mute (M)'}
-        className="text-text-muted hover:text-gold transition-colors text-base leading-none"
+        className="text-text-muted hover:text-gold transition-colors text-base leading-none p-2 -mr-2"
       >
         {soundMuted ? '🔇' : '🔊'}
       </button>

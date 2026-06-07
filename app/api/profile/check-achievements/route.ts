@@ -58,10 +58,14 @@ export async function POST(_req: Request) {
   await supabase.from('claimed_achievements').insert(inserts)
 
   if (totalReward > 0) {
-    const currentTokens = profile?.tokens ?? 0
-    await supabase.from('profiles')
-      .update({ tokens: currentTokens + totalReward })
-      .eq('id', user.id)
+    // Use RPC for atomic increment — read-modify-write would lose concurrent updates
+    await Promise.all([
+      supabase.rpc('adjust_tokens', { p_user_id: user.id, p_amount: totalReward }),
+      supabase.from('token_transactions').insert({
+        user_id: user.id, type: 'earned_round', amount: totalReward,
+        description: `Achievement reward: ${newlyEarned.map((a: any) => a.id).join(', ')}`,
+      }),
+    ])
   }
 
   return NextResponse.json({ newAchievements: newlyEarned, tokensEarned: totalReward })

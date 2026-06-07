@@ -78,12 +78,12 @@ export default async function ProfilePage() {
         <div className="bg-navy-light border border-white/10 p-6 sm:p-8 mb-5 relative overflow-hidden animate-fade-up">
           <div className="absolute inset-0 bg-gradient-to-br from-gold/5 to-electric/2 pointer-events-none" />
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold/0 via-gold/50 to-gold/0" />
-          <div className="relative flex items-center gap-5">
-            <div className="animate-float">
+          <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
+            <div className="animate-float shrink-0">
               <Avatar emoji={profile?.equipped_avatar ?? '🌍'} border={profile?.equipped_border ?? 'none'} size="xl" countryCode={profile?.country_code} />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex-1 min-w-0 w-full">
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                 <h1 className="font-head font-bold text-2xl text-white">
                   {safeDisplayName(profile)}
                 </h1>
@@ -94,7 +94,7 @@ export default async function ProfilePage() {
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-text-muted font-head text-sm">
+              <div className="flex items-center justify-center sm:justify-start gap-2 text-text-muted font-head text-sm">
                 <span>@{safeHandle(profile)}</span>
                 {profile?.country_code && flagUrl(profile.country_code) && (
                   <img src={flagUrl(profile.country_code)} alt={profile.country_code} width={24} height={18} className="rounded-sm shadow-sm" />
@@ -103,14 +103,18 @@ export default async function ProfilePage() {
               {profile?.equipped_title && (
                 <div className="text-gold font-head text-sm font-bold mt-1">{profile.equipped_title}</div>
               )}
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center justify-center sm:justify-start gap-3 mt-2">
                 <span className="text-gold font-mono text-sm font-bold">🪙 {profile?.tokens ?? 0} tokens</span>
                 <span className="text-text-muted font-head text-xs">·</span>
                 <span className="text-electric font-head text-xs">{earnedCount}/{ACHIEVEMENTS.length} badges</span>
               </div>
+              <Link href="/shop"
+                className="inline-block mt-3 sm:hidden px-4 py-3 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 transition-all">
+                CUSTOMISE →
+              </Link>
             </div>
             <Link href="/shop"
-              className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 transition-all">
+              className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 transition-all hidden sm:block">
               CUSTOMISE →
             </Link>
           </div>
@@ -163,7 +167,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 animate-fade-up stagger-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 animate-fade-up stagger-4">
           <Link href="/shop"
             className="border border-gold/30 py-3 text-center font-head font-bold text-xs tracking-widest text-gold hover:bg-gold/10 transition-all">
             🛍 SHOP

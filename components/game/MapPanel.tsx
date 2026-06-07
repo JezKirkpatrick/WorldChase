@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react'
 import HiddenTokenRadar from './HiddenTokenRadar'
 import { useTokenRadar } from '@/hooks/useTokenRadar'
 import { worldChaseMapStyle } from '@/lib/mapStyles'
@@ -18,12 +18,13 @@ interface MapPanelProps {
   onMarkerAdd: (lat: number, lng: number) => void
   onMarkerRemove: (id: string) => void
   mapRef: React.MutableRefObject<google.maps.Map | null>
+  mobilePanelExpanded?: boolean
 }
 
 export default function MapPanel({
   startLat, startLng, startZoom = 12, streetViewOnly = false,
   streetViewHeading = 0, streetViewPitch = 0,
-  challengeId, radarActive,
+  challengeId, radarActive, mobilePanelExpanded = false,
   onCenterChange, markers, onMarkerAdd, onMarkerRemove, mapRef
 }: MapPanelProps) {
   const divRef = useRef<HTMLDivElement>(null)
@@ -40,20 +41,60 @@ export default function MapPanel({
 
   const { blips, isScanning } = useTokenRadar(challengeId, center, radarActive)
 
+  function loadOutdoorPanorama(sv: google.maps.StreetViewPanorama, lat: number, lng: number, heading: number, pitch: number) {
+    const svc = new google.maps.StreetViewService()
+    svc.getPanorama(
+      { location: { lat, lng }, radius: 150, source: (google.maps as any).StreetViewSource?.OUTDOOR ?? 'OUTDOOR' },
+      (data: any, status: any) => {
+        if (status === 'OK' && data?.location?.pano) {
+          sv.setPano(data.location.pano)
+          sv.setPov({ heading, pitch })
+          sv.setVisible(true)
+        } else {
+          // Fallback: widen search to 500m outdoors only
+          svc.getPanorama(
+            { location: { lat, lng }, radius: 500, source: (google.maps as any).StreetViewSource?.OUTDOOR ?? 'OUTDOOR' },
+            (data2: any, status2: any) => {
+              if (status2 === 'OK' && data2?.location?.pano) {
+                sv.setPano(data2.location.pano)
+                sv.setPov({ heading, pitch })
+              } else {
+                sv.setPosition({ lat, lng })
+                sv.setPov({ heading, pitch })
+              }
+              sv.setVisible(true)
+            }
+          )
+        }
+      }
+    )
+  }
+
   const toggleStreetView = useCallback(() => {
     if (!mapRef.current) return
     const sv = mapRef.current.getStreetView()
     const next = !sv.getVisible()
     if (next) {
-      sv.setPosition({ lat: startLat, lng: startLng })
-      sv.setPov({ heading: streetViewHeading, pitch: streetViewPitch })
+      loadOutdoorPanorama(sv, startLat, startLng, streetViewHeading, streetViewPitch)
+    } else {
+      sv.setVisible(false)
     }
-    sv.setVisible(next)
     setInStreetView(next)
   }, [mapRef, startLat, startLng, streetViewHeading, streetViewPitch])
 
+  const resetView = useCallback(() => {
+    if (!mapRef.current) return
+    if (inStreetView) {
+      const sv = mapRef.current.getStreetView()
+      loadOutdoorPanorama(sv, startLat, startLng, streetViewHeading, streetViewPitch)
+    } else {
+      mapRef.current.setCenter({ lat: startLat, lng: startLng })
+      mapRef.current.setZoom(startZoom)
+    }
+  }, [mapRef, inStreetView, startLat, startLng, startZoom, streetViewHeading, streetViewPitch])
+
   useEffect(() => {
-    if (!divRef.current || !window.google || initializedRef.current) return
+    if (!divRef.current || !(window as any).google?.maps?.Map || initializedRef.current) return
     initializedRef.current = true
 
     const map = new google.maps.Map(divRef.current, {
@@ -62,11 +103,13 @@ export default function MapPanel({
       gestureHandling: 'greedy',
       disableDefaultUI: false,
       zoomControl: true,
-      streetViewControl: true,
+      streetViewControl: false,
       fullscreenControl: true,
       mapTypeControl: true,
       styles: worldChaseMapStyle,
-    })
+      // Push Google's built-in controls above the mobile bottom sheet (52px handle)
+      padding: { bottom: 60 },
+    } as google.maps.MapOptions)
 
     mapRef.current = map
 
@@ -78,9 +121,7 @@ export default function MapPanel({
 
     if (streetViewOnly) {
       const sv = map.getStreetView()
-      sv.setPosition({ lat: startLat, lng: startLng })
-      sv.setPov({ heading: streetViewHeading, pitch: streetViewPitch })
-      sv.setVisible(true)
+      loadOutdoorPanorama(sv, startLat, startLng, streetViewHeading, streetViewPitch)
     }
 
     // Use 'idle' (fires once after pan/zoom stops) instead of 'center_changed'
@@ -100,7 +141,9 @@ export default function MapPanel({
     })
 
     const sv = map.getStreetView()
-    sv.addListener('visible_changed', () => setInStreetView(sv.getVisible()))
+    sv.addListener('visible_changed', () => {
+      setInStreetView(sv.getVisible())
+    })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -131,8 +174,14 @@ export default function MapPanel({
     <div className="absolute inset-0" style={{ pointerEvents: 'auto' }}>
       <div ref={divRef} id="game-map" style={{ position: 'absolute', inset: 0 }} />
 
-      {/* Street View / Map toggle — bottom right, above coord HUD */}
-      <div className="absolute bottom-24 right-2 z-10">
+      {/* Controls — hidden on mobile when mission panel is expanded */}
+      <div className={`absolute bottom-44 sm:bottom-24 right-2 z-10 flex flex-col gap-1.5 items-end transition-opacity duration-300 ${mobilePanelExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <button
+          onClick={resetView}
+          className="bg-navy/90 border border-white/30 px-3 py-1.5 font-head text-xs font-bold tracking-wider hover:border-gold hover:text-gold transition-all text-white/80"
+        >
+          ⌂ RESET VIEW
+        </button>
         <button
           onClick={toggleStreetView}
           className="bg-navy/90 border border-gold/40 px-3 py-1.5 font-head text-xs font-bold tracking-wider hover:border-gold hover:text-gold transition-all text-white"
@@ -141,30 +190,17 @@ export default function MapPanel({
         </button>
       </div>
 
-      {/* Street View navigation tip — shown when in street view */}
-      {inStreetView && (
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-navy/95 border border-electric/40 px-4 py-2 font-head text-xs text-electric pointer-events-none whitespace-nowrap z-10">
-          Drag to look around &nbsp;·&nbsp; Click road arrows to walk &nbsp;·&nbsp; Scroll to zoom
-        </div>
-      )}
-
-      {/* Coordinate HUD */}
+      {/* Coordinate HUD — desktop only */}
       {!inStreetView && (
-        <div className="absolute bottom-10 right-2 bg-navy/90 border border-gold/20 px-3 py-2 font-mono text-xs text-gold/80 pointer-events-none z-10">
+        <div className="hidden sm:block absolute bottom-10 right-2 bg-navy/90 border border-gold/20 px-3 py-2 font-mono text-xs text-gold/80 pointer-events-none z-10">
           <div>LAT &nbsp; <span className="text-white">{coords.lat.toFixed(4)}</span></div>
           <div>LNG &nbsp; <span className="text-white">{coords.lng.toFixed(4)}</span></div>
           <div>ZOOM <span className="text-white">{coords.zoom}</span></div>
         </div>
       )}
 
-      {/* Map controls hint */}
-      <div className="absolute bottom-2 left-2 bg-navy/80 border border-white/10 px-2 py-1.5 font-mono text-xs text-text-muted pointer-events-none z-10">
-        {inStreetView
-          ? 'Drag = look  · Click arrows = walk  · V = map view'
-          : 'Drag = pan  · Scroll = zoom  · Right-click = pin  · V = street view'}
-      </div>
 
-      {/* Token Radar */}
+{/* Token Radar */}
       {radarActive && (
         <div className="absolute top-3 left-3 bg-navy/90 border border-gold/30 p-3 z-10">
           <HiddenTokenRadar blips={blips} isScanning={isScanning} />

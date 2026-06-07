@@ -9,6 +9,7 @@ import Avatar from '@/components/ui/Avatar'
 import StreakWidget from '@/components/dashboard/StreakWidget'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import OnboardingGuide from '@/components/ui/OnboardingGuide'
+import PushAutoPrompt from '@/components/ui/PushAutoPrompt'
 import UsernameSetupBanner from '@/components/ui/UsernameSetupBanner'
 import InviteFriendsButton from '@/components/ui/InviteFriendsButton'
 import ShareButton from '@/components/ui/ShareButton'
@@ -44,7 +45,7 @@ export default async function DashboardPage() {
       supabase.from('leaderboard')
         .select('rank,total_score,challenges_completed,user_id,profiles(username,equipped_avatar,equipped_border,equipped_title,equipped_badge,country_code)')
         .eq('event_id', event.id)
-        .order('rank', { ascending: true })
+        .order('total_score', { ascending: false })
         .limit(5),
     ])
     leaderboardEntry = lbRes.data
@@ -104,12 +105,12 @@ export default async function DashboardPage() {
                 <Link href="/tokens" className="flex items-center gap-1.5 font-mono font-bold text-gold text-base hover:text-gold-dim transition-colors">
                   🪙 {profile?.tokens ?? 0}
                 </Link>
-                <Link href="/tokens" className="text-[11px] font-head font-bold text-electric tracking-widest hover:text-white transition-colors border border-electric/30 px-2 py-0.5 hover:border-electric/60">
+                <Link href="/tokens" className="text-xs font-head font-bold text-electric tracking-widest hover:text-white transition-colors border border-electric/30 px-2 py-1.5 hover:border-electric/60">
                   + GET TOKENS
                 </Link>
               </div>
             </div>
-            <Link href="/shop" className="shrink-0 px-3 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 hover:border-gold transition-all hidden sm:block">
+            <Link href="/shop" className="shrink-0 px-3 py-3 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10 hover:border-gold transition-all">
               SHOP →
             </Link>
           </div>
@@ -119,7 +120,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* ── STATS ROW ── */}
-        <div className="grid grid-cols-4 gap-3 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           {[
             { label: 'TOKENS', value: profile?.tokens ?? 0, color: 'text-gold', href: '/tokens', glow: 'hover:shadow-[0_0_20px_rgba(245,197,24,0.15)]' },
             { label: 'SCORE',  value: leaderboardEntry?.total_score?.toLocaleString() ?? '0', color: 'text-electric', href: null, glow: '' },
@@ -213,7 +214,7 @@ export default async function DashboardPage() {
                   <Link href={`/profile/${safeHandle(p) === 'new-player' ? entry.user_id : safeHandle(p)}`} key={entry.user_id}
                     className={`flex items-center gap-2.5 px-2 py-2 transition-all cursor-pointer ${isMe ? 'bg-gold/10 border border-gold/25' : 'hover:bg-white/5 border border-transparent'}`}>
                     <span className={`font-mono font-bold text-sm w-6 text-center shrink-0 ${RANK_STYLE[i] ?? 'text-text-muted'}`}>
-                      {RANK_EMOJI[i] ?? `#${entry.rank}`}
+                      {RANK_EMOJI[i] ?? `#${i + 1}`}
                     </span>
                     <Avatar emoji={p?.equipped_avatar ?? '🌍'} border={p?.equipped_border ?? 'none'} size="xs" countryCode={p?.country_code} />
                     <div className="flex-1 min-w-0">
@@ -296,9 +297,13 @@ export default async function DashboardPage() {
           </div>
         )}
 
+        <PushAutoPrompt />
+
         {/* ── QUICK LINKS ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 animate-fade-up" style={{ animationDelay: '0.4s', opacity: 0, animationFillMode: 'forwards' }}>
-          <ShareButton className="border border-electric/30 py-3 text-center font-head font-bold text-xs tracking-widest text-electric hover:bg-electric/10 hover:border-electric transition-all" />
+          <div className="col-span-2 sm:col-span-3 lg:col-span-2">
+            <ShareButton className="w-full py-3.5 text-center font-head font-bold text-sm tracking-widest bg-electric text-navy hover:bg-electric/90 transition-all shadow-[0_0_20px_rgba(0,212,255,0.25)] hover:shadow-[0_0_30px_rgba(0,212,255,0.4)]" />
+          </div>
           {[
             { href: '/leaderboard', label: '🏆 LEADERBOARD', border: 'hover:border-gold/40 hover:text-gold' },
             { href: '/shop',        label: '🛍 SHOP',        border: 'hover:border-electric/40 hover:text-electric' },

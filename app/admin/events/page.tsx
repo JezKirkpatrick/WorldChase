@@ -4,11 +4,12 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { EVENT_THEMES } from '@/lib/eventThemes'
 import type { MonthlyEvent } from '@/types/game'
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<MonthlyEvent[]>([])
-  const [form, setForm] = useState({ name: '', starts_at: '', ends_at: '' })
+  const [form, setForm] = useState({ name: '', starts_at: '', ends_at: '', theme: 'global' })
   const [creating, setCreating] = useState(false)
   const [genProgress, setGenProgress] = useState<string | null>(null)
   const supabase = createClient()
@@ -39,7 +40,14 @@ export default function AdminEventsPage() {
       // Auto-generate 20 rounds
       const difficultyFor = (round: number) =>
         round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : 'extreme'
-      const existingLocations: string[] = []
+
+      // Pre-load ALL existing challenge locations from the entire DB to avoid repeats
+      setGenProgress('Loading existing locations...')
+      const { data: allExisting } = await supabase.from('challenges').select('location_name')
+      const existingLocations: string[] = (allExisting ?? []).map((c: any) => c.location_name).filter(Boolean)
+
+      const selectedTheme = EVENT_THEMES.find(t => t.id === form.theme)
+
       for (let round = 1; round <= 20; round++) {
         setGenProgress(`Generating round ${round} of 20...`)
         const res = await fetch('/api/admin/generate-challenge', {
@@ -50,6 +58,8 @@ export default function AdminEventsPage() {
             difficulty: difficultyFor(round),
             eventId: data.id,
             existingLocations,
+            eventTheme: selectedTheme,
+            eventName: form.name,
           }),
         })
         const result = await res.json()
@@ -57,7 +67,7 @@ export default function AdminEventsPage() {
       }
       setGenProgress(null)
     }
-    setCreating(false); setForm({ name: '', starts_at: '', ends_at: '' })
+    setCreating(false); setForm({ name: '', starts_at: '', ends_at: '', theme: 'global' })
   }
 
   return (
@@ -80,6 +90,15 @@ export default function AdminEventsPage() {
                   className="w-full bg-navy border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60" required />
               </div>
             ))}
+          </div>
+          <div>
+            <label className="block text-xs font-head text-text-muted tracking-widest mb-1">EVENT THEME</label>
+            <select value={form.theme} onChange={e => setForm(f => ({ ...f, theme: e.target.value }))}
+              className="w-full bg-navy border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60">
+              {EVENT_THEMES.map(t => (
+                <option key={t.id} value={t.id}>{t.label} — {t.description}</option>
+              ))}
+            </select>
           </div>
           <button disabled={creating} className="px-6 py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim disabled:opacity-50">
             {creating ? 'CREATING...' : 'CREATE EVENT'}

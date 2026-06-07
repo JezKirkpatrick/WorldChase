@@ -14,7 +14,7 @@ export default function VsNotifier({ myId }: { myId: string }) {
     const supabase = createClient()
     const ch = supabase.channel(chName.current)
 
-      // Someone sent me a direct friend challenge
+      // Someone sent me a direct friend challenge — hard-navigate to VS page so fresh server data loads
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -24,8 +24,9 @@ export default function VsNotifier({ myId }: { myId: string }) {
         const matchId: string = p.new.id
         if (notified.current.has(matchId)) return
         notified.current.add(matchId)
-        toast(`⚔️ You've been challenged! Wager: ${p.new.wager} tokens — tap VS DUEL`, 'info')
-        router.refresh()
+        toast(`⚔️ You've been challenged! ${p.new.wager} tokens — accept below`, 'info')
+        // Hard navigation bypasses Next.js router cache so the VS page always shows fresh invites
+        window.location.href = '/vs'
       })
 
       // My pending match became active (someone accepted or queue matched)
@@ -40,10 +41,11 @@ export default function VsNotifier({ myId }: { myId: string }) {
         if (notified.current.has(`active_${matchId}`)) return
         notified.current.add(`active_${matchId}`)
         const msg = p.new.match_type === 'queue'
-          ? '⚔️ Opponent found! Head to VS DUEL to battle!'
-          : '⚔️ Your duel was accepted! Battle is live!'
+          ? '⚔️ Opponent found! Entering battle...'
+          : '⚔️ Duel accepted! Battle is live!'
         toast(msg, 'info')
-        router.refresh()
+        // Navigate challenger straight to the battle
+        router.push(`/vs/${matchId}`)
       })
 
       .subscribe()

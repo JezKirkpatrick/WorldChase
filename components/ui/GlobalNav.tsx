@@ -7,6 +7,8 @@ import ShareButton from '@/components/ui/ShareButton'
 import UnreadDMsBadge from '@/components/ui/UnreadDMsBadge'
 import { PlayDot, VsDot, ChatDot } from '@/components/ui/NavActivityDots'
 import VsNotifier from '@/components/vs/VsNotifier'
+import DMNotifier from '@/components/ui/DMNotifier'
+import MobileNav from '@/components/ui/MobileNav'
 import { flagUrl } from '@/lib/flagEmoji'
 
 const getPendingCount = cache(async (userId: string) => {
@@ -50,6 +52,7 @@ export default async function GlobalNav() {
   return (
     <>
     {user && <VsNotifier myId={user.id} />}
+    {user && <DMNotifier myId={user.id} />}
     <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
       {/* Left — logo */}
       <Link href="/dashboard" className="font-head font-bold text-gold tracking-widest text-base hover:text-gold-dim transition-colors whitespace-nowrap">
@@ -57,11 +60,14 @@ export default async function GlobalNav() {
       </Link>
 
       {/* Centre — links */}
-      <div className="hidden sm:flex items-center gap-6">
+      <div className="hidden sm:flex items-center gap-6 ml-10">
         <ShareButton className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors" />
         <Link href="/play"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY{user && <PlayDot userId={user.id} />}</Link>
+        <Link href="/quiz"          className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors">GEO QUIZ</Link>
         <Link href="/vs"           className="relative text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors">VS DUEL{user && <VsDot userId={user.id} />}</Link>
         <Link href="/leaderboard"  className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
+        <Link href="/daily"       className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">DAILY</Link>
+        <Link href="/archive"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">ARCHIVE</Link>
         <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
         <Link href="/chat"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT{user && <ChatDot userId={user.id} />}</Link>
@@ -81,9 +87,9 @@ export default async function GlobalNav() {
         )}
       </div>
 
-      {/* Right — tokens + avatar */}
-      <div className="flex items-center gap-3">
-        <Link href="/tokens" className="flex items-center gap-1.5 font-mono font-bold text-gold text-sm hover:text-gold-dim transition-colors">
+      {/* Right — tokens + avatar + hamburger */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <Link href="/tokens" className="flex items-center gap-1 font-mono font-bold text-gold text-sm hover:text-gold-dim transition-colors shrink-0 py-3 px-2">
           <span>🪙</span>
           <span>{profile?.tokens ?? 0}</span>
         </Link>
@@ -92,11 +98,11 @@ export default async function GlobalNav() {
             src={flagUrl(profile.country_code)}
             alt={profile.country_code}
             title={profile.country_code}
-            width={24} height={18}
-            className="rounded-sm shadow-sm shrink-0"
+            width={20} height={15}
+            className="rounded-sm shadow-sm shrink-0 hidden xs:block sm:block"
           />
         )}
-        <Link href="/profile" className={`w-9 h-9 rounded-full bg-navy flex items-center justify-center text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105 block shrink-0`} title="Profile">
+        <Link href="/profile" className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-navy flex items-center justify-center text-lg sm:text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105 block shrink-0`} title="Profile">
           {avatar.startsWith('http')
             ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
             : avatar}
@@ -107,20 +113,8 @@ export default async function GlobalNav() {
           </Link>
           <LogoutButton />
         </div>
-        {/* Mobile links */}
-        <div className="sm:hidden flex items-center gap-3">
-          <Link href="/play"        className="relative text-xs font-head text-text-muted hover:text-white">PLAY{user && <PlayDot userId={user.id} />}</Link>
-          <Link href="/vs"          className="relative text-xs font-head text-gold hover:text-white">VS{user && <VsDot userId={user.id} />}</Link>
-          <Link href="/leaderboard" className="text-xs font-head text-text-muted hover:text-white">LB</Link>
-          <Link href="/shop"        className="text-xs font-head text-gold">SHOP</Link>
-          <Link href="/chat"    className="text-xs font-head text-electric hover:text-white">CHAT</Link>
-          <Link href="/friends" className="relative text-xs font-head text-text-muted hover:text-white">
-            👥
-            {pendingCount > 0 && <span className="absolute -top-1 -right-1.5 bg-electric text-navy font-mono text-[9px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">{pendingCount}</span>}
-            {user && <UnreadDMsBadge myId={user.id} />}
-          </Link>
-          <LogoutButton />
-        </div>
+        {/* Mobile hamburger — replaces inline links */}
+        <MobileNav pendingCount={pendingCount} isAdmin={!!profile?.is_admin} hasUser={!!user} myId={user?.id} />
       </div>
     </nav>
     </>

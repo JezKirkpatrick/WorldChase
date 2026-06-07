@@ -3,6 +3,7 @@ import './globals.css'
 import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import InstallPrompt from '@/components/pwa/InstallPrompt'
 import { ToastProvider } from '@/components/ui/Toast'
+import OnlineUsersProvider from '@/components/ui/OnlineUsersProvider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.worldchase.net'),
@@ -40,8 +41,8 @@ export const viewport: Viewport = {
   themeColor: '#0B1628',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: 'cover',
 }
 
@@ -55,11 +56,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
       <body>
-        <ToastProvider>
-          {children}
-        </ToastProvider>
-        <ServiceWorkerRegister />
-        <InstallPrompt />
+        <OnlineUsersProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+          <ServiceWorkerRegister />
+          <InstallPrompt />
+        </OnlineUsersProvider>
       </body>
     </html>
   )

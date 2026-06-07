@@ -3,6 +3,7 @@ import { createClient as createAuthClient } from '@/lib/supabase-server'
 import { createClient } from '@supabase/supabase-js'
 import { anthropic } from '@/lib/anthropic'
 import { calculateScore } from '@/lib/scoring'
+import { sendPushToUser } from '@/lib/pushNotifications'
 
 export const dynamic = 'force-dynamic'
 
@@ -57,7 +58,8 @@ export async function POST(req: NextRequest) {
     const challenge = challengeRes.data
     const progress  = progressRes.data
 
-    if (progress.attempts >= 5) return NextResponse.json({ error: 'Max attempts reached' }, { status: 400 })
+    const maxAttempts = challenge.difficulty === 'easy' ? 10 : 5
+    if (progress.attempts >= maxAttempts) return NextResponse.json({ error: 'Max attempts reached' }, { status: 400 })
 
     const quickMatch = keywordMatch(guessText, challenge.answer_keywords ?? [])
 
@@ -84,10 +86,12 @@ export async function POST(req: NextRequest) {
 
       const raw     = aiResponse.content[0].type === 'text' ? aiResponse.content[0].text : '{}'
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
-      const result  = JSON.parse(cleaned)
-      is_correct  = result.is_correct
-      feedback    = result.feedback
-      confidence  = result.confidence
+      let result: any = {}
+      try { result = JSON.parse(cleaned) } catch { /* fall through to safe defaults */ }
+      // Strict boolean — !! would convert the string "false" to true, marking wrong answers correct
+      is_correct  = result.is_correct === true
+      feedback    = typeof result.feedback === 'string' ? result.feedback : (is_correct ? 'Correct!' : 'Not quite — keep hunting.')
+      confidence  = typeof result.confidence === 'number' ? result.confidence : (is_correct ? 1.0 : 0.0)
     }
 
     await supabase.from('guesses').insert({
@@ -105,15 +109,26 @@ export async function POST(req: NextRequest) {
       const score       = calculateScore(challenge.difficulty, progress.clues_revealed, wrongAttempts, timeTaken)
       const tokenReward = challenge.difficulty === 'easy' ? 0 : 1
 
-      const progressUpdate    = supabase.from('player_progress').update({
+      const progressUpdate = supabase.from('player_progress').update({
         status: 'completed', attempts: newAttempts, score_earned: score.finalScore,
         completed_at: new Date().toISOString(), time_taken_seconds: timeTaken,
         speed_bonus_earned: score.speedMultiplier > 1.0,
       }).eq('id', progress.id)
 
-      const leaderboardUpdate = supabase.rpc('update_player_leaderboard', {
-        p_user_id: userId, p_event_id: challenge.event_id, p_score: score.finalScore,
-      })
+      // Fetch current leaderboard entry so we can increment atomically
+      const { data: lbEntry } = await supabase
+        .from('leaderboard')
+        .select('total_score, challenges_completed')
+        .eq('user_id', userId)
+        .eq('event_id', challenge.event_id)
+        .maybeSingle()
+
+      const leaderboardUpsert = supabase.from('leaderboard').upsert({
+        user_id:              userId,
+        event_id:             challenge.event_id,
+        total_score:          (lbEntry?.total_score          ?? 0) + score.finalScore,
+        challenges_completed: (lbEntry?.challenges_completed ?? 0) + 1,
+      }, { onConflict: 'user_id,event_id' })
 
       if (tokenReward > 0) {
         await Promise.all([
@@ -123,13 +138,43 @@ export async function POST(req: NextRequest) {
             user_id: userId, type: 'earned_round', amount: tokenReward, challenge_id: challengeId,
             description: `Completed round: ${challenge.location_name}`,
           }),
-          leaderboardUpdate,
+          leaderboardUpsert,
         ])
       } else {
-        await Promise.all([progressUpdate, leaderboardUpdate])
+        await Promise.all([progressUpdate, leaderboardUpsert])
       }
 
       const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).single()
+
+      // Notify players who just got overtaken (fire-and-forget, don't block response)
+      try {
+        const { data: newRankData } = await supabase
+          .from('leaderboard')
+          .select('rank')
+          .eq('user_id', userId)
+          .eq('event_id', challenge.event_id)
+          .single()
+        if (newRankData?.rank) {
+          // Find players we just passed (rank was between their old rank and new rank)
+          const { data: overtaken } = await supabase
+            .from('leaderboard')
+            .select('user_id, rank')
+            .eq('event_id', challenge.event_id)
+            .gte('rank', newRankData.rank)
+            .lt('rank', newRankData.rank + 3)
+            .neq('user_id', userId)
+          if (overtaken?.length) {
+            const { data: myProfile } = await supabase.from('profiles').select('username, display_name').eq('id', userId).single()
+            const myName = myProfile?.display_name || myProfile?.username || 'A hunter'
+            await Promise.allSettled(
+              overtaken.map(entry =>
+                sendPushToUser(entry.user_id, '⚡ You\'ve been overtaken!', `${myName} just jumped ahead of you on the leaderboard. Fight back!`, '/leaderboard')
+              )
+            )
+          }
+        }
+      } catch { /* push notifications are non-critical */ }
+
       return NextResponse.json({ is_correct: true, feedback, score, newTokenBalance: profileData?.tokens ?? null })
     } else {
       await supabase.from('player_progress').update({ attempts: newAttempts }).eq('id', progress.id)

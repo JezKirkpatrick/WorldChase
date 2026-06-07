@@ -10,6 +10,8 @@ import Avatar from '@/components/ui/Avatar'
 import type { FriendStatus } from '@/components/ui/FriendButton'
 import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 import FriendUnreadDot from '@/components/friends/FriendUnreadDot'
+import FriendsOnlineList from '@/components/friends/FriendsOnlineList'
+import FindHunters from '@/components/friends/FindHunters'
 
 type FriendProfile = {
   id: string
@@ -48,6 +50,9 @@ export default async function FriendsPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 relative">
         <h1 className="font-head font-bold text-gold tracking-widest text-xl mb-6">👥 FRIENDS</h1>
 
+        {/* Search for new hunters */}
+        <FindHunters />
+
         {/* Pending incoming requests */}
         {pendingIn.length > 0 && (
           <div className="mb-8">
@@ -60,16 +65,20 @@ export default async function FriendsPage() {
               {pendingIn.map((f: any) => {
                 const friend = friendOf(f)
                 return (
-                  <div key={f.id} className="bg-navy-light border border-electric/20 p-4 flex items-center gap-3">
-                    <Avatar
-                      emoji={friend.equipped_avatar ?? '🌍'}
-                      border={friend.equipped_border ?? 'none'}
-                      size="sm"
-                      countryCode={friend.country_code}
-                    />
+                  <div key={f.id} className="bg-navy-light border border-electric/30 p-4 flex items-center gap-3"
+                    style={{ boxShadow: '0 0 20px rgba(0,212,255,0.06)' }}>
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-electric/0 via-electric/40 to-electric/0" />
+                    <Link href={`/profile/${safeHandle(friend)}`} className="shrink-0">
+                      <Avatar
+                        emoji={friend.equipped_avatar ?? '🌍'}
+                        border={friend.equipped_border ?? 'none'}
+                        size="sm"
+                        countryCode={friend.country_code}
+                      />
+                    </Link>
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="font-head font-bold text-white text-sm truncate">{safeDisplayName(friend)}</div>
-                      <div className="text-text-muted font-head text-xs truncate">@{safeHandle(friend)}</div>
+                      <div className="text-text-muted font-head text-xs truncate">@{safeHandle(friend)} wants to be your hunter</div>
                     </div>
                     <FriendButton
                       targetUserId={friend.id}
@@ -83,49 +92,16 @@ export default async function FriendsPage() {
           </div>
         )}
 
-        {/* Friends list */}
+        {/* Friends list — client component handles live presence dots */}
         <div>
           <div className="text-xs font-head text-text-muted tracking-widest mb-3 flex items-center gap-2">
-            HUNTERS — {accepted.length}
+            YOUR HUNTERS — {accepted.length}
             <div className="flex-1 h-px bg-white/5" />
           </div>
-          {accepted.length === 0 ? (
-            <div className="bg-navy-light border border-white/10 p-10 text-center">
-              <div className="text-5xl mb-4 opacity-40">👥</div>
-              <div className="text-text-muted font-head text-sm mb-1">No friends yet</div>
-              <div className="text-text-muted font-head text-xs opacity-60">Visit a hunter's profile to add them</div>
-              <Link href="/leaderboard" className="inline-block mt-4 border border-gold/30 px-4 py-2 font-head text-xs font-bold text-gold tracking-widest hover:bg-gold/10 transition-all">
-                🏆 BROWSE LEADERBOARD
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {accepted.map((f: any) => {
-                const friend = friendOf(f)
-                return (
-                  <Link key={f.id} href={`/friends/${safeHandle(friend)}`}
-                    className="bg-navy-light border border-white/10 p-4 flex items-center gap-3 hover:border-electric/30 hover:bg-navy-mid/30 transition-all group">
-                    <Avatar
-                      emoji={friend.equipped_avatar ?? '🌍'}
-                      border={friend.equipped_border ?? 'none'}
-                      size="sm"
-                      countryCode={friend.country_code}
-                    />
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      <div className="font-head font-bold text-white text-sm group-hover:text-electric transition-colors truncate">
-                        {safeDisplayName(friend)}
-                      </div>
-                      <div className="text-text-muted font-head text-xs truncate">@{safeHandle(friend)}</div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <FriendUnreadDot myId={user!.id} friendId={friend.id} />
-                      <span className="text-text-muted font-head text-xs group-hover:text-electric transition-colors">💬 MESSAGE →</span>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+          <FriendsOnlineList
+            friends={accepted.map((f: any) => friendOf(f))}
+            myId={user!.id}
+          />
         </div>
       </div>
     </div>

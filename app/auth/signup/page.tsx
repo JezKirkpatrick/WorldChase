@@ -6,11 +6,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { motion } from 'framer-motion'
+import { COUNTRIES } from '@/lib/countries'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
+  const [countryCode, setCountryCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
@@ -27,7 +29,7 @@ export default function SignupPage() {
       email, password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        data: { username: username.trim(), display_name: username.trim() },
+        data: { username: username.trim(), display_name: username.trim(), country_code: countryCode || null },
       }
     })
 
@@ -68,7 +70,7 @@ export default function SignupPage() {
           <p className="text-text-muted font-head text-sm mt-2 tracking-wider">JOIN THE HUNT — FREE</p>
         </div>
 
-        <div className="bg-navy-light border border-white/10 p-8" style={{ boxShadow: '0 0 40px rgba(245,197,24,0.05)' }}>
+        <div className="bg-navy-light border border-white/10 p-6 sm:p-8" style={{ boxShadow: '0 0 40px rgba(245,197,24,0.05)' }}>
           <form onSubmit={handleSignup} className="space-y-4">
             {error && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -78,7 +80,7 @@ export default function SignupPage() {
             )}
 
             <div>
-              <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">USERNAME</label>
+              <label className="block text-sm font-head text-text-muted tracking-widest mb-1.5">USERNAME</label>
               <input type="text" value={username} onChange={e => setUsername(e.target.value.replace(/\s/g, ''))}
                 required minLength={3} maxLength={20}
                 className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head placeholder-text-muted/40 transition-colors"
@@ -86,17 +88,42 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">EMAIL</label>
+              <label className="block text-sm font-head text-text-muted tracking-widest mb-1.5">EMAIL</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                 className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head placeholder-text-muted/40 transition-colors"
                 placeholder="hunter@example.com" />
             </div>
 
             <div>
-              <label className="block text-xs font-head text-text-muted tracking-widest mb-1.5">PASSWORD</label>
+              <label className="block text-sm font-head text-text-muted tracking-widest mb-1.5">PASSWORD</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required minLength={8}
                 className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head transition-colors"
                 placeholder="Min. 8 characters" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-head text-text-muted tracking-widest mb-1.5">YOUR COUNTRY</label>
+              <div className="relative">
+                {countryCode && (
+                  <img
+                    src={`https://flagcdn.com/24x18/${countryCode.toLowerCase()}.png`}
+                    alt=""
+                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-sm pointer-events-none"
+                    width={24} height={18}
+                  />
+                )}
+                <select
+                  value={countryCode}
+                  onChange={e => setCountryCode(e.target.value)}
+                  className={`w-full bg-navy border border-white/20 focus:border-gold/60 outline-none ${countryCode ? 'pl-11' : 'pl-4'} pr-4 py-3 text-white font-head transition-colors appearance-none`}
+                >
+                  <option value="">Select your country...</option>
+                  {COUNTRIES.map(c => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted text-xs">▼</div>
+              </div>
             </div>
 
             <button type="submit" disabled={loading}
@@ -106,7 +133,7 @@ export default function SignupPage() {
             </button>
 
             <p className="text-xs text-text-muted font-head text-center">🪙 2 free tokens on signup — earn more by playing</p>
-            <p className="text-[10px] text-text-muted/40 font-head text-center leading-relaxed">
+            <p className="text-xs text-text-muted/40 font-head text-center leading-relaxed">
               By signing up you agree to our{' '}
               <Link href="/terms"   className="text-text-muted/70 hover:text-gold underline">Terms of Service</Link>
               {' '}and{' '}

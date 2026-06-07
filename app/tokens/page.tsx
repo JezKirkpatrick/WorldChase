@@ -6,7 +6,7 @@ import TokensContent from '@/components/tokens/TokensContent'
 
 function TokensSkeleton() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 animate-pulse">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 animate-pulse">
       <div className="text-center mb-10">
         <div className="h-3 w-24 bg-white/10 mb-3 mx-auto" />
         <div className="h-8 w-64 bg-white/10 mb-2 mx-auto" />

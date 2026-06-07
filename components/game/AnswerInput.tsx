@@ -12,7 +12,7 @@ interface AnswerInputProps {
   maxAttempts: number
   lastFeedback: string | null
   lastCorrect: boolean | null
-  onSubmit: (answer: string) => Promise<void>
+  onSubmit: (answer: string) => Promise<boolean>
   onSkip: () => void
   tokens: number
   focusTrigger: number
@@ -28,8 +28,9 @@ export default function AnswerInput({
   const [confirmSkip, setConfirmSkip] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Auto-focus the input when the game loads for the first time
+  // Auto-focus on desktop only — skip touch devices to prevent keyboard hijack on mobile
   useEffect(() => {
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return
     const t = setTimeout(() => inputRef.current?.focus(), 300)
     return () => clearTimeout(t)
   }, [])
@@ -41,29 +42,20 @@ export default function AnswerInput({
 
   useEffect(() => { sounds.init() }, [])
 
-  useEffect(() => {
-    if (lastCorrect === true) {
-      sounds.correct()
-    }
-    if (lastCorrect === false) {
-      sounds.wrong()
-      setShake(true)
-      setTimeout(() => {
-        setShake(false)
-        // Re-focus after shake so user can type the next attempt immediately
-        inputRef.current?.focus()
-      }, 500)
-    }
-  }, [lastCorrect, lastFeedback])
-
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault()
     if (!answer.trim() || submitting || attempts >= maxAttempts) return
     setSubmitting(true)
-    await onSubmit(answer.trim())
+    const isCorrect = await onSubmit(answer.trim())
     setSubmitting(false)
     setAnswer('')
-    // Focus is handled by the lastCorrect useEffect above
+    if (!isCorrect) {
+      setShake(true)
+      setTimeout(() => {
+        setShake(false)
+        inputRef.current?.focus()
+      }, 500)
+    }
   }
 
   const remaining = maxAttempts - attempts
@@ -118,7 +110,7 @@ export default function AnswerInput({
               CHECKING...
             </>
           ) : (
-            'CONFIRM LOCATION  [ENTER ↵]'
+            <>CONFIRM LOCATION<span className="hidden sm:inline">  [ENTER ↵]</span></>
           )}
         </button>
       </form>
@@ -129,7 +121,7 @@ export default function AnswerInput({
           {Array.from({ length: maxAttempts }).map((_, i) => (
             <div
               key={i}
-              className={`w-4 h-4 border transition-all ${
+              className={`w-5 h-5 border transition-all ${
                 i < attempts
                   ? lastCorrect && i === attempts - 1
                     ? 'bg-success/60 border-success/60'
@@ -139,7 +131,7 @@ export default function AnswerInput({
             />
           ))}
         </div>
-        <span className="text-xs font-mono text-text-muted">
+        <span className="text-sm font-mono text-text-muted">
           {isExhausted ? 'MAX ATTEMPTS REACHED' : `${remaining} ATTEMPT${remaining !== 1 ? 'S' : ''} LEFT`}
         </span>
       </div>
@@ -159,13 +151,13 @@ export default function AnswerInput({
               <button
                 onClick={() => { onSkip(); setConfirmSkip(false) }}
                 disabled={tokens < 2}
-                className="px-3 py-1 bg-danger/20 border border-danger/50 text-danger text-xs font-head tracking-wider hover:bg-danger/30 transition-colors disabled:opacity-40"
+                className="px-3 py-3 bg-danger/20 border border-danger/50 text-danger text-xs font-head tracking-wider hover:bg-danger/30 transition-colors disabled:opacity-40"
               >
                 SKIP ROUND (−2 TOKENS)
               </button>
               <button
                 onClick={() => setConfirmSkip(false)}
-                className="px-3 py-1 border border-white/20 text-text-muted text-xs font-head hover:text-white"
+                className="px-3 py-3 border border-white/20 text-text-muted text-xs font-head hover:text-white"
               >
                 KEEP HUNTING
               </button>

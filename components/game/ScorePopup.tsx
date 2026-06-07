@@ -3,6 +3,18 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { ScoreCalculation } from '@/types/game'
 
+async function shareResult(locationName: string, score: ScoreCalculation, timeSec: number, rank: number | null) {
+  const timeStr = timeSec > 0 ? `${Math.floor(timeSec / 60)}m ${(timeSec % 60).toString().padStart(2, '0')}s` : '—'
+  const rankStr = rank ? `#${rank}` : '—'
+  const text = `🌍 I just cracked ${locationName} on World Chase!\n⚡ ${score.finalScore.toLocaleString()} pts · ⏱ ${timeStr} · 🏆 Rank ${rankStr}\n\nCan you beat me?`
+  const url = 'https://www.worldchase.net'
+  if (navigator.share) {
+    try { await navigator.share({ title: 'World Chase', text, url }); return }
+    catch { /* fallthrough */ }
+  }
+  await navigator.clipboard.writeText(`${text}\n${url}`)
+}
+
 interface ScorePopupProps {
   score: ScoreCalculation
   locationName: string
@@ -33,6 +45,14 @@ export default function ScorePopup({
 }: ScorePopupProps) {
   const rankImproved = rankBefore && rankAfter && rankAfter < rankBefore
   const isLastRound = nextRound === null
+  const [copied, setCopied] = useState(false)
+
+  async function handleShare() {
+    const timeSec = 0 // time not available here; ScorePopup doesn't receive it
+    await shareResult(locationName, score, timeSec, rankAfter ?? rankBefore ?? null)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+  }
 
   return (
     <motion.div
@@ -40,7 +60,7 @@ export default function ScorePopup({
       animate={{ opacity: 1, scale: 1 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
     >
-      <div className="w-full max-w-md bg-navy-light border border-gold/40 bracket-box p-8">
+      <div className="w-full max-w-md bg-navy-light border border-gold/40 bracket-box p-5 sm:p-8">
         {/* Header */}
         <motion.div
           initial={{ y: -10, opacity: 0 }}
@@ -126,13 +146,21 @@ export default function ScorePopup({
           </div>
         )}
 
-        <button
-          onClick={onContinue}
-          className="w-full py-3 text-navy font-head font-bold text-sm tracking-widest transition-all hover:scale-[1.02]"
-          style={{ background: 'linear-gradient(90deg, #f5c518, #ffd700)', boxShadow: '0 0 20px rgba(245,197,24,0.3)' }}
-        >
-          {isLastRound ? 'VIEW FINAL STANDINGS →' : `NEXT: ROUND ${nextRound} →`}
-        </button>
+        <div className="flex flex-col-reverse sm:flex-row gap-2">
+          <button
+            onClick={handleShare}
+            className="w-full sm:w-auto px-4 py-3 border border-electric/40 text-electric font-head font-bold text-xs tracking-widest hover:bg-electric/10 transition-colors"
+          >
+            {copied ? '✓ COPIED!' : '📤 SHARE'}
+          </button>
+          <button
+            onClick={onContinue}
+            className="flex-1 py-3 text-navy font-head font-bold text-sm tracking-widest transition-all hover:scale-[1.02]"
+            style={{ background: 'linear-gradient(90deg, #f5c518, #ffd700)', boxShadow: '0 0 20px rgba(245,197,24,0.3)' }}
+          >
+            {isLastRound ? 'VIEW FINAL STANDINGS →' : `NEXT: ROUND ${nextRound} →`}
+          </button>
+        </div>
       </div>
     </motion.div>
   )

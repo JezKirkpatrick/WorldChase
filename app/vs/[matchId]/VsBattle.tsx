@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { flagUrl } from '@/lib/flagEmoji'
@@ -58,6 +58,8 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
   const [cancelling, setCancelling] = useState(false)
   const [copied, setCopied] = useState(false)
   const [reveal, setReveal] = useState<{ locationName: string; locationCountry: string; funFact: string } | null>(null)
+  const [tabBlurred, setTabBlurred] = useState(false)
+  const answerInputRef = useRef<HTMLInputElement>(null)
 
   const isChallenger = currentUserId === match.challenger_id
   const isOpponent = currentUserId === match.opponent_id
@@ -75,6 +77,31 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [match.status, match.started_at])
+
+  const expirySecsLeft = match.status === 'active'
+    ? Math.max(0, Math.floor((new Date(match.expires_at).getTime() - Date.now()) / 1000))
+    : null
+
+  // Focus answer input on desktop only when battle goes active
+  useEffect(() => {
+    if (match.status !== 'active') return
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return
+    const t = setTimeout(() => answerInputRef.current?.focus(), 300)
+    return () => clearTimeout(t)
+  }, [match.status])
+
+  // Tab blur anti-cheat — only active during live duel
+  useEffect(() => {
+    if (match.status !== 'active') return
+    const onBlur  = () => setTabBlurred(true)
+    const onFocus = () => setTabBlurred(false)
+    window.addEventListener('blur',  onBlur)
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.removeEventListener('blur',  onBlur)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [match.status])
 
   // Fetch answer reveal when match completes
   useEffect(() => {
@@ -160,7 +187,17 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
     setTimeout(() => setCopied(false), 2000)
   }
 
+  function AvatarSpan({ av, className }: { av: string | null | undefined; className: string }) {
+    const src = av ?? '🌍'
+    if (src.startsWith('http')) {
+      return <img src={src} alt="avatar" className={`rounded-full object-cover ${className}`} />
+    }
+    return <span className={`leading-none ${className}`}>{src}</span>
+  }
+
   const clues = challenge ? [...challenge.clues].sort((a, b) => a.order - b.order) : []
+  // Intel files unlock every 30s from match start. Index 0 always visible.
+  const revealedCount = Math.min(clues.length, 1 + Math.floor(elapsed / 30))
   const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
 
   // ── PENDING — challenger waiting ──────────────────────────────────────────
@@ -226,20 +263,18 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
                 </div>
                 <p className="text-text-muted font-head text-sm mb-3">
                   {match.match_type === 'friend_invite'
-                    ? 'Your friend has been notified. You can also share this link:'
-                    : 'Share this link to challenge a hunter:'}
+                    ? 'Your friend has been notified. Share this challenge link if needed:'
+                    : 'Share this link with any hunter to challenge them:'}
                 </p>
-                <div className="flex gap-2">
-                  <input
-                    readOnly
-                    value={shareUrl}
-                    className="flex-1 bg-navy border border-white/20 px-3 py-2 font-mono text-xs text-text truncate"
-                  />
+                <div className="flex gap-2 items-stretch">
+                  <div className="flex-1 bg-navy border border-white/20 px-3 py-2 font-mono text-xs text-text-muted overflow-hidden">
+                    <span className="block truncate">{shareUrl}</span>
+                  </div>
                   <button
                     onClick={copyLink}
-                    className="px-4 py-2 border border-gold/40 font-head text-xs font-bold text-gold hover:bg-gold/10 transition-all whitespace-nowrap"
+                    className="px-4 py-2 border border-gold/40 font-head text-xs font-bold text-gold hover:bg-gold/10 transition-all whitespace-nowrap shrink-0"
                   >
-                    {copied ? '✓' : 'COPY'}
+                    {copied ? '✓ COPIED' : 'COPY LINK'}
                   </button>
                 </div>
               </div>
@@ -275,7 +310,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
           <div className="bg-navy-light border border-gold/30 p-6 mb-4">
             <div className="flex items-center gap-3 mb-5">
               <div className="relative shrink-0">
-                <span className="text-3xl leading-none">{challenger?.equipped_avatar ?? '🌍'}</span>
+                <AvatarSpan av={challenger?.equipped_avatar} className="text-3xl w-10 h-10" />
                 {challenger?.country_code && flagUrl(challenger.country_code) && (
                   <img src={flagUrl(challenger.country_code)} alt="" aria-hidden className="absolute -bottom-1 -right-1 w-4 h-3 rounded-sm shadow-sm pointer-events-none" />
                 )}
@@ -290,7 +325,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
 
             <div className="bg-navy border border-white/10 p-4 rounded mb-5 text-center">
               <div className="text-text-muted font-head text-xs mb-1">EACH WAGERS</div>
-              <div className="text-gold font-head font-bold text-3xl">{match.wager}</div>
+              <div className="text-gold font-head font-bold text-2xl sm:text-3xl">{match.wager}</div>
               <div className="text-xs font-head text-text-muted mt-1">tokens</div>
               <div className="mt-2 pt-2 border-t border-white/10 text-electric font-head text-xs font-bold">
                 Winner takes {match.wager * 2} tokens
@@ -298,7 +333,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
             </div>
 
             <p className="text-text-muted font-head text-xs leading-relaxed mb-5">
-              You'll both see the same geography riddle at the same time. First hunter to name the correct location wins the entire pot. No clue unlocks — pure knowledge race.
+              You'll both see the same geography riddle at the same time. First hunter to name the correct location wins the entire pot. Intel files unlock automatically every 30 seconds — solve from the Mission Briefing alone for maximum bragging rights.
             </p>
 
             {joinError && <div className="text-danger text-xs font-head mb-3">{joinError}</div>}
@@ -370,7 +405,17 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
 
   // ── ACTIVE BATTLE ─────────────────────────────────────────────────────────
   return (
-    <div className="h-dvh bg-navy flex flex-col overflow-hidden">
+    <div className="relative h-dvh bg-navy flex flex-col overflow-hidden">
+
+      {/* Tab-switch blur overlay */}
+      {tabBlurred && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-navy/95 backdrop-blur-sm">
+          <div className="text-5xl mb-4">⚔️</div>
+          <div className="font-head font-bold text-2xl text-gold tracking-widest mb-2">DUEL IN PROGRESS</div>
+          <div className="text-text-muted font-head text-sm">Tap to return to battle</div>
+          <div className="mt-6 w-2 h-2 bg-danger rounded-full animate-ping" />
+        </div>
+      )}
 
       {/* Battle HUD */}
       <header className="shrink-0 h-12 bg-navy-light/95 backdrop-blur border-b border-gold/20 flex items-center px-3 gap-2">
@@ -381,7 +426,7 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
         <div className="flex-1 flex items-center justify-center gap-3">
           <div className="flex items-center gap-1.5">
             <div className="relative shrink-0">
-              <span className="text-base leading-none">{myProfile?.equipped_avatar ?? '🌍'}</span>
+              <AvatarSpan av={myProfile?.equipped_avatar} className="text-base w-6 h-6" />
               {myProfile?.country_code && flagUrl(myProfile.country_code) && (
                 <img src={flagUrl(myProfile.country_code)} alt="" aria-hidden className="absolute -bottom-0.5 -right-0.5 w-3 h-2 rounded-sm pointer-events-none" />
               )}
@@ -393,11 +438,11 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
           <div className="font-head font-bold text-gold text-sm">VS</div>
 
           <div className="flex items-center gap-1.5">
-            <span className="font-head text-xs text-text-muted truncate max-w-[80px]">
+            <span className="font-head text-xs text-text-muted truncate max-w-[70px] sm:max-w-[140px]">
               {safeDisplayName(theirProfile)}
             </span>
             <div className="relative shrink-0">
-              <span className="text-base leading-none">{theirProfile?.equipped_avatar ?? '🌍'}</span>
+              <AvatarSpan av={theirProfile?.equipped_avatar} className="text-base w-6 h-6" />
               {theirProfile?.country_code && flagUrl(theirProfile.country_code) && (
                 <img src={flagUrl(theirProfile.country_code)} alt="" aria-hidden className="absolute -bottom-0.5 -right-0.5 w-3 h-2 rounded-sm pointer-events-none" />
               )}
@@ -415,6 +460,14 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-5 space-y-4">
+
+          {/* Expiry warning — show when < 5 minutes left */}
+          {expirySecsLeft !== null && expirySecsLeft < 300 && expirySecsLeft > 0 && !mySolvedAt && (
+            <div className="bg-danger/10 border border-danger/30 px-4 py-2 font-head text-xs text-danger flex items-center justify-between">
+              <span>⏳ Duel expires soon</span>
+              <span className="font-mono font-bold">{Math.floor(expirySecsLeft / 60)}:{String(expirySecsLeft % 60).padStart(2, '0')}</span>
+            </div>
+          )}
 
           {/* Live status banners */}
           {theirSolvedAt && !mySolvedAt && (
@@ -457,38 +510,65 @@ export default function VsBattle({ match: initialMatch, challenge, currentUserId
             </p>
           </div>
 
-          {/* All clues revealed upfront — VS mode is a pure speed race */}
+          {/* Intel files — unlock one every 30 seconds */}
           <div
             className="space-y-2 select-none"
             onCopy={blockCopy}
             onCut={blockCopy}
             onContextMenu={blockCopy}
           >
-            {clues.map((clue, i) => (
-              <div
-                key={i}
-                className="bg-navy-light border border-white/10 p-4"
-                style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-              >
-                <div className="text-xs font-mono text-text-muted tracking-wider mb-1">
-                  INTEL FILE {i + 1}
-                  {i === 0 && <span className="ml-2 text-success">— DECLASSIFIED</span>}
+            <div className="flex items-center justify-between text-[10px] font-head text-text-muted/50 tracking-widest px-0.5 mb-1">
+              <span>INTEL FILES</span>
+              <span>New file every 30s</span>
+            </div>
+            {clues.map((clue, i) => {
+              const isRevealed = i < revealedCount
+              const secondsUntil = isRevealed ? 0 : (i * 30) - elapsed
+
+              if (!isRevealed) {
+                return (
+                  <div
+                    key={i}
+                    className="bg-navy border border-white/5 p-4"
+                    style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                  >
+                    <div className="text-xs font-mono text-text-muted/40 tracking-wider mb-2">
+                      INTEL FILE {i + 1} — LOCKED
+                    </div>
+                    <div className="flex items-center gap-2 text-text-muted/40">
+                      <span className="text-base leading-none">🔒</span>
+                      <span className="font-head text-xs">Unlocks in {secondsUntil}s</span>
+                    </div>
+                  </div>
+                )
+              }
+
+              return (
+                <div
+                  key={i}
+                  className="bg-navy-light border border-white/10 p-4"
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                >
+                  <div className="text-xs font-mono text-text-muted tracking-wider mb-1">
+                    INTEL FILE {i + 1}
+                    {i === 0 && <span className="ml-2 text-success">— DECLASSIFIED</span>}
+                  </div>
+                  <p className="text-text font-head text-sm leading-relaxed">{clue.text}</p>
                 </div>
-                <p className="text-text font-head text-sm leading-relaxed">{clue.text}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Answer input */}
           {!mySolvedAt && (
-            <form onSubmit={handleSubmit} className="space-y-2 pb-6">
+            <form onSubmit={handleSubmit} className="space-y-2 pb-6" style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}>
               <input
+                ref={answerInputRef}
                 value={guess}
                 onChange={e => setGuess(e.target.value)}
                 placeholder="Name the location…"
                 autoComplete="off"
                 spellCheck={false}
-                autoFocus
                 className="w-full bg-navy border border-white/20 focus:border-gold/60 outline-none px-4 py-3 text-white font-head text-base placeholder-text-muted/50 transition-colors"
               />
               <button

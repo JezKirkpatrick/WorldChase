@@ -7,7 +7,14 @@ const BASE_POINTS: Record<Difficulty, number> = {
   extreme: 5000,
 }
 
-const CLUE_MULTIPLIERS: Record<number, number> = {
+const CLUE_MULTIPLIERS_EASY: Record<number, number> = {
+  0: 1.0,
+  1: 0.95,
+  2: 0.88,
+  3: 0.80,
+}
+
+const CLUE_MULTIPLIERS_DEFAULT: Record<number, number> = {
   0: 1.0,
   1: 0.80,
   2: 0.60,
@@ -25,9 +32,9 @@ const SPEED_HALF_LIFE   = 300   // seconds until multiplier halves (= 5 min = 1.
 const SPEED_MAX         = 2.0
 const SPEED_FLOOR       = 0.5
 
-function calcSpeedMultiplier(seconds: number): number {
+function calcSpeedMultiplier(seconds: number, floor = SPEED_FLOOR): number {
   const k = Math.LN2 / SPEED_HALF_LIFE
-  return Math.max(SPEED_FLOOR, SPEED_MAX * Math.exp(-k * seconds))
+  return Math.max(floor, SPEED_MAX * Math.exp(-k * seconds))
 }
 
 export function calculateScore(
@@ -37,9 +44,11 @@ export function calculateScore(
   timeTakenSeconds: number
 ): ScoreCalculation {
   const basePoints      = BASE_POINTS[difficulty]
-  const clueMultiplier  = CLUE_MULTIPLIERS[Math.min(cluesRevealed, 3)]
+  const clueTable       = difficulty === 'easy' ? CLUE_MULTIPLIERS_EASY : CLUE_MULTIPLIERS_DEFAULT
+  const clueMultiplier  = clueTable[Math.min(cluesRevealed, 3)]
   const attemptPenalty  = Math.min(wrongAttempts * ATTEMPT_PENALTY_PER_WRONG, MAX_ATTEMPT_PENALTY)
-  const speedMultiplier = calcSpeedMultiplier(timeTakenSeconds)
+  const speedFloor      = difficulty === 'easy' ? 0.75 : SPEED_FLOOR
+  const speedMultiplier = calcSpeedMultiplier(timeTakenSeconds, speedFloor)
 
   const afterClues    = basePoints * clueMultiplier
   const afterAttempts = afterClues * (1 - attemptPenalty)

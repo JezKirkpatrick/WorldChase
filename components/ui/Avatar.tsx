@@ -26,7 +26,7 @@ const RING: Record<string, string> = {
 }
 
 // Borders that use the rich renderer
-const RICH = new Set(['electric', 'gold', 'diamond', 'legendary', 'fire', 'thorns'])
+const RICH = new Set(['electric', 'gold', 'diamond', 'legendary', 'fire', 'thorns', 'ocean', 'rainbow', 'galaxy'])
 
 interface AvatarProps {
   emoji?: string
@@ -80,6 +80,9 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
       {border === 'legendary' && <VoidRing      outer={outer} />}
       {border === 'fire'      && <FireRing      outer={outer} />}
       {border === 'thorns'    && <ThornsRing    outer={outer} />}
+      {border === 'ocean'     && <OceanRing     outer={outer} />}
+      {border === 'rainbow'   && <RainbowRing   outer={outer} />}
+      {border === 'galaxy'    && <GalaxyRing    outer={outer} />}
 
       {/* ── Inner navy bg (cuts the ring into a ring shape) ── */}
       <div className="absolute rounded-full bg-[#0B1628] z-[1]"
@@ -198,6 +201,34 @@ function ThornsRing({ outer }: { outer: number }) {
       {/* Inner cut (navy) */}
       <circle cx={cx} cy={cy} r={innerR - 4} fill="#0B1628" />
     </svg>
+  )
+}
+
+// ── Ocean Wave ────────────────────────────────────────────────────
+function OceanRing({ outer }: { outer: number }) {
+  return (
+    <div className="absolute inset-0 rounded-full avatar-ring-ocean"
+         style={{ width: outer, height: outer }} />
+  )
+}
+
+// ── Rainbow Spin ──────────────────────────────────────────────────
+function RainbowRing({ outer }: { outer: number }) {
+  return (
+    <div className="absolute inset-0 rounded-full avatar-ring-rainbow"
+         style={{ width: outer, height: outer }} />
+  )
+}
+
+// ── Galaxy Nebula ─────────────────────────────────────────────────
+function GalaxyRing({ outer }: { outer: number }) {
+  return (
+    <>
+      <div className="absolute inset-0 rounded-full avatar-ring-galaxy"
+           style={{ width: outer, height: outer }} />
+      <div className="absolute avatar-orbit-galaxy"
+           style={{ width: outer + 6, height: outer + 6, top: -3, left: -3 }} />
+    </>
   )
 }
 

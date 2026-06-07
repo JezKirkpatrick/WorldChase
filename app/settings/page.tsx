@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { sounds } from '@/lib/sounds'
 import { useToast } from '@/components/ui/Toast'
+import PushNotificationButton from '@/components/ui/PushNotificationButton'
 
 const COUNTRIES = [
   { code: 'AF', name: 'Afghanistan' }, { code: 'AL', name: 'Albania' }, { code: 'DZ', name: 'Algeria' },
@@ -110,9 +111,9 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-navy text-text">
-      <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-6 sticky top-0 z-30">
+      <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
         <Link href="/dashboard" className="font-head font-bold text-gold text-base tracking-widest hover:text-gold-dim transition-colors">≡ WORLD CHASE</Link>
-        <Link href="/dashboard" className="text-xs font-head text-text-muted hover:text-white transition-colors">← DASHBOARD</Link>
+        <Link href="/dashboard" className="text-xs font-head text-text-muted hover:text-white transition-colors py-2 px-2">← DASHBOARD</Link>
       </nav>
 
       <div className="max-w-xl mx-auto px-6 py-12">
@@ -163,6 +164,15 @@ export default function SettingsPage() {
               <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">▾</span>
             </div>
             <p className="text-xs text-text-muted font-head mt-1">Used for the Hall of Fame country filter</p>
+          </div>
+
+          {/* Push notifications */}
+          <div className="border border-white/10 p-4">
+            <div className="text-xs font-head text-text-muted tracking-widest mb-3">NOTIFICATIONS</div>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <p className="text-text-muted font-head text-xs">Get notified when friends overtake you or a new hunt starts</p>
+              <PushNotificationButton />
+            </div>
           </div>
 
           {/* Toggles */}

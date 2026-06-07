@@ -320,19 +320,19 @@ export default function ChatClient({ userId }: { userId: string }) {
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
               <div className="font-head font-bold text-white tracking-widest text-sm leading-none">HUNTER CHAT</div>
-              <div className="text-text-muted font-head text-[10px] tracking-wider mt-0.5">Global · everyone online sees this</div>
+              <div className="text-text-muted font-head text-xs tracking-wider mt-0.5">Global · everyone online sees this</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
             {onlineCount > 0 && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 border border-green-400/20 bg-green-400/5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
-                <span className="text-green-400 font-head font-bold text-[10px] tracking-widest">
+                <span className="text-green-400 font-head font-bold text-xs tracking-widest">
                   {onlineCount} {onlineCount === 1 ? 'ONLINE' : 'ONLINE'}
                 </span>
               </div>
             )}
-            <Link href="/shop" className="text-[10px] font-head text-text-muted hover:text-gold transition-colors tracking-widest">
+            <Link href="/shop" className="text-xs font-head text-text-muted hover:text-gold transition-colors tracking-widest">
               🪙 REACTIONS
             </Link>
           </div>
@@ -373,7 +373,7 @@ export default function ChatClient({ userId }: { userId: string }) {
                         : 'bg-white/5 border-white/10 text-white/55 hover:bg-white/10 hover:border-white/25 hover:text-white/90'
                     }`}>
                     <span>{g.emoji}</span>
-                    <span className="font-mono text-[11px] leading-none">{g.count}</span>
+                    <span className="font-mono text-xs leading-none">{g.count}</span>
                   </button>
                 ))}
 
@@ -414,11 +414,11 @@ export default function ChatClient({ userId }: { userId: string }) {
                         {msg.profile.display_name || msg.profile.username}
                       </span>
                       {msg.profile.equipped_title && (
-                        <span className="text-[10px] font-head text-text-muted border border-white/10 px-1.5 py-0.5 leading-none">
+                        <span className="text-xs font-head text-text-muted border border-white/10 px-1.5 py-0.5 leading-none">
                           {msg.profile.equipped_title}
                         </span>
                       )}
-                      <span className="font-mono text-[11px] text-white/20 ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <span className="font-mono text-xs text-white/20 ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         {timeStr(msg.created_at)}
                       </span>
                     </div>
@@ -437,7 +437,7 @@ export default function ChatClient({ userId }: { userId: string }) {
         {showScrollBtn && (
           <div className="shrink-0 flex justify-center py-1.5">
             <button onClick={() => { scrollToBottom(true); setShowScrollBtn(false) }}
-              className="text-[10px] font-head text-gold border border-gold/30 px-4 py-1.5 tracking-widest hover:border-gold hover:bg-gold/5 transition-all">
+              className="text-xs font-head text-gold border border-gold/30 px-4 py-1.5 tracking-widest hover:border-gold hover:bg-gold/5 transition-all">
               ↓ NEW MESSAGES
             </button>
           </div>
@@ -477,7 +477,7 @@ export default function ChatClient({ userId }: { userId: string }) {
       <div data-picker
         className="fixed z-[200] p-2.5 border border-white/15 bg-[#0c1423]/95 backdrop-blur shadow-2xl w-60"
         style={pickerPos}>
-        <div className="text-[9px] font-head text-text-muted/50 tracking-widest mb-1.5">FREE REACTIONS</div>
+        <div className="text-xs font-head text-text-muted/50 tracking-widest mb-1.5">FREE REACTIONS</div>
         <div className="flex flex-wrap gap-1">
           {FREE_REACTIONS.map(e => {
             const active = reactions[pickerMsgId]?.find(g => g.emoji === e)?.reacted
@@ -492,7 +492,7 @@ export default function ChatClient({ userId }: { userId: string }) {
         {ownedEmojis.size > 0 && (
           <>
             <div className="border-t border-white/10 my-2" />
-            <div className="text-[9px] font-head text-gold/50 tracking-widest mb-1.5">YOUR REACTIONS</div>
+            <div className="text-xs font-head text-gold/50 tracking-widest mb-1.5">YOUR REACTIONS</div>
             <div className="flex flex-wrap gap-1">
               {[...ownedEmojis].map(e => {
                 const active = reactions[pickerMsgId]?.find(g => g.emoji === e)?.reacted
@@ -508,7 +508,7 @@ export default function ChatClient({ userId }: { userId: string }) {
         )}
         <div className="border-t border-white/10 mt-2 pt-2 text-center">
           <Link href="/shop" onClick={closePicker}
-            className="text-[10px] font-head text-gold/40 hover:text-gold transition-colors tracking-wide">
+            className="text-xs font-head text-gold/40 hover:text-gold transition-colors tracking-wide">
             🪙 unlock more reactions
           </Link>
         </div>

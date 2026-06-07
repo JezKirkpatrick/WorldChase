@@ -35,7 +35,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+      <div className="fixed top-16 right-2 sm:top-4 sm:right-4 z-[100] flex flex-col gap-2 pointer-events-none max-w-[calc(100vw-1rem)] sm:max-w-sm">
         <AnimatePresence>
           {toasts.map(t => (
             <motion.div
@@ -43,7 +43,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               initial={{ x: 100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 100, opacity: 0 }}
-              className={`px-4 py-3 border font-head font-semibold text-sm tracking-wide max-w-sm ${colors[t.type]}`}
+              className={`px-4 py-3 border font-head font-semibold text-sm tracking-wide ${colors[t.type]}`}
             >
               {t.message}
             </motion.div>

@@ -9,6 +9,8 @@ import { useKeyboard } from '@/hooks/useKeyboard'
 import { sounds } from '@/lib/sounds'
 import { useToast } from '@/components/ui/Toast'
 import BattleHUD from '@/components/game/BattleHUD'
+import OnboardingOverlay from '@/components/ui/OnboardingOverlay'
+import DifficultyBadge from '@/components/ui/DifficultyBadge'
 import RiddlePanel from '@/components/game/RiddlePanel'
 import MapPanel from '@/components/game/MapPanel'
 import ScorePopup from '@/components/game/ScorePopup'
@@ -41,22 +43,35 @@ export default function GamePage({ params }: PageProps) {
   const [mapsReady, setMapsReady] = useState(false)
   const [panelCollapsed, setPanelCollapsed] = useState(false)
   const [soundMuted, setSoundMuted] = useState(false)
-  const [mobileView, setMobileView] = useState<'mission' | 'map'>('map')
+  const [mobilePanelExpanded, setMobilePanelExpanded] = useState(false)
+  const [peekAnswer, setPeekAnswer] = useState('')
+  const [peekSubmitting, setPeekSubmitting] = useState(false)
+  const [tabBlurred, setTabBlurred] = useState(false)
+  const [restarting, setRestarting] = useState(false)
 
   // Load Google Maps script
   useEffect(() => {
     sounds.init()
     setSoundMuted(sounds.isMuted())
 
-    if ((window as any).google?.maps) { setMapsReady(true); return }
+    // Check for the Map constructor specifically — google.maps can exist as a partial
+    // object before loading=async finishes, causing a black map if we proceed too early
+    if ((window as any).google?.maps?.Map) { setMapsReady(true); return }
+
     const existing = document.getElementById('gmap-script')
     if (existing) {
-      existing.addEventListener('load', () => setMapsReady(true))
-      return
+      // Script tag already in DOM but Maps not ready — load event may have already fired
+      // so addEventListener('load') would never trigger. Poll instead.
+      const poll = setInterval(() => {
+        if ((window as any).google?.maps?.Map) { clearInterval(poll); setMapsReady(true) }
+      }, 100)
+      return () => clearInterval(poll)
     }
+
     const script = document.createElement('script')
     script.id = 'gmap-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`
+    // No loading=async — that param requires callback= or Maps won't be fully ready on onload
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
     script.async = true
     script.onload = () => setMapsReady(true)
     document.head.appendChild(script)
@@ -105,28 +120,29 @@ export default function GamePage({ params }: PageProps) {
     } catch { toast('Connection error — try again', 'error') }
   }, [userId, challenge, reload, tokens, toast])
 
-  const handleSubmitAnswer = useCallback(async (answer: string) => {
-    if (!userId || !challenge) return
+  const handleSubmitAnswer = useCallback(async (answer: string): Promise<boolean> => {
+    if (!userId || !challenge) return false
     try {
       const res = await fetch('/api/game/submit-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ guessText: answer, challengeId: challenge.id, userId }),
       })
-      if (!res.ok) { toast('Something went wrong — try again', 'error'); return }
+      if (!res.ok) { toast('Something went wrong — try again', 'error'); return false }
       const data = await res.json()
-      if (data.error) { toast(data.error, 'error'); return }
+      if (data.error) { toast(data.error, 'error'); return false }
+      data.is_correct ? sounds.correct() : sounds.wrong()
       setLastFeedback(data.feedback)
       setLastCorrect(data.is_correct)
       if (data.is_correct && data.score) {
         setScorePopup({ score: data.score, funFact: challenge.fun_fact })
-        // Use server-returned balance so easy rounds (0 tokens) stay accurate
         if (data.newTokenBalance !== null && data.newTokenBalance !== undefined) {
           flashToken(data.newTokenBalance, tokens)
         }
       }
       await reload()
-    } catch { toast('Connection error — try again', 'error') }
+      return data.is_correct
+    } catch { toast('Connection error — try again', 'error'); return false }
   }, [userId, challenge, reload, tokens, toast])
 
   const handleSkip = useCallback(async () => {
@@ -142,9 +158,27 @@ export default function GamePage({ params }: PageProps) {
       if (data.error) { toast(data.error, 'error'); return }
       if (data.newTokenBalance !== undefined) flashToken(data.newTokenBalance, tokens)
       toast('Round skipped', 'info')
+      router.refresh()
       router.push('/play')
     } catch { toast('Connection error — try again', 'error') }
   }, [userId, challenge, router, tokens, toast])
+
+  const handleRestart = useCallback(async () => {
+    if (!userId || !challenge || restarting) return
+    setRestarting(true)
+    try {
+      const res = await fetch('/api/game/restart-challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: challenge.id }),
+      })
+      const data = await res.json()
+      if (data.error) { toast(data.error, 'error'); setRestarting(false); return }
+      if (data.newTokenBalance !== undefined) flashToken(data.newTokenBalance, tokens)
+      toast('Round restarted — good luck!', 'success')
+      await reload()
+    } catch { toast('Connection error — try again', 'error'); setRestarting(false) }
+  }, [userId, challenge, restarting, reload, tokens, toast])
 
   const panMap = useCallback((dx: number, dy: number) => {
     if (!mapRef.current) return
@@ -180,16 +214,39 @@ export default function GamePage({ params }: PageProps) {
     mapRef.current.setMapTypeId(current === 'satellite' ? 'roadmap' : 'satellite')
   }, [])
 
-  // Switch to map tab on mobile and trigger a resize so Google Maps redraws
-  const switchToMapView = useCallback(() => {
-    setMobileView('map')
+  // Collapse mobile panel and trigger map resize so Google Maps redraws correctly
+  const collapsePanel = useCallback(() => {
+    setMobilePanelExpanded(false)
     setTimeout(() => {
       window.dispatchEvent(new Event('resize'))
       if (mapRef.current && (window as any).google?.maps?.event) {
         (window as any).google.maps.event.trigger(mapRef.current, 'resize')
       }
-    }, 50)
+    }, 320)
   }, [])
+
+  async function handlePeekSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!peekAnswer.trim() || peekSubmitting) return
+    setPeekSubmitting(true)
+    await handleSubmitAnswer(peekAnswer.trim())
+    setPeekSubmitting(false)
+    setPeekAnswer('')
+    setMobilePanelExpanded(true)
+  }
+
+  // Tab blur anti-cheat — only while round is in progress
+  useEffect(() => {
+    if (!progress || progress.status === 'completed') return
+    const onBlur  = () => setTabBlurred(true)
+    const onFocus = () => setTabBlurred(false)
+    window.addEventListener('blur',  onBlur)
+    window.addEventListener('focus', onFocus)
+    return () => {
+      window.removeEventListener('blur',  onBlur)
+      window.removeEventListener('focus', onFocus)
+    }
+  }, [progress?.status])
 
   useKeyboard({
     map_pan_north:    () => panMap(0, -100),
@@ -248,7 +305,60 @@ export default function GamePage({ params }: PageProps) {
   const nextRound = challenge.round_number < 20 ? challenge.round_number + 1 : null
 
   return (
-    <div ref={mapContainerRef} className="h-dvh flex flex-col bg-navy overflow-hidden">
+    <div ref={mapContainerRef} className="relative h-dvh flex flex-col bg-navy overflow-hidden">
+
+      <OnboardingOverlay />
+
+      {/* Skipped-round restart gate */}
+      {progress?.status === 'skipped' && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-navy/97 backdrop-blur-sm px-6">
+          <div className="w-full max-w-sm border border-orange-400/30 p-8 text-center space-y-5"
+               style={{ background: 'linear-gradient(135deg, rgba(251,146,60,0.06) 0%, rgba(15,21,53,1) 70%)' }}>
+            <div className="text-3xl">⏭</div>
+            <div>
+              <div className="text-orange-400 font-head font-bold tracking-widest text-sm mb-1">ROUND SKIPPED</div>
+              <div className="text-white font-head font-bold text-xl">
+                Round {challenge.round_number} — {challenge.difficulty.toUpperCase()}
+              </div>
+              <div className="text-text-muted font-head text-sm mt-1">{challenge.location_country}</div>
+            </div>
+            <div className="border border-white/10 p-4 space-y-1 text-sm font-head">
+              <p className="text-text-muted">Retry this round and attempt to earn points.</p>
+              <p className="text-white font-bold mt-2">Cost: 🪙 5 tokens</p>
+              <p className="text-text-muted/60 text-xs">Your balance: 🪙 {tokens}</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleRestart}
+                disabled={restarting || tokens < 5}
+                className="w-full py-3 bg-orange-400 text-navy font-head font-bold text-sm tracking-widest hover:bg-orange-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {restarting ? (
+                  <><span className="w-3 h-3 border-2 border-navy/40 border-t-navy rounded-full animate-spin" /> RESTARTING...</>
+                ) : tokens < 5 ? (
+                  '⚠ NOT ENOUGH TOKENS'
+                ) : (
+                  'RETRY ROUND — 5 TOKENS'
+                )}
+              </button>
+              <a href="/play" className="text-text-muted font-head text-xs hover:text-white transition-colors py-2">
+                ← BACK TO ROUNDS
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab-switch blur overlay */}
+      {tabBlurred && progress?.status !== 'completed' && progress?.status !== 'skipped' && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-navy/95 backdrop-blur-sm">
+          <div className="text-5xl mb-4">🌍</div>
+          <div className="font-head font-bold text-2xl text-gold tracking-widest mb-2">MISSION IN PROGRESS</div>
+          <div className="text-text-muted font-head text-sm">Click here to return to your hunt</div>
+          <div className="mt-6 w-2 h-2 bg-danger rounded-full animate-ping" />
+        </div>
+      )}
+
       <BattleHUD
         round={challenge.round_number}
         totalRounds={20}
@@ -261,20 +371,17 @@ export default function GamePage({ params }: PageProps) {
         onToggleSound={toggleSound}
       />
 
-      {/* pt-12 clears the BattleHUD | on mobile: pb = tab bar height + safe area */}
-      <div className="pt-12 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 flex flex-col flex-1 overflow-hidden">
+      {/* pt-12 clears the BattleHUD */}
+      <div className="pt-12 flex flex-col flex-1 overflow-hidden">
         <TimerBar elapsed={timeElapsed} limit={challenge.time_limit_seconds} />
 
         <div className="flex flex-1 overflow-hidden relative">
-        {/* Mission panel — desktop: collapsible sidebar | mobile: full-screen tab */}
+        {/* Mission panel — desktop sidebar only; mobile uses the bottom sheet below */}
         <div className={[
-          'flex flex-col overflow-hidden bg-navy',
-          // Desktop sizing + collapse logic
-          panelCollapsed ? 'hidden' : 'md:w-[38%] md:min-w-[300px] md:max-w-[480px]',
-          // Mobile: full-width absolute overlay when mission tab active, otherwise hidden
-          mobileView === 'mission'
-            ? 'absolute inset-0 z-20 w-full md:static md:inset-auto md:z-auto'
-            : 'hidden md:flex',
+          'flex-col overflow-hidden bg-navy',
+          panelCollapsed
+            ? 'hidden'
+            : 'hidden md:flex md:w-[38%] md:min-w-[300px] md:max-w-[480px]',
         ].filter(Boolean).join(' ')}>
             <RiddlePanel
               challenge={challenge}
@@ -291,13 +398,10 @@ export default function GamePage({ params }: PageProps) {
             />
           </div>
 
-        {/* Map panel */}
+        {/* Map panel — always visible; mobile bottom sheet overlays on top */}
         <div className={[
-          'relative',
-          // Desktop: flex-1 fills remaining space
+          'relative flex-1',
           panelCollapsed ? 'flex-1' : 'md:flex-1',
-          // Mobile: show when map tab active, hidden when mission tab active
-          mobileView === 'map' ? 'flex-1' : 'hidden md:flex md:flex-1',
         ].filter(Boolean).join(' ')}>
           {/* Desktop-only collapse toggle */}
           <button
@@ -309,9 +413,9 @@ export default function GamePage({ params }: PageProps) {
           </button>
 
           {(challenge as any).street_view_only && (challenge as any).street_view_question && (
-            <div className="absolute top-0 left-0 right-0 z-10 bg-navy-light/98 border-b border-electric/60 px-4 py-2.5 flex items-center gap-3 pl-20 shadow-lg">
+            <div className="absolute top-0 left-0 right-0 z-10 bg-black/80 backdrop-blur-sm border-b border-electric/60 px-4 py-2.5 flex items-center gap-3 pl-20 shadow-xl">
               <span className="text-electric font-head font-bold text-xs tracking-widest shrink-0">👁 OBSERVE</span>
-              <span className="text-white font-head text-sm font-bold drop-shadow">{(challenge as any).street_view_question}</span>
+              <span className="text-white font-head text-sm font-bold [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">{(challenge as any).street_view_question}</span>
             </div>
           )}
 
@@ -333,6 +437,7 @@ export default function GamePage({ params }: PageProps) {
               }}
               onMarkerRemove={id => setPersonalMarkers(m => m.filter(x => x.id !== id))}
               mapRef={mapRef}
+              mobilePanelExpanded={mobilePanelExpanded}
             />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a2035] gap-3">
@@ -343,45 +448,60 @@ export default function GamePage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* ── Mobile bottom tab bar ─────────────────────────────────── */}
+      {/* ── Mobile bottom sheet ───────────────────────────────────── */}
       <div
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-navy-light border-t border-white/10 flex"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-navy flex flex-col"
+        style={{
+          height: mobilePanelExpanded ? '72%' : '52px',
+          transition: 'height 0.3s ease-in-out',
+          borderTop: '1px solid rgba(245,197,24,0.3)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
       >
-        <button
-          onClick={() => setMobileView('mission')}
-          className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest transition-colors ${
-            mobileView === 'mission' ? 'text-gold' : 'text-text-muted'
-          }`}
+        {/* ── Handle / header row — tap anywhere to toggle ── */}
+        <div
+          className="flex items-center justify-between px-4 shrink-0 cursor-pointer select-none"
+          style={{ height: '52px' }}
+          onClick={() => { if (mobilePanelExpanded) { collapsePanel() } else { setMobilePanelExpanded(true) } }}
         >
-          <span className="text-base">📋</span>
-          <span>MISSION</span>
-        </button>
-        <button
-          onClick={switchToMapView}
-          className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest transition-colors ${
-            mobileView === 'map' && !radarActive ? 'text-gold' : 'text-text-muted'
-          }`}
-        >
-          <span className="text-base">🗺️</span>
-          <span>MAP</span>
-        </button>
-        <button
-          onClick={() => { setRadarActive(a => !a); switchToMapView() }}
-          className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest transition-colors ${
-            radarActive ? 'text-gold animate-pulse' : 'text-text-muted'
-          }`}
-        >
-          <span className="text-base">📡</span>
-          <span>{radarActive ? 'RADAR ON' : 'RADAR'}</span>
-        </button>
-        <button
-          onClick={toggleSound}
-          className="flex-1 py-2.5 flex flex-col items-center gap-0.5 font-head text-xs tracking-widest text-text-muted transition-colors hover:text-white"
-        >
-          <span className="text-base">{soundMuted ? '🔇' : '🔊'}</span>
-          <span>SOUND</span>
-        </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-head text-text-muted tracking-widest">R{challenge.round_number}/20</span>
+            <DifficultyBadge difficulty={challenge.difficulty} />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={e => { e.stopPropagation(); setRadarActive(a => !a) }}
+              className={`p-2 text-base leading-none transition-colors ${radarActive ? 'text-gold animate-pulse' : 'text-text-muted'}`}
+              title="Token radar"
+            >📡</button>
+            <button
+              onClick={e => { e.stopPropagation(); toggleSound() }}
+              className="p-2 text-base leading-none text-text-muted"
+            >{soundMuted ? '🔇' : '🔊'}</button>
+            <span className="text-gold font-head text-xs font-bold tracking-widest">
+              {mobilePanelExpanded ? '✕ HIDE' : '↑ MISSION'}
+            </span>
+          </div>
+        </div>
+
+        {/* ── Expanded: full mission panel ── */}
+        {mobilePanelExpanded && (
+          <div className="flex-1 overflow-hidden">
+            <RiddlePanel
+              challenge={challenge}
+              progress={progress}
+              revealedClues={revealedClues}
+              guesses={guesses}
+              tokens={tokens}
+              lastFeedback={lastFeedback}
+              lastCorrect={lastCorrect}
+              focusTrigger={focusTrigger}
+              onRevealClue={handleRevealClue}
+              onSubmitAnswer={handleSubmitAnswer}
+              onSkip={handleSkip}
+            />
+          </div>
+        )}
       </div>
 
       {/* Score popup */}
@@ -393,7 +513,7 @@ export default function GamePage({ params }: PageProps) {
           rankBefore={rank}
           rankAfter={rank ? rank - 1 : null}
           nextRound={nextRound}
-          onContinue={() => router.push('/play')}
+          onContinue={() => { router.refresh(); router.push('/play') }}
         />
       )}
 

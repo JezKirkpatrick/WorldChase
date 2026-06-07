@@ -5,6 +5,7 @@ import Avatar from '@/components/ui/Avatar'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import { safeDisplayName, safeHandle } from '@/lib/userDisplay'
 
+type SortMode = 'score' | 'global' | 'wins'
 type Country  = { code: string; name: string }
 type HofEntry = {
   rank: number
@@ -24,6 +25,12 @@ type HofEntry = {
   } | null
 }
 
+const STAT_TABS: { id: SortMode; icon: string; label: string; desc: string }[] = [
+  { id: 'score',  icon: '🥇', label: 'TOP SCORE',    desc: 'Highest all-time point total' },
+  { id: 'global', icon: '🌍', label: 'GLOBAL STAGE', desc: 'Hunters from every corner of the world' },
+  { id: 'wins',   icon: '📅', label: 'ALL EVENTS',   desc: 'Monthly events + VS duel wins all count' },
+]
+
 const MEDAL: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
 const RANK_STYLES: Record<number, { row: string; score: string }> = {
@@ -33,13 +40,16 @@ const RANK_STYLES: Record<number, { row: string; score: string }> = {
 }
 
 export default function HallOfFameClient({ currentUserId }: { currentUserId?: string }) {
+  const [sortMode,  setSortMode]  = useState<SortMode>('score')
   const [entries,   setEntries]   = useState<HofEntry[]>([])
   const [countries, setCountries] = useState<Country[]>([])
-  const [country,   setCountry]   = useState<string>('') // '' = global
+  const [country,   setCountry]   = useState<string>('')
   const [loading,   setLoading]   = useState(true)
+  const [fetchErr,  setFetchErr]  = useState(false)
 
   useEffect(() => {
     setLoading(true)
+    setFetchErr(false)
     const url = '/api/hall-of-fame' + (country ? `?country=${country}` : '')
     fetch(url)
       .then(r => r.json())
@@ -48,14 +58,62 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
         if (d.countries?.length) setCountries(d.countries)
         setLoading(false)
       })
+      .catch(() => { setLoading(false); setFetchErr(true) })
   }, [country])
+
+  // Sort client-side based on active tab then re-rank
+  const sorted = [...entries]
+    .sort((a, b) => {
+      if (sortMode === 'wins') return (b.rounds_won - a.rounds_won) || (b.all_time_score - a.all_time_score)
+      return (b.all_time_score - a.all_time_score) || (b.rounds_won - a.rounds_won)
+    })
+    .map((e, i) => ({ ...e, rank: i + 1 }))
 
   return (
     <div>
+
+      {/* ── Clickable stat card tabs ── */}
+      <div className="grid grid-cols-3 gap-3 mb-3">
+        {STAT_TABS.map(tab => {
+          const active = sortMode === tab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => {
+                setSortMode(tab.id)
+                if (tab.id === 'global') setCountry('')
+              }}
+              className={[
+                'border-2 p-4 text-center w-full transition-all',
+                active
+                  ? 'border-gold bg-gold'
+                  : 'border-white/10 bg-navy-light hover:border-gold/40',
+              ].join(' ')}
+            >
+              <div className="text-2xl mb-1">{tab.icon}</div>
+              <div className={`font-head font-bold text-[10px] tracking-widest ${active ? 'text-navy' : 'text-white'}`}>
+                {tab.label}
+              </div>
+              <div className={`font-head text-[9px] mt-0.5 leading-snug hidden sm:block ${active ? 'text-navy/70' : 'text-text-muted'}`}>
+                {tab.desc}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Active sort indicator */}
+      <div className="text-right text-[10px] font-head text-text-muted tracking-widest mb-5">
+        RANKED BY: <span className="text-gold font-bold">
+          {sortMode === 'wins' ? 'TOTAL WINS' : 'ALL-TIME SCORE'}
+        </span>
+      </div>
+
       {/* ── Filter bar ── */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
-        {/* Global button */}
         <button
+          type="button"
           onClick={() => setCountry('')}
           className={`flex items-center gap-2 px-4 py-2 font-head font-bold text-xs tracking-widest border transition-all ${
             !country ? 'bg-gold text-navy border-gold' : 'text-text-muted border-white/20 hover:border-gold/40 hover:text-white'
@@ -64,7 +122,6 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
           🌍 GLOBAL
         </button>
 
-        {/* Country dropdown */}
         <div className="relative">
           <select
             value={country}
@@ -83,13 +140,18 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
 
         <div className="ml-auto text-xs font-head text-text-muted">
           {country
-            ? `${countries.find(c => c.code === country)?.name ?? country} · ${entries.length} hunters`
-            : `Global · ${entries.length} hunters`}
+            ? `${countries.find(c => c.code === country)?.name ?? country} · ${sorted.length} hunters`
+            : `Global · ${sorted.length} hunters`}
         </div>
       </div>
 
       {/* ── Table ── */}
-      {loading ? (
+      {fetchErr ? (
+        <div className="text-center py-12 border border-white/10 bg-navy-light">
+          <div className="text-text-muted font-head text-sm mb-3">Failed to load standings</div>
+          <button type="button" onClick={() => setCountry(c => c)} className="px-4 py-2 border border-gold/30 text-gold font-head text-xs font-bold hover:bg-gold/10">RETRY →</button>
+        </div>
+      ) : loading ? (
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-14 bg-navy-light border border-white/5 animate-pulse"
@@ -99,15 +161,15 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
       ) : (
         <div className="space-y-1.5">
           {/* Header */}
-          <div className="grid grid-cols-[56px_1fr_90px_90px_80px] gap-2 px-4 py-2 text-xs font-head text-text-muted tracking-widest border-b border-white/10 mb-2">
+          <div className="grid grid-cols-[44px_1fr_80px] sm:grid-cols-[56px_1fr_90px_90px_80px] gap-2 px-3 sm:px-4 py-2 text-xs font-head text-text-muted tracking-widest border-b border-white/10 mb-2">
             <span>RANK</span>
             <span>HUNTER</span>
-            <span className="text-right">SCORE</span>
-            <span className="text-right">WINS</span>
-            <span className="text-right">EVENTS</span>
+            <span className="text-right">{sortMode === 'wins' ? 'WINS' : 'SCORE'}</span>
+            <span className="hidden sm:block text-right">{sortMode === 'wins' ? 'SCORE' : 'WINS'}</span>
+            <span className="hidden sm:block text-right">EVENTS</span>
           </div>
 
-          {entries.map((entry, i) => {
+          {sorted.map(entry => {
             const isMe    = entry.user_id === currentUserId
             const profile = entry.profiles
             const style   = RANK_STYLES[entry.rank] ?? { row: 'border-white/5', score: 'text-white' }
@@ -120,18 +182,16 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
               <Link
                 key={entry.user_id}
                 href={`/profile/${safeHandle(profile) === 'new-player' ? entry.user_id : safeHandle(profile)}`}
-                className={`grid grid-cols-[56px_1fr_90px_90px_80px] gap-2 px-4 py-3 border items-center transition-all group
+                className={`grid grid-cols-[44px_1fr_80px] sm:grid-cols-[56px_1fr_90px_90px_80px] gap-2 px-3 sm:px-4 py-3 border items-center transition-all group
                   ${isMe ? 'border-gold/50 bg-gold/8' : style.row}
                   hover:border-gold/30 hover:bg-white/[0.03]`}
               >
-                {/* Rank */}
                 <div className="flex items-center justify-center">
                   {entry.rank <= 3
                     ? <span className="text-xl">{MEDAL[entry.rank]}</span>
                     : <span className="font-mono font-bold text-text-muted text-sm">#{entry.rank}</span>}
                 </div>
 
-                {/* Hunter */}
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Avatar
                     emoji={profile?.equipped_avatar ?? '🌍'}
@@ -164,25 +224,20 @@ export default function HallOfFameClient({ currentUserId }: { currentUserId?: st
                   </div>
                 </div>
 
-                {/* Score */}
                 <span className={`text-right font-mono font-bold text-sm ${style.score}`}>
-                  {entry.all_time_score.toLocaleString()}
+                  {sortMode === 'wins' ? entry.rounds_won.toLocaleString() : entry.all_time_score.toLocaleString()}
                 </span>
-
-                {/* Wins (monthly rounds + VS duels) */}
-                <span className="text-right font-mono text-sm text-text-muted">
-                  {entry.rounds_won}
+                <span className="hidden sm:block text-right font-mono text-sm text-text-muted">
+                  {sortMode === 'wins' ? entry.all_time_score.toLocaleString() : entry.rounds_won}
                 </span>
-
-                {/* Events */}
-                <span className="text-right font-mono text-sm text-text-muted">
+                <span className="hidden sm:block text-right font-mono text-sm text-text-muted">
                   {entry.events_played}
                 </span>
               </Link>
             )
           })}
 
-          {entries.length === 0 && (
+          {sorted.length === 0 && (
             <div className="text-center py-20 text-text-muted font-head">
               <div className="text-4xl mb-3">🏆</div>
               <div className="text-sm">No hunters on the board yet{country ? ' for this country' : ''}.</div>

@@ -20,13 +20,13 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-navy text-text">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-14 bg-navy/90 backdrop-blur border-b border-white/8 flex items-center justify-between px-6">
-        <span className="font-head font-bold text-gold text-lg tracking-widest">WORLD CHASE</span>
-        <div className="flex items-center gap-4">
-          <Link href="/how-to-play" className="text-sm font-head text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
-          <Link href="/leaderboard" className="text-sm font-head text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
+      <nav className="fixed top-0 left-0 right-0 z-50 h-14 bg-navy/90 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6">
+        <span className="font-head font-bold text-gold text-base sm:text-lg tracking-widest">WORLD CHASE</span>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Link href="/how-to-play" className="hidden sm:block text-sm font-head text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
+          <Link href="/leaderboard" className="hidden sm:block text-sm font-head text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
           <Link href="/auth/login" className="text-sm font-head text-text-muted hover:text-white transition-colors">SIGN IN</Link>
-          <Link href="/auth/signup" className="px-4 py-2 bg-gold text-navy font-head font-bold text-sm tracking-wider hover:bg-gold-dim transition-colors">JOIN FREE</Link>
+          <Link href="/auth/signup" className="px-3 sm:px-4 py-2 bg-gold text-navy font-head font-bold text-sm tracking-wider hover:bg-gold-dim transition-colors whitespace-nowrap">JOIN FREE</Link>
         </div>
       </nav>
 
@@ -35,22 +35,22 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-grid-pattern opacity-30" />
         <div className="relative max-w-3xl mx-auto">
           <div className="text-xs font-head font-bold tracking-[0.4em] text-gold mb-4">THE MONTHLY GLOBAL HUNT</div>
-          <h1 className="font-head font-bold text-5xl md:text-7xl text-white mb-6 leading-tight">
+          <h1 className="font-head font-bold text-4xl sm:text-5xl md:text-7xl text-white mb-6 leading-tight">
             The World Is Hiding.<br/>
             <span className="text-gold">Can You Find It?</span>
           </h1>
-          <p className="text-text-muted font-head text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
+          <p className="text-text-muted font-head text-base sm:text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
             Twenty cryptic riddles. Twenty extraordinary locations. Thousands of hunters from every corner of the planet. One global leaderboard. The chase begins now.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-            <Link href="/auth/signup" className="px-10 py-4 bg-gold text-navy font-head font-bold text-lg tracking-widest hover:bg-gold-dim transition-all gold-glow">
+            <Link href="/auth/signup" className="px-8 sm:px-10 py-4 bg-gold text-navy font-head font-bold text-base sm:text-lg tracking-widest hover:bg-gold-dim transition-all gold-glow">
               Enter the Chase — It's Free
             </Link>
-            <Link href="/how-to-play" className="px-8 py-4 border border-white/20 text-text font-head font-bold text-sm tracking-wider hover:border-gold/40 transition-all">
+            <Link href="/how-to-play" className="px-6 sm:px-8 py-4 border border-white/20 text-text font-head font-bold text-sm tracking-wider hover:border-gold/40 transition-all">
               HOW IT WORKS
             </Link>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm font-head text-text-muted">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-head text-text-muted">
             {STATS.map(s => <span key={s.label}>{s.label}</span>)}
           </div>
         </div>

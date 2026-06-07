@@ -26,6 +26,35 @@ self.addEventListener('activate', event => {
   )
 })
 
+// Push notifications
+self.addEventListener('push', event => {
+  if (!event.data) return
+  let data = {}
+  try { data = event.data.json() } catch { data = { title: 'World Chase', body: event.data.text() } }
+  const { title = 'World Chase', body = '', url = '/' } = data
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/icon.png',
+      badge: '/icon.png',
+      data: { url },
+      vibrate: [200, 100, 200],
+    })
+  )
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const url = event.notification.data?.url ?? '/'
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes(self.location.origin))
+      if (existing) { existing.focus(); existing.navigate(url) }
+      else clients.openWindow(url)
+    })
+  )
+})
+
 // Fetch strategy:
 //   - API calls: network-only (never cache)
 //   - _next/static: cache-first (immutable hashed assets)

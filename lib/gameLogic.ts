@@ -1,6 +1,7 @@
 import type { Challenge, PlayerProgress, ChallengeStatus } from '@/types/game'
 
 export const MAX_ATTEMPTS = 5
+export const MAX_ATTEMPTS_EASY = 10
 export const CLUE_COST = 1
 export const SKIP_COST = 2
 
