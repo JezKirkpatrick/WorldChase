@@ -50,7 +50,7 @@ export default async function AdminPage() {
 
         <div className="grid grid-cols-2 gap-4">
           {[
-            { href: '/admin/events', label: 'MANAGE EVENTS', desc: 'Create and edit monthly events' },
+            { href: '/admin/events', label: 'MANAGE EVENTS', desc: 'Create and edit weekly events' },
             { href: '/admin/challenges', label: 'MANAGE CHALLENGES', desc: 'Edit rounds, generate with AI' },
             { href: '/admin/players', label: 'MANAGE PLAYERS', desc: 'Search, ban, grant tokens' },
             { href: '/admin/geo-quiz', label: 'GEO QUIZ', desc: 'Schedule, generate questions, run live quiz' },

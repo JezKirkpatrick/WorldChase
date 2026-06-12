@@ -13,7 +13,7 @@ const HOW_IT_WORKS = [
   { step: '01', title: 'RECEIVE YOUR MISSION', desc: "Each round, a cryptic riddle lands in front of you. No country names. No obvious hints. Just poetic, carefully crafted clues pointing to somewhere extraordinary on Earth." },
   { step: '02', title: 'EXPLORE THE WORLD', desc: "Drop into Google Maps. Walk the streets in Street View. Survey from satellite. Navigate terrain. The answer is out there." },
   { step: '03', title: 'HUNT FOR HIDDEN TOKENS', desc: "As you explore, hidden token caches are scattered across the region. Navigate close enough and your radar will detect them." },
-  { step: '04', title: 'SOLVE, SCORE, CLIMB', desc: "Submit your answer. Use fewer clues, score higher. Solve faster, earn a speed bonus. Climb the global leaderboard before the month ends." },
+  { step: '04', title: 'SOLVE, SCORE, CLIMB', desc: "Submit your answer. Use fewer clues, score higher. Solve faster, earn a speed bonus. Climb the global leaderboard before the week ends." },
 ]
 
 export default function LandingPage() {
@@ -34,7 +34,7 @@ export default function LandingPage() {
       <section className="pt-32 pb-24 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-30" />
         <div className="relative max-w-3xl mx-auto">
-          <div className="text-xs font-head font-bold tracking-[0.4em] text-gold mb-4">THE MONTHLY GLOBAL HUNT</div>
+          <div className="text-xs font-head font-bold tracking-[0.4em] text-gold mb-4">THE WEEKLY GLOBAL HUNT</div>
           <h1 className="font-head font-bold text-4xl sm:text-5xl md:text-7xl text-white mb-6 leading-tight">
             The World Is Hiding.<br/>
             <span className="text-gold">Can You Find It?</span>
@@ -106,7 +106,7 @@ export default function LandingPage() {
           <Link href="/auth/signup" className="inline-block px-12 py-4 bg-gold text-navy font-head font-bold text-lg tracking-widest hover:bg-gold-dim transition-all gold-glow">
             Start Hunting — Join Free
           </Link>
-          <p className="text-text-muted/50 font-head text-xs mt-4">No credit card required. New event every month.</p>
+          <p className="text-text-muted/50 font-head text-xs mt-4">No credit card required. New event every week.</p>
         </div>
       </section>
 

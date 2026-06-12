@@ -8,7 +8,7 @@ import OnlineUsersProvider from '@/components/ui/OnlineUsersProvider'
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.worldchase.net'),
   title: 'World Chase — Hunt the World',
-  description: "The world's most challenging monthly geography game. Solve cryptic riddles. Explore Google Maps. Race to the global leaderboard.",
+  description: "The world's most challenging weekly geography game. Solve cryptic riddles. Explore Google Maps. Race to the global leaderboard.",
   applicationName: 'World Chase',
   appleWebApp: {
     capable: true,
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   openGraph: {
     title: 'World Chase — Hunt the World',
-    description: 'Hunt the World. Claim the Crown. Monthly competitive geography battle.',
+    description: 'Hunt the World. Claim the Crown. Weekly competitive geography battle.',
     type: 'website',
     url: 'https://www.worldchase.net',
     siteName: 'World Chase',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'World Chase — Hunt the World',
-    description: 'Hunt the World. Claim the Crown. Monthly competitive geography battle.',
+    description: 'Hunt the World. Claim the Crown. Weekly competitive geography battle.',
     images: ['/opengraph-image'],
   },
 }

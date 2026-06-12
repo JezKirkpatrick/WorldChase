@@ -80,16 +80,24 @@ export default function AdminEventsPage() {
         <h1 className="font-head font-bold text-2xl text-white mb-8">MANAGE EVENTS</h1>
         <form onSubmit={handleCreate} className="bg-navy-light border border-white/10 p-6 mb-8 space-y-4">
           <h2 className="font-head font-bold text-gold text-sm tracking-wider">CREATE NEW EVENT</h2>
-          <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. May 2025 Hunt"
+          <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Global Mix Hunt — Jun 16, 2025"
             className="w-full bg-navy border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60" required />
           <div className="grid grid-cols-2 gap-4">
-            {(['starts_at','ends_at'] as const).map(k => (
-              <div key={k}>
-                <label className="block text-xs font-head text-text-muted tracking-widest mb-1">{k === 'starts_at' ? 'STARTS' : 'ENDS'}</label>
-                <input type="datetime-local" value={form[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))}
-                  className="w-full bg-navy border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60" required />
-              </div>
-            ))}
+            <div>
+              <label className="block text-xs font-head text-text-muted tracking-widest mb-1">STARTS</label>
+              <input type="datetime-local" value={form.starts_at}
+                onChange={e => {
+                  const start = e.target.value
+                  const autoEnd = start ? new Date(new Date(start).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16) : ''
+                  setForm(f => ({ ...f, starts_at: start, ends_at: f.ends_at || autoEnd }))
+                }}
+                className="w-full bg-navy border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60" required />
+            </div>
+            <div>
+              <label className="block text-xs font-head text-text-muted tracking-widest mb-1">ENDS (7 days auto-set)</label>
+              <input type="datetime-local" value={form.ends_at} onChange={e => setForm(f => ({ ...f, ends_at: e.target.value }))}
+                className="w-full bg-navy border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60" required />
+            </div>
           </div>
           <div>
             <label className="block text-xs font-head text-text-muted tracking-widest mb-1">EVENT THEME</label>

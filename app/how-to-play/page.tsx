@@ -26,7 +26,7 @@ const STEPS = [
   },
   {
     n: '06', title: 'CLIMB THE LEADERBOARD',
-    desc: 'Score depends on difficulty, speed, clues used, and wrong answers. Race to the top — the global leaderboard resets every month.',
+    desc: 'Score depends on difficulty, speed, clues used, and wrong answers. Race to the top — the global leaderboard resets every week.',
   },
 ]
 
@@ -62,16 +62,16 @@ const TIPS = [
   { emoji: '🪙', text: 'Don\'t spend tokens recklessly — save them for the hard and extreme rounds where they matter most.' },
   { emoji: '📍', text: 'Drop map pins while you explore. You get 5 per round — use them as waypoints.' },
   { emoji: '📡', text: 'Always sweep the map with [H] radar before submitting — hidden tokens are free score.' },
-  { emoji: '🧠', text: 'Play the Daily Geo Quiz every day — even 50 pts per quiz adds up fast on the monthly leaderboard.' },
+  { emoji: '🧠', text: 'Play the Daily Geo Quiz every day — even 50 pts per quiz adds up fast on the weekly leaderboard.' },
   { emoji: '⚔️', text: 'Challenge friends to a VS Duel — win to earn bonus tokens and bragging rights.' },
 ]
 
 const GAME_MODES = [
   {
     icon: '🌍',
-    title: 'MONTHLY HUNT',
+    title: 'WEEKLY HUNT',
     color: 'text-gold border-gold/30',
-    desc: '20 cryptic riddles, one per round. Race to crack every location before the month ends. Your total score goes on the global leaderboard.',
+    desc: '20 cryptic riddles, one per round. Race to crack every location before the week ends. Your total score goes on the global leaderboard.',
     href: '/play',
     cta: 'PLAY NOW',
   },
@@ -95,7 +95,7 @@ const GAME_MODES = [
     icon: '📅',
     title: 'DAILY CHALLENGE',
     color: 'text-text-muted border-white/15',
-    desc: 'A fresh standalone location challenge every day. No monthly pressure — just a quick daily hunt to keep your skills sharp.',
+    desc: 'A fresh standalone location challenge every day. No weekly pressure — just a quick daily hunt to keep your skills sharp.',
     href: '/daily',
     cta: 'PLAY DAILY',
   },
@@ -116,7 +116,7 @@ export default async function HowToPlayPage() {
           <div className="text-xs text-gold font-head tracking-[0.3em] mb-2">FIELD MANUAL</div>
           <h1 className="font-head font-bold text-3xl sm:text-4xl text-white mb-3">How to Play</h1>
           <p className="text-text-muted font-head leading-relaxed text-sm sm:text-base">
-            World Chase is a monthly competitive geography game. Every month, 20 rounds go live — each one is a cryptic riddle describing a real location somewhere on Earth. Solve them all before the month ends and climb to the top of the global leaderboard. Plus play the daily quiz, duel friends, and customise your hunter.
+            World Chase is a weekly competitive geography game. Every week, 20 rounds go live — each one is a cryptic riddle describing a real location somewhere on Earth. Solve them all before the week ends and climb to the top of the global leaderboard. Plus play the daily quiz, duel friends, and customise your hunter.
           </p>
         </div>
 
@@ -169,7 +169,7 @@ export default async function HowToPlayPage() {
                   <li>→ 20 seconds to answer each question</li>
                   <li>→ Answer faster = more bonus points</li>
                   <li>→ Correct answer: <span className="text-white">100 pts + up to 100 speed bonus</span></li>
-                  <li>→ Scores added to monthly leaderboard</li>
+                  <li>→ Scores added to weekly leaderboard</li>
                   <li>→ New quiz every day — no repeats</li>
                 </ul>
               </div>
@@ -289,7 +289,7 @@ export default async function HowToPlayPage() {
             </table>
           </div>
           <p className="text-text-muted font-head text-sm mt-3">
-            Maximum possible score for a perfect month:{' '}
+            Maximum possible score for a perfect week:{' '}
             <span className="text-gold font-bold">47,500 pts</span>
           </p>
         </section>

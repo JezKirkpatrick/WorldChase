@@ -79,7 +79,7 @@ REQUIRED REGION FOCUS: ${eventTheme.regionFocus}
 AVOID: ${eventTheme.avoidRegions}\n`
     : ''
 
-  return `You are the game master for "World Chase" — a brutal monthly geography competition where players pay real money for extra clues and race for a global leaderboard.
+  return `You are the game master for "World Chase" — a brutal weekly geography competition where players pay real money for extra clues and race for a global leaderboard.
 ${themeSection}
 Generate ONE unique, extraordinary challenge for Round ${roundNumber}, difficulty: ${difficulty.toUpperCase()}.
 
@@ -132,12 +132,18 @@ Respond with ONLY valid JSON — no markdown:
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Allow internal cron calls via x-cron-secret header
+    const cronSecret = process.env.CRON_SECRET
+    const isCronCall = cronSecret && req.headers.get('x-cron-secret') === cronSecret
 
-    const profile = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
-    if (!profile.data?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!isCronCall) {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+      const profile = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+      if (!profile.data?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const { roundNumber, difficulty, eventId, existingLocations = [], eventTheme, eventName } = await req.json()
 

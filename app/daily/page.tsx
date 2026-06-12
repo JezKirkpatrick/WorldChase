@@ -64,10 +64,10 @@ export default async function DailyChallengePage() {
             <div className="text-5xl mb-4 opacity-40">📅</div>
             <div className="text-white font-head font-bold mb-2">Coming Soon</div>
             <div className="text-text-muted font-head text-sm">
-              Daily challenges unlock after the first monthly hunt ends. Check back next month!
+              Daily challenges unlock after the first weekly hunt ends. Check back next week!
             </div>
             <Link href="/play" className="inline-block mt-4 px-6 py-2 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-colors">
-              PLAY THIS MONTH'S HUNT →
+              PLAY THIS WEEK'S HUNT →
             </Link>
           </div>
         ) : (
@@ -87,7 +87,7 @@ export default async function DailyChallengePage() {
                   +{existingProgress.score_earned?.toLocaleString()} PTS
                 </div>
                 <Link href="/play" className="inline-block px-6 py-2 border border-gold/40 text-gold font-head font-bold text-sm tracking-widest hover:bg-gold/10 transition-colors">
-                  PLAY THIS MONTH'S HUNT →
+                  PLAY THIS WEEK'S HUNT →
                 </Link>
               </>
             ) : (
