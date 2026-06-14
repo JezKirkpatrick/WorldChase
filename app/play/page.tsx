@@ -47,6 +47,7 @@ export default async function PlayPage() {
         <div className="mb-8">
           <div className="text-xs text-gold font-head tracking-[0.3em] mb-1">SELECT ROUND</div>
           <h1 className="font-head font-bold text-3xl text-white">Your Rounds</h1>
+          <p className="text-cyan font-head text-sm tracking-wider mt-0.5 opacity-80">{event.name}</p>
           <div className="flex items-center gap-3 mt-1">
             <p className="text-text-muted font-head text-sm">{completedCount} of {challenges.length} complete</p>
             {/* Progress bar */}
