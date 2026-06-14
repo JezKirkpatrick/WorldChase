@@ -82,6 +82,7 @@ export default async function GlobalNav() {
         </Link>
         <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
         <Link href="/support"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
+        <a href="https://kidsworldchase.net" target="_blank" rel="noopener noreferrer" className="text-xs font-head font-bold tracking-widest text-green-400 hover:text-white border border-green-400/40 px-2 py-0.5 rounded transition-colors whitespace-nowrap">KIDS WC ↗</a>
         {profile?.is_admin && (
           <Link href="/admin" className="text-xs font-head font-bold tracking-widest text-danger hover:text-danger/70 transition-colors">ADMIN</Link>
         )}
