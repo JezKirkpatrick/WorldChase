@@ -77,6 +77,7 @@ const BORDER_TAGLINE: Record<string, string> = {
   ocean:     'Deep sea blue wave spin',
   rainbow:   'Full spectrum colour spin',
   galaxy:    'Dark nebula with orbiting stars',
+  pulsar:    '4 bright lights orbiting your avatar',
   none:      'Clean & minimal',
 }
 

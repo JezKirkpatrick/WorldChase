@@ -494,3 +494,12 @@ body {
   left: 50%;
   transform: translateX(-50%);
 }
+
+/* Pulsar — 4 bright lights orbiting the avatar */
+.avatar-ring-pulsar {
+  background: conic-gradient(from 0deg, rgba(255,255,255,0.06), transparent 25%, rgba(255,255,255,0.06) 25%, transparent 50%, rgba(255,255,255,0.06) 50%, transparent 75%, rgba(255,255,255,0.06) 75%);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 0 24px rgba(255,255,255,0.08);
+}
+.avatar-orbit-pulsar-spin {
+  animation: avatar-spin 3s linear infinite;
+}

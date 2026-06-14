@@ -26,7 +26,7 @@ const RING: Record<string, string> = {
 }
 
 // Borders that use the rich renderer
-const RICH = new Set(['electric', 'gold', 'diamond', 'legendary', 'fire', 'thorns', 'ocean', 'rainbow', 'galaxy'])
+const RICH = new Set(['electric', 'gold', 'diamond', 'legendary', 'fire', 'thorns', 'ocean', 'rainbow', 'galaxy', 'pulsar'])
 
 interface AvatarProps {
   emoji?: string
@@ -83,6 +83,7 @@ export default function Avatar({ emoji = '🌍', border = 'none', size = 'md', c
       {border === 'ocean'     && <OceanRing     outer={outer} />}
       {border === 'rainbow'   && <RainbowRing   outer={outer} />}
       {border === 'galaxy'    && <GalaxyRing    outer={outer} />}
+      {border === 'pulsar'    && <PulsarRing    outer={outer} />}
 
       {/* ── Inner navy bg (cuts the ring into a ring shape) ── */}
       <div className="absolute rounded-full bg-[#0B1628] z-[1]"
@@ -228,6 +229,35 @@ function GalaxyRing({ outer }: { outer: number }) {
            style={{ width: outer, height: outer }} />
       <div className="absolute avatar-orbit-galaxy"
            style={{ width: outer + 6, height: outer + 6, top: -3, left: -3 }} />
+    </>
+  )
+}
+
+// ── Pulsar — 4 bright orbiting lights ────────────────────────────
+function PulsarRing({ outer }: { outer: number }) {
+  const dotSize = 6
+  const C = outer / 2
+  const R = outer / 2 + 1
+  const positions = [0, 90, 180, 270].map(deg => ({
+    top:  C - dotSize / 2 + R * Math.sin((deg * Math.PI) / 180),
+    left: C - dotSize / 2 + R * Math.cos((deg * Math.PI) / 180),
+  }))
+  return (
+    <>
+      <div className="absolute inset-0 rounded-full avatar-ring-pulsar"
+           style={{ width: outer, height: outer }} />
+      <div className="absolute inset-0 avatar-orbit-pulsar-spin"
+           style={{ width: outer, height: outer }}>
+        {positions.map((pos, i) => (
+          <div key={i} className="absolute rounded-full"
+               style={{
+                 width: dotSize, height: dotSize,
+                 top: pos.top, left: pos.left,
+                 background: '#ffffff',
+                 boxShadow: '0 0 6px 2px rgba(255,255,255,1), 0 0 16px 6px rgba(180,230,255,0.7)',
+               }} />
+        ))}
+      </div>
     </>
   )
 }
