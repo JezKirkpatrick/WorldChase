@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { createClient, createServiceClient } from '@/lib/supabase-server'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 import type { AchievementStats } from '@/lib/achievements'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(_req: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const authClient = createClient()
+  const { data: { user } } = await authClient.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const supabase = createServiceClient()
+
   const [profileRes, progressRes, claimedRes] = await Promise.all([
-    supabase.from('profiles').select('tokens, current_streak').eq('id', user.id).single(),
+    supabase.from('profiles').select('tokens, current_streak').eq('id', user.id).maybeSingle(),
     supabase.from('player_progress')
       .select('status, score_earned, time_taken_seconds, clues_revealed, challenges(difficulty)')
       .eq('user_id', user.id),
