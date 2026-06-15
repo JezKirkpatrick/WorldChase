@@ -4,11 +4,21 @@ import ServiceWorkerRegister from '@/components/pwa/ServiceWorkerRegister'
 import InstallPrompt from '@/components/pwa/InstallPrompt'
 import { ToastProvider } from '@/components/ui/Toast'
 import OnlineUsersProvider from '@/components/ui/OnlineUsersProvider'
+import NextTopLoader from 'nextjs-toploader'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.worldchase.net'),
-  title: 'World Chase — Hunt the World',
-  description: "The world's most challenging weekly geography game. Solve cryptic riddles. Explore Google Maps. Race to the global leaderboard.",
+  title: {
+    default: 'World Chase — Hunt the World',
+    template: '%s | World Chase',
+  },
+  description: "The world's most challenging weekly geography game. Solve cryptic riddles, explore Google Maps, and race to the global leaderboard. Free to play.",
+  keywords: [
+    'geography game', 'world geography game', 'online geography quiz', 'country guessing game',
+    'location puzzle game', 'geography riddles', 'competitive geography game', 'weekly geography challenge',
+    'global leaderboard game', 'geography puzzle online', 'map game', 'country quiz game',
+    'geoguessr alternative', 'world map quiz', 'geography trivia game',
+  ],
   applicationName: 'World Chase',
   appleWebApp: {
     capable: true,
@@ -16,6 +26,7 @@ export const metadata: Metadata = {
     title: 'World Chase',
   },
   formatDetection: { telephone: false },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   openGraph: {
     title: 'World Chase — Hunt the World',
     description: 'Hunt the World. Claim the Crown. Weekly competitive geography battle.',
@@ -54,8 +65,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" href="/icon.png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'VideoGame',
+            name: 'World Chase',
+            description: "The world's most challenging weekly geography game. Solve cryptic riddles, explore Google Maps, and race to the global leaderboard.",
+            url: 'https://www.worldchase.net',
+            genre: ['Geography', 'Puzzle', 'Quiz', 'Strategy'],
+            gamePlatform: 'Web Browser',
+            operatingSystem: 'Any',
+            applicationCategory: 'Game',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'NZD', availability: 'https://schema.org/InStock' },
+            publisher: { '@type': 'Organization', name: 'World Chase', url: 'https://www.worldchase.net' },
+          }) }}
+        />
       </head>
       <body>
+        <NextTopLoader color="#F5C518" height={3} showSpinner={false} />
         <OnlineUsersProvider>
           <ToastProvider>
             {children}

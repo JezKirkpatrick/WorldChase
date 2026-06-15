@@ -1,4 +1,16 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'World Chase — Hunt the World',
+  description: "The world's most challenging weekly geography game. Solve cryptic riddles, explore Google Maps in Street View, and race to the global leaderboard. Free to play.",
+  keywords: ['geography game', 'world geography quiz', 'country guessing game', 'online map game', 'geography riddles', 'location puzzle', 'GeoGuessr alternative'],
+  openGraph: {
+    title: 'World Chase — Hunt the World',
+    description: 'Weekly competitive geography battle. Solve cryptic riddles, explore the globe, and claim the crown.',
+    url: 'https://www.worldchase.net',
+  },
+}
 
 const STATS = [{ label: '🌍 Played in 47 countries' }, { label: '🏆 12,400+ hunters' }, { label: '🗺️ 240 locations discovered' }]
 

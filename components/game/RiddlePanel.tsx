@@ -117,6 +117,13 @@ export default function RiddlePanel({
                 <span className="text-gold font-bold">FUN FACT: </span>{challenge.fun_fact}
               </div>
             )}
+            <Link
+              href="/play"
+              className="block w-full py-3 text-center text-navy font-head font-bold text-sm tracking-widest mt-1"
+              style={{ background: 'linear-gradient(90deg, #f5c518, #ffd700)' }}
+            >
+              {challenge.round_number < 20 ? `NEXT: ROUND ${challenge.round_number + 1} →` : 'VIEW STANDINGS →'}
+            </Link>
           </div>
         ) : (
           <AnswerInput

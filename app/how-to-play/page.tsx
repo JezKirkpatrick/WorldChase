@@ -1,7 +1,14 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import GlobalNav from '@/components/ui/GlobalNav'
 import { getUser } from '@/lib/auth'
 import { KEYBOARD_SHORTCUTS } from '@/lib/keyboard-shortcuts'
+
+export const metadata: Metadata = {
+  title: 'How to Play',
+  description: 'Learn how to play World Chase — the weekly competitive geography game. Solve cryptic clues, explore Google Maps, hunt for tokens, and climb the global leaderboard.',
+  keywords: ['how to play world chase', 'geography game rules', 'geography quiz guide', 'learn geography game'],
+}
 
 const STEPS = [
   {

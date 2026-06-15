@@ -19,15 +19,15 @@
 
 UPDATE cosmetics
 SET token_cost = CASE rarity
-  WHEN 'common'    THEN CASE WHEN token_cost = 0 THEN 2  ELSE token_cost END
-  WHEN 'rare'      THEN CASE WHEN token_cost = 0 THEN 5  ELSE token_cost END
-  WHEN 'epic'      THEN CASE WHEN token_cost = 0 THEN 10 ELSE token_cost END
-  WHEN 'legendary' THEN CASE WHEN token_cost = 0 THEN 20 ELSE token_cost END
+  WHEN 'common'    THEN 5
+  WHEN 'rare'      THEN 20
+  WHEN 'epic'      THEN 45
+  WHEN 'legendary' THEN 90
   ELSE token_cost
 END
-WHERE is_default  = false
-  AND type        IN ('avatar', 'border', 'title')
-  AND (metadata IS NULL OR metadata->>'arena_reward' != 'true');
+WHERE is_default = false
+  AND type IN ('avatar', 'border', 'title')
+  AND metadata->>'shop_item' = 'true';
 
 
 -- ── STEP 2: Add new shop catalogue ──────────────────────────────
@@ -46,30 +46,30 @@ BEGIN
       ('avatar', 'Americas',       '🌎', 'common',    0,  true,  '{"shop_item":"true"}'),
       ('avatar', 'Asia Pacific',   '🌏', 'common',    0,  true,  '{"shop_item":"true"}'),
 
-      -- Common (2–3 tokens)
-      ('avatar', 'Compass',        '🧭', 'common',    2,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Telescope',      '🔭', 'common',    2,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Eagle',          '🦅', 'common',    3,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Moon',           '🌙', 'common',    3,  false, '{"shop_item":"true"}'),
+      -- Common (5 tokens)
+      ('avatar', 'Compass',        '🧭', 'common',    5,  false, '{"shop_item":"true"}'),
+      ('avatar', 'Telescope',      '🔭', 'common',    5,  false, '{"shop_item":"true"}'),
+      ('avatar', 'Eagle',          '🦅', 'common',    5,  false, '{"shop_item":"true"}'),
+      ('avatar', 'Moon',           '🌙', 'common',    5,  false, '{"shop_item":"true"}'),
 
-      -- Rare (5–6 tokens)
-      ('avatar', 'Dragon',         '🐉', 'rare',      5,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Lion',           '🦁', 'rare',      5,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Old Map',        '🗺️', 'rare',      5,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Wolf',           '🐺', 'rare',      6,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Lightning',      '⚡', 'rare',      6,  false, '{"shop_item":"true"}'),
+      -- Rare (20 tokens)
+      ('avatar', 'Dragon',         '🐉', 'rare',      20, false, '{"shop_item":"true"}'),
+      ('avatar', 'Lion',           '🦁', 'rare',      20, false, '{"shop_item":"true"}'),
+      ('avatar', 'Old Map',        '🗺️', 'rare',      20, false, '{"shop_item":"true"}'),
+      ('avatar', 'Wolf',           '🐺', 'rare',      20, false, '{"shop_item":"true"}'),
+      ('avatar', 'Lightning',      '⚡', 'rare',      20, false, '{"shop_item":"true"}'),
 
-      -- Epic (10–12 tokens)
-      ('avatar', 'Crystal Ball',   '🔮', 'epic',     10,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Diamond',        '💎', 'epic',     10,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Fox',            '🦊', 'epic',     12,  false, '{"shop_item":"true"}'),
-      ('avatar', 'Galaxy',         '🌌', 'epic',     12,  false, '{"shop_item":"true"}'),
+      -- Epic (45 tokens)
+      ('avatar', 'Crystal Ball',   '🔮', 'epic',     45,  false, '{"shop_item":"true"}'),
+      ('avatar', 'Diamond',        '💎', 'epic',     45,  false, '{"shop_item":"true"}'),
+      ('avatar', 'Fox',            '🦊', 'epic',     45,  false, '{"shop_item":"true"}'),
+      ('avatar', 'Galaxy',         '🌌', 'epic',     45,  false, '{"shop_item":"true"}'),
 
-      -- Legendary (20–30 tokens)
-      ('avatar', 'Trident',        '🔱', 'legendary', 20, false, '{"shop_item":"true"}'),
-      ('avatar', 'Comet',          '☄️', 'legendary', 20, false, '{"shop_item":"true"}'),
-      ('avatar', 'Trophy',         '🏆', 'legendary', 25, false, '{"shop_item":"true"}'),
-      ('avatar', 'Infinity',       '♾️', 'legendary', 30, false, '{"shop_item":"true"}');
+      -- Legendary (90 tokens)
+      ('avatar', 'Trident',        '🔱', 'legendary', 90, false, '{"shop_item":"true"}'),
+      ('avatar', 'Comet',          '☄️', 'legendary', 90, false, '{"shop_item":"true"}'),
+      ('avatar', 'Trophy',         '🏆', 'legendary', 90, false, '{"shop_item":"true"}'),
+      ('avatar', 'Infinity',       '♾️', 'legendary', 90, false, '{"shop_item":"true"}');
 
 
     -- ── BORDERS ────────────────────────────────────────────────
@@ -77,10 +77,10 @@ BEGIN
 
     INSERT INTO cosmetics (type, name, value, rarity, token_cost, is_default, metadata) VALUES
       ('border', 'No Border',      'none',     'common',    0,  true,  '{"shop_item":"true"}'),
-      ('border', 'Electric',       'electric', 'rare',      5,  false, '{"shop_item":"true"}'),
-      ('border', 'Gold Ring',      'gold',     'epic',      10, false, '{"shop_item":"true"}'),
-      ('border', 'Diamond Aura',   'diamond',  'legendary', 20, false, '{"shop_item":"true"}'),
-      ('border', 'Void Crown',     'legendary','legendary', 25, false, '{"shop_item":"true"}');
+      ('border', 'Electric',       'electric', 'rare',      20, false, '{"shop_item":"true"}'),
+      ('border', 'Gold Ring',      'gold',     'epic',      45, false, '{"shop_item":"true"}'),
+      ('border', 'Diamond Aura',   'diamond',  'legendary', 90, false, '{"shop_item":"true"}'),
+      ('border', 'Void Crown',     'legendary','legendary', 90, false, '{"shop_item":"true"}');
 
 
     -- ── TITLES ─────────────────────────────────────────────────
@@ -88,18 +88,18 @@ BEGIN
     -- are separate and earned through ranked play — NOT listed here.
 
     INSERT INTO cosmetics (type, name, value, rarity, token_cost, is_default, metadata) VALUES
-      -- Common (2–3 tokens)
-      ('title', 'Rookie Hunter',     'Rookie Hunter',    'common',    2,  false, '{"shop_item":"true"}'),
-      ('title', 'Map Lover',         'Map Lover',        'common',    3,  false, '{"shop_item":"true"}'),
-      -- Rare (5–6 tokens)
-      ('title', 'World Traveler',    'World Traveler',   'rare',      5,  false, '{"shop_item":"true"}'),
-      ('title', 'Geo Expert',        'Geo Expert',       'rare',      6,  false, '{"shop_item":"true"}'),
-      -- Epic (10–12 tokens)
-      ('title', 'The Cartographer',  'The Cartographer', 'epic',      10, false, '{"shop_item":"true"}'),
-      ('title', 'Ghost Hunter',      'Ghost Hunter',     'epic',      12, false, '{"shop_item":"true"}'),
-      -- Legendary (20–25 tokens)
-      ('title', 'World''s Greatest', 'World''s Greatest','legendary', 20, false, '{"shop_item":"true"}'),
-      ('title', 'The Legend',        'The Legend',       'legendary', 25, false, '{"shop_item":"true"}');
+      -- Common (5 tokens)
+      ('title', 'Rookie Hunter',     'Rookie Hunter',    'common',    5,  false, '{"shop_item":"true"}'),
+      ('title', 'Map Lover',         'Map Lover',        'common',    5,  false, '{"shop_item":"true"}'),
+      -- Rare (20 tokens)
+      ('title', 'World Traveler',    'World Traveler',   'rare',      20, false, '{"shop_item":"true"}'),
+      ('title', 'Geo Expert',        'Geo Expert',       'rare',      20, false, '{"shop_item":"true"}'),
+      -- Epic (45 tokens)
+      ('title', 'The Cartographer',  'The Cartographer', 'epic',      45, false, '{"shop_item":"true"}'),
+      ('title', 'Ghost Hunter',      'Ghost Hunter',     'epic',      45, false, '{"shop_item":"true"}'),
+      -- Legendary (90 tokens)
+      ('title', 'World''s Greatest', 'World''s Greatest','legendary', 90, false, '{"shop_item":"true"}'),
+      ('title', 'The Legend',        'The Legend',       'legendary', 90, false, '{"shop_item":"true"}');
 
   END IF;
 END $$;

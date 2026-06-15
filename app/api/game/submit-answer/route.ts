@@ -49,14 +49,23 @@ export async function POST(req: NextRequest) {
 
     const [challengeRes, progressRes] = await Promise.all([
       supabase.from('challenges').select('*').eq('id', challengeId).single(),
-      supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', userId).single(),
+      supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', userId).maybeSingle(),
     ])
 
     if (challengeRes.error || !challengeRes.data) return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
-    if (progressRes.error || !progressRes.data) return NextResponse.json({ error: 'Progress not found' }, { status: 404 })
 
     const challenge = challengeRes.data
-    const progress  = progressRes.data
+
+    // Auto-create progress row if missing (race condition with useGameState on first load)
+    let progress = progressRes.data
+    if (!progress) {
+      const { data: created, error: upsertErr } = await supabase.from('player_progress').upsert({
+        user_id: userId, event_id: challenge.event_id, challenge_id: challengeId,
+        status: 'active', started_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,challenge_id' }).select().single()
+      if (!created) return NextResponse.json({ error: 'Progress not found', detail: upsertErr?.message }, { status: 404 })
+      progress = created
+    }
 
     const maxAttempts = challenge.difficulty === 'easy' ? 10 : 5
     if (progress.attempts >= maxAttempts) return NextResponse.json({ error: 'Max attempts reached' }, { status: 400 })
@@ -144,7 +153,7 @@ export async function POST(req: NextRequest) {
         await Promise.all([progressUpdate, leaderboardUpsert])
       }
 
-      const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).single()
+      const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).maybeSingle()
 
       // Notify players who just got overtaken (fire-and-forget, don't block response)
       try {

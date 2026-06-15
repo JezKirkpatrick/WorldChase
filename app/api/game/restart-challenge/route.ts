@@ -20,8 +20,8 @@ export async function POST(req: NextRequest) {
     const { challengeId } = await req.json()
 
     const [progressRes, profileRes] = await Promise.all([
-      supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', user.id).single(),
-      supabase.from('profiles').select('tokens').eq('id', user.id).single(),
+      supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', user.id).maybeSingle(),
+      supabase.from('profiles').select('tokens').eq('id', user.id).maybeSingle(),
     ])
 
     if (!progressRes.data) return NextResponse.json({ error: 'Progress not found' }, { status: 404 })

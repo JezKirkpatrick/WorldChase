@@ -8,7 +8,7 @@ const supabase = createClient(
 
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-    `mailto:${process.env.VAPID_EMAIL ?? 'kiwis.2017@yahoo.com'}`,
+    `mailto:${process.env.VAPID_EMAIL ?? 'admin@worldchase.net'}`,
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   )
