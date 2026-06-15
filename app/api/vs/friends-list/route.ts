@@ -16,7 +16,7 @@ export async function GET() {
 
   const { data: rows } = await admin
     .from('friendships')
-    .select('requester_id, addressee_id, requester:profiles!requester_id(id,username,display_name,equipped_avatar), addressee:profiles!addressee_id(id,username,display_name,equipped_avatar)')
+    .select('requester_id, addressee_id, requester:profiles!requester_id(id,username,display_name,equipped_avatar,equipped_border), addressee:profiles!addressee_id(id,username,display_name,equipped_avatar,equipped_border)')
     .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
     .eq('status', 'accepted')
 

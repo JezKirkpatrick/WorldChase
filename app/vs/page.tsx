@@ -6,6 +6,7 @@ import { getUser, getProfile } from '@/lib/auth'
 import { createServiceClient } from '@/lib/supabase-server'
 import GlobalNav from '@/components/ui/GlobalNav'
 import CreateDuelButton from '@/components/vs/CreateDuelButton'
+import Avatar from '@/components/ui/Avatar'
 import VsPageLive from '@/components/vs/VsPageLive'
 import VsCancelButton from '@/components/vs/VsCancelButton'
 import VsDeclineButton from '@/components/vs/VsDeclineButton'
@@ -49,7 +50,7 @@ export default async function VsPage() {
     ].filter(Boolean))
   ]
   const { data: profiles } = challengerIds.length
-    ? await admin.from('profiles').select('id, username, display_name, equipped_avatar').in('id', challengerIds)
+    ? await admin.from('profiles').select('id, username, display_name, equipped_avatar, equipped_border').in('id', challengerIds)
     : { data: [] }
   const profileMap: Record<string, any> = {}
   for (const p of (profiles ?? [])) profileMap[p.id] = p
@@ -77,7 +78,7 @@ export default async function VsPage() {
   const openChallengerIds = (openMatches ?? []).map((m: any) => m.challenger_id).filter(Boolean)
   const missing = openChallengerIds.filter((id: string) => !profileMap[id])
   if (missing.length) {
-    const { data: extra } = await admin.from('profiles').select('id, username, display_name, equipped_avatar').in('id', missing)
+    const { data: extra } = await admin.from('profiles').select('id, username, display_name, equipped_avatar, equipped_border').in('id', missing)
     for (const p of (extra ?? [])) profileMap[p.id] = p
   }
 
@@ -153,13 +154,12 @@ export default async function VsPage() {
             <div className="space-y-2 mb-4">
               {(friendInvites as any[]).map(m => {
                 const av = profileMap[m.challenger_id]?.equipped_avatar ?? '🌍'
+                const br = profileMap[m.challenger_id]?.equipped_border ?? 'none'
                 return (
                 <div key={m.id} className="flex items-center gap-2">
                   <Link href={`/vs/${m.id}`}
                     className="flex-1 flex items-center gap-4 bg-gold/5 border border-gold/40 p-4 hover:border-gold/70 transition-all group">
-                    {av.startsWith('http')
-                      ? <img src={av} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                      : <span className="text-2xl shrink-0">{av}</span>}
+                    <Avatar emoji={av} border={br} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="font-head font-bold text-white text-sm flex items-center gap-2">
                         {displayName(m.challenger_id)} challenged you!
@@ -191,12 +191,11 @@ export default async function VsPage() {
             <div className="space-y-2">
               {(openMatches as any[]).map(m => {
                 const av = profileMap[m.challenger_id]?.equipped_avatar ?? '🌍'
+                const br = profileMap[m.challenger_id]?.equipped_border ?? 'none'
                 return (
                 <Link key={m.id} href={`/vs/${m.id}`}
                   className="flex items-center gap-4 bg-navy-light border border-white/10 p-4 hover:border-gold/30 transition-all group">
-                  {av.startsWith('http')
-                    ? <img src={av} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                    : <span className="text-2xl shrink-0">{av}</span>}
+                  <Avatar emoji={av} border={br} size="sm" />
                   <div className="flex-1 min-w-0">
                     <div className="font-head font-bold text-white text-sm truncate">
                       {displayName(m.challenger_id)} is challenging

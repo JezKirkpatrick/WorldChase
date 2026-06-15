@@ -15,7 +15,7 @@ export default async function DMPage({ params }: { params: { username: string } 
   // Get friend's profile
   const { data: friend } = await supabase
     .from('profiles')
-    .select('id,username,display_name,equipped_avatar')
+    .select('id,username,display_name,equipped_avatar,equipped_border')
     .eq('username', params.username)
     .maybeSingle()
 

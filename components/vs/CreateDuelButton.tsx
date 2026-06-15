@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useOnlineUsers } from '@/components/ui/OnlineUsersProvider'
+import Avatar from '@/components/ui/Avatar'
 
 type Mode = 'open' | 'friend' | 'world'
 const WAGERS = [10, 25, 50, 100]
@@ -11,16 +12,11 @@ interface Friend {
   username: string | null
   display_name: string | null
   equipped_avatar: string | null
+  equipped_border: string | null
 }
 
 function safeLabel(f: Friend) {
   return f.display_name || f.username || 'Hunter'
-}
-
-function FriendAvatar({ av }: { av: string | null }) {
-  const src = av ?? '🌍'
-  if (src.startsWith('http')) return <img src={src} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
-  return <span className="text-xl leading-none shrink-0">{src}</span>
 }
 
 function WagerPicker({ tokens, wager, setWager }: { tokens: number; wager: number; setWager: (w: number) => void }) {
@@ -223,7 +219,7 @@ export default function CreateDuelButton({ tokens }: { tokens: number }) {
                     }`}
                   >
                     <div className="relative shrink-0">
-                      <FriendAvatar av={f.equipped_avatar} />
+                      <Avatar emoji={f.equipped_avatar ?? '🌍'} border={f.equipped_border ?? 'none'} size="sm" />
                       {isOnline && (
                         <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-success border border-navy" />
                       )}
