@@ -253,8 +253,8 @@ function PulsarRing({ outer }: { outer: number }) {
                style={{
                  width: dotSize, height: dotSize,
                  top: pos.top, left: pos.left,
-                 background: '#ffffff',
-                 boxShadow: '0 0 6px 2px rgba(255,255,255,1), 0 0 16px 6px rgba(180,230,255,0.7)',
+                 background: '#00ffff',
+                 boxShadow: '0 0 8px 3px rgba(0,255,255,1), 0 0 20px 8px rgba(0,200,255,0.8), 0 0 40px 14px rgba(0,150,255,0.4)',
                }} />
         ))}
       </div>
