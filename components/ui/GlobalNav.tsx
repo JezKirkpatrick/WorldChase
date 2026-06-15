@@ -10,6 +10,7 @@ import VsNotifier from '@/components/vs/VsNotifier'
 import DMNotifier from '@/components/ui/DMNotifier'
 import MobileNav from '@/components/ui/MobileNav'
 import { flagUrl } from '@/lib/flagEmoji'
+import Avatar from '@/components/ui/Avatar'
 
 const getPendingCount = cache(async (userId: string) => {
   const supabase = createClient()
@@ -20,15 +21,6 @@ const getPendingCount = cache(async (userId: string) => {
     .eq('status', 'pending')
   return count ?? 0
 })
-
-const BORDER_RING: Record<string, string> = {
-  gold:      'ring-2 ring-gold shadow-gold/40',
-  electric:  'ring-2 ring-electric shadow-electric/40',
-  diamond:   'ring-2 ring-white shadow-white/30',
-  legendary: 'ring-2 ring-purple-400 shadow-purple-400/40',
-  none:      '',
-  default:   '',
-}
 
 export default async function GlobalNav() {
   const user = await getUser()
@@ -47,7 +39,6 @@ export default async function GlobalNav() {
 
   const avatar = profile?.equipped_avatar ?? '🌍'
   const border = profile?.equipped_border ?? 'none'
-  const ring = BORDER_RING[border] ?? ''
 
   return (
     <>
@@ -103,10 +94,8 @@ export default async function GlobalNav() {
             className="rounded-sm shadow-sm shrink-0 hidden xs:block sm:block"
           />
         )}
-        <Link href="/profile" className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-navy flex items-center justify-center text-lg sm:text-xl shadow-lg overflow-hidden ${ring} transition-all hover:scale-105 block shrink-0`} title="Profile">
-          {avatar.startsWith('http')
-            ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
-            : avatar}
+        <Link href="/profile" className="shrink-0 hover:scale-105 transition-transform block" title="Profile">
+          <Avatar emoji={avatar} border={border} size="sm" />
         </Link>
         <div className="hidden sm:flex items-center gap-2">
           <Link href="/settings" className="text-xl text-text-muted hover:text-white transition-colors px-2 py-1" title="Account settings">
