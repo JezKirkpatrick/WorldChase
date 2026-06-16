@@ -83,8 +83,8 @@ export default async function DailyPage() {
           <FlagPuzzle
             countryCode={country.code}
             countryName={country.name}
-            cols={5}
-            rows={2}
+            cols={8}
+            rows={5}
             eventId={eventId}
           />
         )}
