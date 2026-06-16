@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 
 interface Props {
@@ -30,8 +30,59 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const startRef = useRef(Date.now())
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const sigsRef = useRef<number[][]>([])
 
   const flagSrc = `https://flagcdn.com/w640/${countryCode.toLowerCase()}.png`
+
+  // Load flag to canvas and pre-compute a colour signature per piece
+  useEffect(() => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.drawImage(img, 0, 0)
+      const pw = Math.floor(img.width / cols)
+      const ph = Math.floor(img.height / rows)
+      try {
+        const sigs: number[][] = []
+        for (let p = 0; p < total; p++) {
+          const data = ctx.getImageData((p % cols) * pw, Math.floor(p / cols) * ph, pw, ph).data
+          const sig: number[] = []
+          // Sample every 50th pixel (RGB only)
+          for (let i = 0; i < data.length; i += 200) sig.push(data[i], data[i + 1], data[i + 2])
+          sigs.push(sig)
+        }
+        sigsRef.current = sigs
+      } catch {
+        // CORS blocked — will fall back to row-match
+      }
+    }
+    img.src = flagSrc
+  }, [flagSrc, cols, rows, total])
+
+  function looksTheSame(a: number, b: number): boolean {
+    if (a === b) return true
+    const sa = sigsRef.current[a], sb = sigsRef.current[b]
+    if (!sa || !sb) return false
+    let diff = 0
+    for (let i = 0; i < sa.length; i++) diff += Math.abs(sa[i] - sb[i])
+    return diff / sa.length < 15 // avg channel diff < 15/255
+  }
+
+  function isSolved(p: number[]): boolean {
+    const hasPixels = sigsRef.current.length === total
+    return p.every((pieceId, slotIdx) => {
+      if (pieceId === slotIdx) return true
+      if (hasPixels) return looksTheSame(pieceId, slotIdx)
+      return Math.floor(pieceId / cols) === Math.floor(slotIdx / cols)
+    })
+  }
 
   function pieceStyle(pieceId: number): React.CSSProperties {
     const pc = pieceId % cols
@@ -67,28 +118,19 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
 
   function handleClick(slotIdx: number) {
     if (solved || submitting) return
-    if (selected === null) {
-      setSelected(slotIdx)
-      return
-    }
-    if (selected === slotIdx) {
-      setSelected(null)
-      return
-    }
+    if (selected === null) { setSelected(slotIdx); return }
+    if (selected === slotIdx) { setSelected(null); return }
     const newPieces = [...pieces]
     ;[newPieces[selected], newPieces[slotIdx]] = [newPieces[slotIdx], newPieces[selected]]
     setPieces(newPieces)
     setSelected(null)
-    if (newPieces.every((v, i) => Math.floor(v / cols) === Math.floor(i / cols))) {
-      handleSolve()
-    }
+    if (isSolved(newPieces)) handleSolve()
   }
-
-  const correctCount = pieces.filter((v, i) => Math.floor(v / cols) === Math.floor(i / cols)).length
 
   return (
     <div className="w-full">
-      {/* Full-screen solved overlay */}
+      <canvas ref={canvasRef} className="hidden" />
+
       {solved && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy/95 backdrop-blur-sm px-6">
           {submitting ? (
@@ -113,16 +155,10 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
                 </div>
               )}
               <div className="flex flex-col gap-3 mt-2">
-                <Link
-                  href="/leaderboard"
-                  className="block px-6 py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold/80 transition-colors"
-                >
+                <Link href="/leaderboard" className="block px-6 py-3 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold/80 transition-colors">
                   VIEW LEADERBOARD →
                 </Link>
-                <Link
-                  href="/play"
-                  className="block px-6 py-3 border border-white/20 text-text-muted font-head text-sm tracking-widest hover:border-gold/40 hover:text-gold transition-colors"
-                >
+                <Link href="/play" className="block px-6 py-3 border border-white/20 text-text-muted font-head text-sm tracking-widest hover:border-gold/40 hover:text-gold transition-colors">
                   🏆 PLAY THE HUNT
                 </Link>
               </div>
@@ -131,18 +167,15 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
         </div>
       )}
 
-      {/* Header */}
       <div className="mb-4 px-1">
         <div className="text-white font-head font-bold text-xl tracking-wide">{countryName}</div>
         <div className="text-text-muted font-head text-xs mt-0.5">Reconstruct the flag</div>
       </div>
 
-      {/* Instruction */}
       <p className="text-text-muted font-head text-xs text-center mb-3">
         Tap a piece to select it <span className="text-gold">●</span> then tap another to swap
       </p>
 
-      {/* Puzzle grid */}
       <div className="w-full border border-white/20 relative" style={{ aspectRatio: '3 / 2' }}>
         <div
           className="absolute inset-0 grid"
@@ -161,12 +194,6 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
           ))}
         </div>
       </div>
-
-      {/* Progress hint */}
-      <p className={`font-head text-sm text-center mt-2 font-bold ${correctCount === total ? 'text-green-400' : 'text-text-muted'}`}>
-        {correctCount} / {total} pieces in place
-        {correctCount === total && ' ✓'}
-      </p>
     </div>
   )
 }
