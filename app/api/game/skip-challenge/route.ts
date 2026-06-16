@@ -34,18 +34,30 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
-    // Find the next challenge — same event + difficulty, next round number
+    // Find the next unplayed challenge — same event + difficulty, skip over already completed/skipped rounds
     let nextChallengeId: string | null = null
     if (challengeRes.data) {
       const { event_id, round_number, difficulty } = challengeRes.data
-      const { data: next } = await supabase
+      const { data: upcoming } = await supabase
         .from('challenges')
         .select('id')
         .eq('event_id', event_id)
         .eq('difficulty', difficulty)
-        .eq('round_number', round_number + 1)
-        .maybeSingle()
-      nextChallengeId = next?.id ?? null
+        .gt('round_number', round_number)
+        .order('round_number', { ascending: true })
+
+      if (upcoming && upcoming.length > 0) {
+        const { data: existingProgress } = await supabase
+          .from('player_progress')
+          .select('challenge_id, status')
+          .eq('user_id', user.id)
+          .in('challenge_id', upcoming.map(c => c.id))
+        const doneSet = new Set(
+          (existingProgress ?? []).filter(p => p.status === 'completed' || p.status === 'skipped').map(p => p.challenge_id)
+        )
+        const next = upcoming.find(c => !doneSet.has(c.id))
+        nextChallengeId = next?.id ?? null
+      }
     }
 
     return NextResponse.json({ success: true, newTokenBalance: profileRes.data.tokens - 2, nextChallengeId })
