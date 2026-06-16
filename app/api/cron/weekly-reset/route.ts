@@ -67,18 +67,33 @@ export async function GET(req: NextRequest) {
       })
     }
 
-    // Hunter Pass — drop 15 tokens to every active subscriber
+    // Hunter Pass — drop 15 tokens to every active subscriber (idempotent)
     const { data: subscribers } = await supabase
       .from('profiles').select('id').eq('is_subscriber', true)
 
     if (subscribers && subscribers.length > 0) {
-      await Promise.all(subscribers.map(s => Promise.all([
-        supabase.rpc('adjust_tokens', { p_user_id: s.id, p_amount: 15 }),
-        supabase.from('token_transactions').insert({
-          user_id: s.id, type: 'hunter_pass_weekly', amount: 15,
-          description: 'Hunter Pass — weekly token drop',
-        }),
-      ])))
+      const weekStart = new Date(now)
+      const dayOfWeek = weekStart.getUTCDay()
+      weekStart.setUTCDate(weekStart.getUTCDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+      weekStart.setUTCHours(0, 0, 0, 0)
+
+      await Promise.all(subscribers.map(async s => {
+        const { data: existing } = await supabase
+          .from('token_transactions')
+          .select('id')
+          .eq('user_id', s.id)
+          .eq('type', 'hunter_pass_weekly')
+          .gte('created_at', weekStart.toISOString())
+          .maybeSingle()
+        if (existing) return
+        await Promise.all([
+          supabase.rpc('adjust_tokens', { p_user_id: s.id, p_amount: 15 }),
+          supabase.from('token_transactions').insert({
+            user_id: s.id, type: 'hunter_pass_weekly', amount: 15,
+            description: 'Hunter Pass — weekly token drop',
+          }),
+        ])
+      }))
     }
 
     return NextResponse.json({ success: true, timestamp: now.toISOString() })

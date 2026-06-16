@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     if (!guessText || !challengeId) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
     }
+    const safeGuess = String(guessText).slice(0, 200)
 
     const [challengeRes, progressRes] = await Promise.all([
       supabase.from('challenges').select('*').eq('id', challengeId).single(),
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
     const maxAttempts = challenge.difficulty === 'easy' ? 10 : 5
     if (progress.attempts >= maxAttempts) return NextResponse.json({ error: 'Max attempts reached' }, { status: 400 })
 
-    const quickMatch = keywordMatch(guessText, challenge.answer_keywords ?? [])
+    const quickMatch = keywordMatch(safeGuess, challenge.answer_keywords ?? [])
 
     let is_correct: boolean
     let feedback: string
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
         max_tokens: 120,
         messages: [{
           role: 'user',
-          content: `Geography game judge. Correct location: "${challenge.location_name}, ${challenge.location_country}". Player answered: "${guessText}". Keywords: ${JSON.stringify(challenge.answer_keywords)}. Is this correct? Be generous with spelling/transliterations. Reply ONLY valid JSON: {"is_correct":true,"feedback":"one energetic sentence — congratulate if correct, tiny non-spoiler nudge if wrong, never reveal answer","confidence":0.9}`
+          content: `Geography game judge. Correct location: "${challenge.location_name}, ${challenge.location_country}". Player answered: "${safeGuess}". Keywords: ${JSON.stringify(challenge.answer_keywords)}. Is this correct? Be generous with spelling/transliterations. Reply ONLY valid JSON: {"is_correct":true,"feedback":"one energetic sentence — congratulate if correct, tiny non-spoiler nudge if wrong, never reveal answer","confidence":0.9}`
         }],
       })
 
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
 
     await supabase.from('guesses').insert({
       user_id: userId, challenge_id: challengeId,
-      guess_text: guessText, is_correct, ai_feedback: feedback, ai_confidence: confidence,
+      guess_text: safeGuess, is_correct, ai_feedback: feedback, ai_confidence: confidence,
     })
 
     const newAttempts  = progress.attempts + 1

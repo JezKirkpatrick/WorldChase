@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     if (!q) return NextResponse.json({ error: 'Question not found' }, { status: 404 })
 
     const is_correct = answer === q.correct
-    const clampedTime = Math.min(Math.max(answerTimeMs ?? QUESTION_MS, 0), QUESTION_MS)
+    const clampedTime = Math.min(Math.max(answerTimeMs ?? QUESTION_MS, 1000), QUESTION_MS)
     const points_earned = is_correct
       ? 100 + Math.floor(100 * (QUESTION_MS - clampedTime) / QUESTION_MS)
       : 0

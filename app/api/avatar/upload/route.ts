@@ -10,6 +10,8 @@ export async function POST(req: Request) {
   const formData = await req.formData()
   const file = formData.get('file') as Blob | null
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+  if (file.size > 5_000_000) return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 })
+  if (!file.type.startsWith('image/')) return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
 
   const admin = createAdmin(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
