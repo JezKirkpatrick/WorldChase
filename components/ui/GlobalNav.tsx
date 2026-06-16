@@ -51,18 +51,15 @@ export default async function GlobalNav() {
       </Link>
 
       {/* Centre — links */}
-      <div className="hidden sm:flex items-center gap-6 ml-10">
-        <ShareButton className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors" />
-        <Link href="/play"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">PLAY{user && <PlayDot userId={user.id} />}</Link>
-        <Link href="/quiz"          className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors">GEO QUIZ</Link>
-        <Link href="/vs"           className="relative text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors">VS DUEL{user && <VsDot userId={user.id} />}</Link>
-        <Link href="/leaderboard"  className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">LEADERBOARD</Link>
-        <Link href="/daily"       className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">DAILY</Link>
-        <Link href="/archive"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">ARCHIVE</Link>
-        <Link href="/hall-of-fame" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">HALL OF FAME</Link>
-        <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors">SHOP</Link>
-        <Link href="/chat"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">CHAT{user && <ChatDot userId={user.id} />}</Link>
-        <Link href="/friends"     className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">
+      <div className="hidden sm:flex items-center gap-3 ml-4 overflow-hidden">
+        <Link href="/play"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">PLAY{user && <PlayDot userId={user.id} />}</Link>
+        <Link href="/quiz"        className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors whitespace-nowrap">GEO QUIZ</Link>
+        <Link href="/vs"          className="relative text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors whitespace-nowrap">VS DUEL{user && <VsDot userId={user.id} />}</Link>
+        <Link href="/leaderboard" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">LEADERBOARD</Link>
+        <Link href="/daily"       className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">DAILY</Link>
+        <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">SHOP</Link>
+        <Link href="/chat"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors whitespace-nowrap">CHAT{user && <ChatDot userId={user.id} />}</Link>
+        <Link href="/friends"     className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors whitespace-nowrap">
           FRIENDS
           {pendingCount > 0 && (
             <span className="absolute -top-1.5 -right-3 bg-electric text-navy font-mono text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -71,11 +68,13 @@ export default async function GlobalNav() {
           )}
           {user && <UnreadDMsBadge myId={user.id} />}
         </Link>
-        <Link href="/how-to-play" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors">HOW TO PLAY</Link>
-        <Link href="/support"     className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors">SUPPORT</Link>
-        <a href="https://kidsworldchase.net" target="_blank" rel="noopener noreferrer" className="text-xs font-head font-bold tracking-widest text-green-400 hover:text-white border border-green-400/40 px-2 py-0.5 rounded transition-colors whitespace-nowrap">KIDS WC ↗</a>
+        <Link href="/archive"     className="hidden lg:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">ARCHIVE</Link>
+        <Link href="/hall-of-fame" className="hidden lg:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">HALL OF FAME</Link>
+        <Link href="/how-to-play" className="hidden xl:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">HOW TO PLAY</Link>
+        <Link href="/support"     className="hidden xl:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors whitespace-nowrap">SUPPORT</Link>
+        <a href="https://kidsworldchase.net" target="_blank" rel="noopener noreferrer" className="hidden xl:inline text-xs font-head font-bold tracking-widest text-green-400 hover:text-white border border-green-400/40 px-2 py-0.5 rounded transition-colors whitespace-nowrap">KIDS WC ↗</a>
         {profile?.is_admin && (
-          <Link href="/admin" className="text-xs font-head font-bold tracking-widest text-danger hover:text-danger/70 transition-colors">ADMIN</Link>
+          <Link href="/admin" className="text-xs font-head font-bold tracking-widest text-danger hover:text-danger/70 transition-colors whitespace-nowrap">ADMIN</Link>
         )}
       </div>
 
