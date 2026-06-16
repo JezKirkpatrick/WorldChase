@@ -139,7 +139,7 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
 
       {/* Instruction */}
       <p className="text-text-muted font-head text-xs text-center mb-3">
-        Tap a piece to select it <span className="text-gold">●</span> tap another to swap — match the numbers (piece <span className="text-white font-bold">1</span> = top-left slot)
+        Tap a piece to select it <span className="text-gold">●</span> then tap another to swap
       </p>
 
       {/* Puzzle grid */}
@@ -154,17 +154,10 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
               onClick={() => handleClick(slotIdx)}
               style={pieceStyle(pieceId)}
               className={[
-                'relative cursor-pointer border border-black/20 w-full h-full',
+                'cursor-pointer border border-black/20 w-full h-full',
                 selected === slotIdx ? 'ring-2 ring-inset ring-gold brightness-75' : '',
-                pieceId === slotIdx && selected !== slotIdx ? 'ring-2 ring-inset ring-green-400/80' : '',
               ].filter(Boolean).join(' ')}
-            >
-              {pieceId !== slotIdx && (
-                <span className="absolute top-0.5 right-0.5 text-[7px] font-bold bg-black/70 text-white px-0.5 leading-tight rounded-sm pointer-events-none select-none">
-                  {pieceId + 1}
-                </span>
-              )}
-            </div>
+            />
           ))}
         </div>
       </div>
