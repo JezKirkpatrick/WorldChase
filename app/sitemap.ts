@@ -7,8 +7,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/leaderboard`,       lastModified: new Date(), changeFrequency: 'hourly',   priority: 0.9 },
     { url: `${base}/how-to-play`,       lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.8 },
     { url: `${base}/daily`,             lastModified: new Date(), changeFrequency: 'daily',    priority: 0.8 },
+    { url: `${base}/quiz`,              lastModified: new Date(), changeFrequency: 'daily',    priority: 0.8 },
+    { url: `${base}/vs`,                lastModified: new Date(), changeFrequency: 'weekly',   priority: 0.7 },
     { url: `${base}/hall-of-fame`,      lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.7 },
     { url: `${base}/archive`,           lastModified: new Date(), changeFrequency: 'weekly',   priority: 0.7 },
     { url: `${base}/shop`,              lastModified: new Date(), changeFrequency: 'weekly',   priority: 0.6 },
+    { url: `${base}/chat`,              lastModified: new Date(), changeFrequency: 'daily',    priority: 0.6 },
+    { url: `${base}/privacy`,           lastModified: new Date(), changeFrequency: 'yearly',   priority: 0.3 },
+    { url: `${base}/terms`,             lastModified: new Date(), changeFrequency: 'yearly',   priority: 0.3 },
+    { url: `${base}/support`,           lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.3 },
   ]
 }
