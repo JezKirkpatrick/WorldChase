@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
-    const ops: Promise<any>[] = [
+    const ops: any[] = [
       supabase.rpc('adjust_tokens', { p_user_id: user.id, p_amount: tokensEarned }),
       supabase.from('token_transactions').insert({
         user_id: user.id,
