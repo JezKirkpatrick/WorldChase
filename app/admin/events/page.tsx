@@ -33,13 +33,13 @@ export default function AdminEventsPage() {
       status: 'upcoming',
       starts_at: new Date(form.starts_at).toISOString(),
       ends_at: new Date(form.ends_at).toISOString(),
-      total_rounds: 20,
+      total_rounds: 25,
     }).select().single()
     if (data) {
       setEvents(p => [data, ...p])
       // Auto-generate 20 rounds
       const difficultyFor = (round: number) =>
-        round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : 'extreme'
+        round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : round <= 20 ? 'extreme' : 'pro'
 
       // Pre-load ALL existing challenge locations from the entire DB to avoid repeats
       setGenProgress('Loading existing locations...')
@@ -48,8 +48,8 @@ export default function AdminEventsPage() {
 
       const selectedTheme = EVENT_THEMES.find(t => t.id === form.theme)
 
-      for (let round = 1; round <= 20; round++) {
-        setGenProgress(`Generating round ${round} of 20...`)
+      for (let round = 1; round <= 25; round++) {
+        setGenProgress(`Generating round ${round} of 25...`)
         const res = await fetch('/api/admin/generate-challenge', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

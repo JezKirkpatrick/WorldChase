@@ -31,6 +31,7 @@ DIFFICULTY GUIDE for observation questions:
 - MEDIUM: Identify something specific (color, word, symbol) on a recognizable but less-famous location in the theme region.
 - HARD: Count or identify something subtle on an obscure street or small town.
 - EXTREME: Spot a tiny or hidden detail in a very remote or unusual location.
+- PRO: An absurdly obscure location — a ghost town, micro-territory, unnamed island, or place so remote it barely appears on Google Maps. The observation detail must be nearly impossible to spot without careful navigation.
 
 CLUE WRITING RULES — CRITICAL:
 Players are dropped into Google Street View with NO idea where to look or which way to navigate. Every clue MUST contain two parts:
@@ -90,6 +91,7 @@ DIFFICULTY GUIDE:
 - MEDIUM: Remarkable but less globally-famous destinations within the theme region.
 - HARD: Genuinely obscure — remote towns, unusual geological features, niche cultural sites within the theme region.
 - EXTREME: The most forgotten, bizarre, inhospitable, or absurdly remote locations within the theme region.
+- PRO: Beyond extreme. Places that even seasoned geographers would fail to identify — micro-territories, abandoned ghost settlements, unnamed glaciers, island specks in the open ocean, border anomalies, or locations so obscure they barely appear on any map. The riddle must give almost nothing away. Map start must be on a different continent to the answer.
 
 NARRATIVE STYLE FOR THIS ROUND: ${narrativeStyle}
 Write the riddle_text in this exact style — make it atmospheric, literary, and fully genre-appropriate. This is the most important creative element.
@@ -99,8 +101,9 @@ WRITING RULES:
 - NEVER name the location, country, or any direct identifier in the riddle.
 - Clues must progress from HARDEST (1) to EASIEST (4).
 - For EASY difficulty: clue 3 must strongly hint at the country, and clue 4 must nearly name the location directly.
-- Map start distance from answer: easy=2–5km, medium=10–30km, hard=50–150km, extreme=200–500km
+- Map start distance from answer: easy=2–5km, medium=10–30km, hard=50–150km, extreme=200–500km, pro=different continent entirely
 - Hard and extreme map starts must begin in a completely different country or region.
+- PRO map starts must begin on a completely different continent to the answer location.
 - DO NOT use any of these already-used locations: ${existingLocations.join(', ')}
 
 Respond with ONLY valid JSON — no markdown:

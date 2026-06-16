@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 const DIFFICULTY_FOR_ROUND = (round: number): string =>
-  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : 'extreme'
+  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : round <= 20 ? 'extreme' : 'pro'
 
 function inferThemeId(name: string): string {
   const n = name.toLowerCase()
@@ -83,7 +83,7 @@ export async function GET(req: NextRequest) {
       const failedRounds: number[] = []
       let generatedCount = 0
 
-      for (let round = 1; round <= 20; round++) {
+      for (let round = 1; round <= 25; round++) {
         try {
           const res = await fetch(`${origin}/api/admin/generate-challenge`, {
             method: 'POST',

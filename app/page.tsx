@@ -19,7 +19,7 @@ const DIFFICULTIES = [
   { label: 'MEDIUM', rounds: 'ROUNDS 5–9', subtitle: 'THE TEST BEGINS', desc: 'Remarkable places most people struggle to locate precisely.', pts: '1,000', color: 'border-electric/40 bg-electric/5', labelColor: 'text-electric' },
   { label: 'HARD', rounds: 'ROUNDS 10–15', subtitle: 'THE REAL HUNT', desc: 'Remote landscapes, obscure cultural sites. Instinct helps more.', pts: '2,500', color: 'border-warning/40 bg-warning/5', labelColor: 'text-warning' },
   { label: 'EXTREME', rounds: 'ROUNDS 16–20', subtitle: 'THE FINAL RECKONING', desc: 'The most remote, bizarre, forgotten places on Earth.', pts: '5,000', color: 'border-danger/40 bg-danger/5', labelColor: 'text-danger' },
-  { label: 'PRO', rounds: 'SPECIAL ROUNDS', subtitle: 'BEYOND THE KNOWN', desc: 'Ultra-rare locations. No hints. No mercy. Only the elite survive.', pts: '10,000', color: 'border-purple-400/40 bg-purple-400/5', labelColor: 'text-purple-400' },
+  { label: 'PRO', rounds: 'ROUNDS 21–25', subtitle: 'BEYOND THE KNOWN', desc: 'Ultra-rare locations. No hints. No mercy. Only the elite survive.', pts: '10,000', color: 'border-purple-400/40 bg-purple-400/5', labelColor: 'text-purple-400' },
 ]
 
 const HOW_IT_WORKS = [
