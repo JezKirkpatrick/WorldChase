@@ -84,7 +84,7 @@ export default async function DailyPage() {
             countryCode={country.code}
             countryName={country.name}
             cols={5}
-            rows={4}
+            rows={2}
             eventId={eventId}
           />
         )}
