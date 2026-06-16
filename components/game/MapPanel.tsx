@@ -32,6 +32,7 @@ export default function MapPanel({
   const markerObjects = useRef<Map<string, google.maps.Marker>>(new Map())
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null)
   const [inStreetView, setInStreetView] = useState(streetViewOnly)
+  const [svUnavailable, setSvUnavailable] = useState(false)
   const initializedRef = useRef(false)
   const onCenterChangeRef = useRef(onCenterChange)
   const onMarkerAddRef = useRef(onMarkerAdd)
@@ -51,18 +52,18 @@ export default function MapPanel({
           sv.setPov({ heading, pitch })
           sv.setVisible(true)
         } else {
-          // Fallback: widen search to 500m outdoors only
           svc.getPanorama(
             { location: { lat, lng }, radius: 500, source: (google.maps as any).StreetViewSource?.OUTDOOR ?? 'OUTDOOR' },
             (data2: any, status2: any) => {
               if (status2 === 'OK' && data2?.location?.pano) {
                 sv.setPano(data2.location.pano)
                 sv.setPov({ heading, pitch })
+                sv.setVisible(true)
               } else {
-                sv.setPosition({ lat, lng })
-                sv.setPov({ heading, pitch })
+                // No Street View coverage — stay on map view, show message
+                sv.setVisible(false)
+                setSvUnavailable(true)
               }
-              sv.setVisible(true)
             }
           )
         }
@@ -173,6 +174,14 @@ export default function MapPanel({
   return (
     <div className="absolute inset-0" style={{ pointerEvents: 'auto' }}>
       <div ref={divRef} id="game-map" style={{ position: 'absolute', inset: 0 }} />
+
+      {svUnavailable && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-navy/90 gap-3 pointer-events-none">
+          <div className="text-3xl">📷</div>
+          <div className="text-gold font-head font-bold text-sm tracking-widest">STREET VIEW UNAVAILABLE</div>
+          <div className="text-text-muted font-head text-xs text-center px-6">No Street View coverage at this location — use the map to navigate</div>
+        </div>
+      )}
 
       {/* Controls — hidden on mobile when mission panel is expanded */}
       <div className={`absolute bottom-44 sm:bottom-24 right-2 z-10 flex flex-col gap-1.5 items-end transition-opacity duration-300 ${mobilePanelExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
