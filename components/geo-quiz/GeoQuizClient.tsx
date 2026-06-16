@@ -339,11 +339,11 @@ function PreView({
             </div>
             <div className="divide-y divide-white/5">
               {[
-                { label: '🥇 1st Place', tokens: 5000, gold: true },
-                { label: '🥈 2nd Place', tokens: 2500, gold: false },
-                { label: '🥉 3rd Place', tokens: 1000, gold: false },
-                { label: '4th – 5th Place', tokens: 500, gold: false },
-                { label: '6th – 10th Place', tokens: 250, gold: false },
+                { label: '🥇 1st Place', tokens: 150, gold: true },
+                { label: '🥈 2nd Place', tokens: 100, gold: false },
+                { label: '🥉 3rd Place', tokens: 75, gold: false },
+                { label: '4th – 5th Place', tokens: 50, gold: false },
+                { label: '6th – 10th Place', tokens: 25, gold: false },
                 { label: 'Participation (11th+)', tokens: 50, gold: false },
               ].map(row => (
                 <div key={row.label} className="flex items-center justify-between px-4 py-2.5">

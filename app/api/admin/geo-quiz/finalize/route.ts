@@ -4,7 +4,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-const PRIZES = [5000, 2500, 1000, 500, 500, 250, 250, 250, 250, 250]
+const PRIZES = [150, 100, 75, 50, 50, 25, 25, 25, 25, 25]
 const PARTICIPATION = 50
 
 export async function POST(req: NextRequest) {

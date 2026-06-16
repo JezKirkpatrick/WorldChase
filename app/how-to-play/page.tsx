@@ -184,11 +184,11 @@ export default async function HowToPlayPage() {
                 <div className="text-gold font-bold text-xs tracking-widest mb-2">🎁 DAILY PRIZE POOL</div>
                 <div className="space-y-1 text-sm">
                   {[
-                    { label: '🥇 1st Place',       val: '5,000 🪙', gold: true },
-                    { label: '🥈 2nd Place',       val: '2,500 🪙' },
-                    { label: '🥉 3rd Place',       val: '1,000 🪙' },
-                    { label: '4th – 5th',         val: '500 🪙' },
-                    { label: '6th – 10th',        val: '250 🪙' },
+                    { label: '🥇 1st Place',       val: '150 🪙', gold: true },
+                    { label: '🥈 2nd Place',       val: '100 🪙' },
+                    { label: '🥉 3rd Place',       val: '75 🪙' },
+                    { label: '4th – 5th',         val: '50 🪙' },
+                    { label: '6th – 10th',        val: '25 🪙' },
                     { label: 'Everyone else',     val: '50 🪙' },
                   ].map(r => (
                     <div key={r.label} className="flex justify-between">
