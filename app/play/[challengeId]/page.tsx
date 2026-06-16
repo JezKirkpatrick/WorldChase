@@ -64,14 +64,11 @@ export default function GamePage({ params }: PageProps) {
       return () => clearInterval(poll)
     }
 
-    // loading=async requires a global callback instead of script.onload
-    ;(window as any).__gmapInit = () => {
-      setMapsReady(true)
-      delete (window as any).__gmapInit
-    }
     const script = document.createElement('script')
     script.id = 'gmap-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async&callback=__gmapInit`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
+    script.async = true
+    script.onload = () => setMapsReady(true)
     document.head.appendChild(script)
   }, [])
 
