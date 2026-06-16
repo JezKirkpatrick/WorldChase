@@ -98,8 +98,8 @@ export default async function GlobalNav() {
           <Avatar emoji={avatar} border={border} size="sm" />
         </Link>
         <div className="hidden sm:flex items-center gap-2">
-          <Link href="/settings" className="text-xl text-text-muted hover:text-white transition-colors px-2 py-1" title="Account settings">
-            ⚙
+          <Link href="/settings" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors px-2 py-1">
+            SETTINGS
           </Link>
           <LogoutButton />
         </div>
