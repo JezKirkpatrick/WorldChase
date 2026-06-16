@@ -189,7 +189,7 @@ export default async function HowToPlayPage() {
                     { label: '🥉 3rd Place',       val: '75 🪙' },
                     { label: '4th – 5th',         val: '50 🪙' },
                     { label: '6th – 10th',        val: '25 🪙' },
-                    { label: 'Everyone else',     val: '50 🪙' },
+                    { label: 'Everyone else',     val: '10 🪙' },
                   ].map(r => (
                     <div key={r.label} className="flex justify-between">
                       <span className={`font-head ${r.gold ? 'text-gold font-bold' : 'text-text-muted'}`}>{r.label}</span>

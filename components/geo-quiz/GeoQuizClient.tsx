@@ -344,7 +344,7 @@ function PreView({
                 { label: '🥉 3rd Place', tokens: 75, gold: false },
                 { label: '4th – 5th Place', tokens: 50, gold: false },
                 { label: '6th – 10th Place', tokens: 25, gold: false },
-                { label: 'Participation (11th+)', tokens: 50, gold: false },
+                { label: 'Participation (11th+)', tokens: 10, gold: false },
               ].map(row => (
                 <div key={row.label} className="flex items-center justify-between px-4 py-2.5">
                   <span className={`font-head font-bold text-sm ${row.gold ? 'text-gold' : 'text-text-muted'}`}>{row.label}</span>
