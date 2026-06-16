@@ -16,9 +16,10 @@ export async function POST(req: NextRequest) {
   try {
     const { challengeId } = await req.json()
 
-    const [progressRes, profileRes] = await Promise.all([
+    const [progressRes, profileRes, challengeRes] = await Promise.all([
       supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', user.id).maybeSingle(),
       supabase.from('profiles').select('tokens').eq('id', user.id).maybeSingle(),
+      supabase.from('challenges').select('event_id, round_number, difficulty').eq('id', challengeId).single(),
     ])
 
     if (!progressRes.data || !profileRes.data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -33,7 +34,21 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
-    return NextResponse.json({ success: true, newTokenBalance: profileRes.data.tokens - 2 })
+    // Find the next challenge — same event + difficulty, next round number
+    let nextChallengeId: string | null = null
+    if (challengeRes.data) {
+      const { event_id, round_number, difficulty } = challengeRes.data
+      const { data: next } = await supabase
+        .from('challenges')
+        .select('id')
+        .eq('event_id', event_id)
+        .eq('difficulty', difficulty)
+        .eq('round_number', round_number + 1)
+        .maybeSingle()
+      nextChallengeId = next?.id ?? null
+    }
+
+    return NextResponse.json({ success: true, newTokenBalance: profileRes.data.tokens - 2, nextChallengeId })
   } catch (err: any) {
     console.error(err)
     return NextResponse.json({ error: err?.message ?? 'Internal error' }, { status: 500 })

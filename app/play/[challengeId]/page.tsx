@@ -153,7 +153,7 @@ export default function GamePage({ params }: PageProps) {
       if (data.error) { toast(data.error, 'error'); return }
       if (data.newTokenBalance !== undefined) flashToken(data.newTokenBalance, tokens)
       toast('Round skipped', 'info')
-      router.push('/play')
+      router.push(data.nextChallengeId ? `/play/${data.nextChallengeId}` : '/play')
     } catch { toast('Connection error — try again', 'error') }
   }, [userId, challenge, router, tokens, toast])
 
