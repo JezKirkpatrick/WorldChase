@@ -54,26 +54,24 @@ export default function GamePage({ params }: PageProps) {
     sounds.init()
     setSoundMuted(sounds.isMuted())
 
-    // Check for the Map constructor specifically — google.maps can exist as a partial
-    // object before loading=async finishes, causing a black map if we proceed too early
     if ((window as any).google?.maps?.Map) { setMapsReady(true); return }
 
     const existing = document.getElementById('gmap-script')
     if (existing) {
-      // Script tag already in DOM but Maps not ready — load event may have already fired
-      // so addEventListener('load') would never trigger. Poll instead.
       const poll = setInterval(() => {
         if ((window as any).google?.maps?.Map) { clearInterval(poll); setMapsReady(true) }
       }, 100)
       return () => clearInterval(poll)
     }
 
+    // loading=async requires a global callback instead of script.onload
+    ;(window as any).__gmapInit = () => {
+      setMapsReady(true)
+      delete (window as any).__gmapInit
+    }
     const script = document.createElement('script')
     script.id = 'gmap-script'
-    // No loading=async — that param requires callback= or Maps won't be fully ready on onload
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`
-    script.async = true
-    script.onload = () => setMapsReady(true)
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async&callback=__gmapInit`
     document.head.appendChild(script)
   }, [])
 
