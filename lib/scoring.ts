@@ -5,6 +5,7 @@ const BASE_POINTS: Record<Difficulty, number> = {
   medium:  1000,
   hard:    2500,
   extreme: 5000,
+  pro:     10000,
 }
 
 const CLUE_MULTIPLIERS_EASY: Record<number, number> = {

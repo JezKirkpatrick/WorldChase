@@ -117,7 +117,7 @@ export default function AdminChallengesPage() {
             <label className="text-xs font-head text-text-muted tracking-widest mb-1 block">DIFFICULTY</label>
             <select value={genDiff} onChange={e => setGenDiff(e.target.value as Difficulty)}
               className="bg-navy border border-white/20 px-3 py-2 text-white font-head outline-none">
-              {['easy','medium','hard','extreme'].map(d => <option key={d} value={d}>{d}</option>)}
+              {['easy','medium','hard','extreme','pro'].map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div>

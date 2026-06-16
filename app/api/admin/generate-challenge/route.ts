@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 
 function buildStreetViewPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme): string {
-  const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000 }
+  const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000, pro: 10000 }
   const narrativeStyle = NARRATIVE_STYLES[(roundNumber - 1) % NARRATIVE_STYLES.length]
   const themeSection = eventTheme
     ? `\nEVENT THEME: "${eventTheme.label}" — ${eventTheme.description}
@@ -71,7 +71,7 @@ Respond with ONLY valid JSON — no markdown:
 }
 
 function buildPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme): string {
-  const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000 }
+  const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000, pro: 10000 }
   const narrativeStyle = NARRATIVE_STYLES[(roundNumber - 1) % NARRATIVE_STYLES.length]
   const themeSection = eventTheme
     ? `\nEVENT THEME: "${eventTheme.label}" — ${eventTheme.description}
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
 
     const { roundNumber, difficulty, eventId, existingLocations = [], eventTheme, eventName } = await req.json()
 
-    if (!['easy', 'medium', 'hard', 'extreme'].includes(difficulty))
+    if (!['easy', 'medium', 'hard', 'extreme', 'pro'].includes(difficulty))
       return NextResponse.json({ error: 'Invalid difficulty' }, { status: 400 })
     if (!roundNumber || !eventId)
       return NextResponse.json({ error: 'Missing roundNumber or eventId' }, { status: 400 })

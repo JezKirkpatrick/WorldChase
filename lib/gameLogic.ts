@@ -36,6 +36,7 @@ export function getDifficultyColor(difficulty: string): string {
     medium:  'text-electric',
     hard:    'text-warning',
     extreme: 'text-danger',
+    pro:     'text-purple-400',
   }
   return map[difficulty] ?? 'text-gold'
 }
@@ -46,6 +47,7 @@ export function getDifficultyBgColor(difficulty: string): string {
     medium:  'bg-electric/20 border-electric/40',
     hard:    'bg-warning/20 border-warning/40',
     extreme: 'bg-danger/20 border-danger/40',
+    pro:     'bg-purple-400/20 border-purple-400/40',
   }
   return map[difficulty] ?? 'bg-gold/20 border-gold/40'
 }

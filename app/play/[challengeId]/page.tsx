@@ -423,7 +423,7 @@ export default function GamePage({ params }: PageProps) {
             <MapPanel
               startLat={challenge.map_start_lat}
               startLng={challenge.map_start_lng}
-              startZoom={challenge.difficulty === 'extreme' ? 4 : challenge.difficulty === 'hard' ? 6 : challenge.difficulty === 'medium' ? 9 : 12}
+              startZoom={challenge.difficulty === 'pro' ? 3 : challenge.difficulty === 'extreme' ? 4 : challenge.difficulty === 'hard' ? 6 : challenge.difficulty === 'medium' ? 9 : 12}
               streetViewOnly={(challenge as any).street_view_only ?? false}
               streetViewHeading={challenge.street_view_heading}
               streetViewPitch={challenge.street_view_pitch}

@@ -42,6 +42,7 @@ const SCORING = [
   { diff: 'Medium',  base: '1,000', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
   { diff: 'Hard',    base: '2,500', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
   { diff: 'Extreme', base: '5,000', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
+  { diff: 'Pro',     base: '10,000', clue: '−20% each', wrong: '−5% each', speed: '+10% under 10min' },
 ]
 
 const EARN = [

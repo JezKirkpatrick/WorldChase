@@ -1,4 +1,4 @@
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'extreme'
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'extreme' | 'pro'
 export type ChallengeStatus = 'locked' | 'active' | 'completed' | 'skipped' | 'failed'
 export type EventStatus = 'upcoming' | 'active' | 'completed'
 
