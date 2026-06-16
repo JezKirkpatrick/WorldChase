@@ -296,9 +296,17 @@ export default async function HowToPlayPage() {
               </tbody>
             </table>
           </div>
+          <div className="mt-5 border border-purple-400/40 bg-purple-400/5 p-4 font-head">
+            <div className="text-purple-400 font-bold text-xs tracking-widest mb-2">⚠ PRO DIFFICULTY — ROUNDS 21–25</div>
+            <p className="text-text-muted text-sm leading-relaxed">
+              Pro rounds are genuinely brutal. Locations are chosen from the most obscure, unexcavated, and barely-mapped places on Earth — micro-territories, unnamed ruins, and sites that don't appear in any tourist database.{' '}
+              <span className="text-white font-bold">Your map always starts on a completely different continent from the answer.</span>{' '}
+              No landmarks. No obvious region. Just the riddle and your instincts.
+            </p>
+          </div>
           <p className="text-text-muted font-head text-sm mt-3">
             Maximum possible score for a perfect week:{' '}
-            <span className="text-gold font-bold">47,500 pts</span>
+            <span className="text-gold font-bold">97,500 pts</span>
           </p>
         </section>
 
