@@ -154,9 +154,9 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
               onClick={() => handleClick(slotIdx)}
               style={pieceStyle(pieceId)}
               className={[
-                'cursor-pointer border border-black/20 transition-all duration-150 w-full h-full',
-                selected === slotIdx ? 'ring-2 ring-inset ring-gold brightness-75' : 'hover:brightness-110',
-                pieceId === slotIdx && selected !== slotIdx ? 'ring-1 ring-inset ring-green-400/70' : '',
+                'cursor-pointer border border-black/20 w-full h-full',
+                selected === slotIdx ? 'ring-2 ring-inset ring-gold brightness-75' : '',
+                pieceId === slotIdx && selected !== slotIdx ? 'ring-2 ring-inset ring-green-400/80' : '',
               ].filter(Boolean).join(' ')}
             />
           ))}
@@ -164,8 +164,9 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
       </div>
 
       {/* Progress hint */}
-      <p className="text-text-muted font-head text-xs text-center mt-2">
+      <p className={`font-head text-sm text-center mt-2 font-bold ${correctCount === total ? 'text-green-400' : 'text-text-muted'}`}>
         {correctCount} / {total} pieces in place
+        {correctCount === total && ' ✓'}
       </p>
     </div>
   )
