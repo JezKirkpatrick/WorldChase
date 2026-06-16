@@ -111,7 +111,7 @@ export default function AdminChallengesPage() {
           <div>
             <label className="text-xs font-head text-text-muted tracking-widest mb-1 block">ROUND</label>
             <input type="number" value={genRound} onChange={e => setGenRound(parseInt(e.target.value))}
-              min={1} max={20} className="w-20 bg-navy border border-white/20 px-3 py-2 text-white font-mono outline-none" />
+              min={1} max={25} className="w-20 bg-navy border border-white/20 px-3 py-2 text-white font-mono outline-none" />
           </div>
           <div>
             <label className="text-xs font-head text-text-muted tracking-widest mb-1 block">DIFFICULTY</label>
