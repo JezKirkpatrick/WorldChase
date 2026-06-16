@@ -79,12 +79,12 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
     ;[newPieces[selected], newPieces[slotIdx]] = [newPieces[slotIdx], newPieces[selected]]
     setPieces(newPieces)
     setSelected(null)
-    if (newPieces.every((v, i) => v === i)) {
+    if (newPieces.every((v, i) => Math.floor(v / cols) === Math.floor(i / cols))) {
       handleSolve()
     }
   }
 
-  const correctCount = pieces.filter((v, i) => v === i).length
+  const correctCount = pieces.filter((v, i) => Math.floor(v / cols) === Math.floor(i / cols)).length
 
   return (
     <div className="w-full">
@@ -154,7 +154,7 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
               onClick={() => handleClick(slotIdx)}
               style={pieceStyle(pieceId)}
               className={[
-                'cursor-pointer border border-black/20 w-full h-full',
+                'cursor-pointer border border-black/20 w-full h-full transition-none',
                 selected === slotIdx ? 'ring-2 ring-inset ring-gold brightness-75' : '',
               ].filter(Boolean).join(' ')}
             />
