@@ -400,21 +400,22 @@ export default function GamePage({ params }: PageProps) {
           'relative flex-1',
           panelCollapsed ? 'flex-1' : 'md:flex-1',
         ].filter(Boolean).join(' ')}>
-          {/* Desktop-only collapse toggle */}
-          <button
-            onClick={() => setPanelCollapsed(c => !c)}
-            className="hidden md:block absolute top-2 left-2 z-20 bg-navy/90 border border-gold/40 px-2 py-1 font-head text-xs font-bold text-gold hover:border-gold transition-all"
-            title={panelCollapsed ? 'Show mission panel (P)' : 'Hide mission panel (P)'}
-          >
-            {panelCollapsed ? '▶ SHOW' : '◀ HIDE'}
-          </button>
+          {/* Desktop-only collapse toggle + observe badge */}
+          <div className="hidden md:flex absolute top-2 left-2 z-20 items-center gap-2">
+            <button
+              onClick={() => setPanelCollapsed(c => !c)}
+              className="bg-navy/90 border border-gold/40 px-2 py-1 font-head text-xs font-bold text-gold hover:border-gold transition-all"
+              title={panelCollapsed ? 'Show mission panel (P)' : 'Hide mission panel (P)'}
+            >
+              {panelCollapsed ? '▶ SHOW' : '◀ HIDE'}
+            </button>
+            {(challenge as any).street_view_only && (
+              <span className="bg-navy/90 border border-electric/40 px-2 py-1 font-head text-xs font-bold text-electric">
+                👁 OBSERVE
+              </span>
+            )}
+          </div>
 
-          {(challenge as any).street_view_only && (challenge as any).street_view_question && (
-            <div className="absolute top-0 left-0 right-0 z-10 bg-black/80 backdrop-blur-sm border-b border-electric/60 px-4 py-2.5 flex items-center gap-3 pl-20 shadow-xl">
-              <span className="text-electric font-head font-bold text-xs tracking-widest shrink-0">👁 OBSERVE</span>
-              <span className="text-white font-head text-sm font-bold [text-shadow:0_1px_4px_rgba(0,0,0,0.8)]">{(challenge as any).street_view_question}</span>
-            </div>
-          )}
 
           {mapsReady ? (
             <MapPanel
