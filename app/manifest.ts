@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'World Chase',
     short_name: 'WorldChase',
-    description: 'Hunt the World. Claim the Crown. Monthly competitive geography battle.',
+    description: 'Hunt the World. Claim the Crown. Weekly competitive geography battle.',
     start_url: '/dashboard',
     display: 'standalone',
     background_color: '#0B1628',
