@@ -31,6 +31,15 @@ body {
   padding-top: env(safe-area-inset-top);
 }
 
+/* Safe area helpers for notched/gesture-nav devices */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.pb-safe     { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Active press feedback for touch devices */
+@media (hover: none) {
+  button:active, a:active { opacity: 0.7; }
+}
+
 /* Gold corner brackets decoration */
 .bracket-box {
   position: relative;

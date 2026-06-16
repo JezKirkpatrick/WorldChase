@@ -178,13 +178,13 @@ export default function MapPanel({
       <div className={`absolute bottom-44 sm:bottom-24 right-2 z-10 flex flex-col gap-1.5 items-end transition-opacity duration-300 ${mobilePanelExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <button
           onClick={resetView}
-          className="bg-navy/90 border border-white/30 px-3 py-1.5 font-head text-xs font-bold tracking-wider hover:border-gold hover:text-gold transition-all text-white/80"
+          className="bg-navy/90 border border-white/30 px-3 py-2.5 font-head text-xs font-bold tracking-wider hover:border-gold hover:text-gold transition-all text-white/80"
         >
           ⌂ RESET VIEW
         </button>
         <button
           onClick={toggleStreetView}
-          className="bg-navy/90 border border-gold/40 px-3 py-1.5 font-head text-xs font-bold tracking-wider hover:border-gold hover:text-gold transition-all text-white"
+          className="bg-navy/90 border border-gold/40 px-3 py-2.5 font-head text-xs font-bold tracking-wider hover:border-gold hover:text-gold transition-all text-white"
         >
           {inStreetView ? '🗺 MAP VIEW' : '📷 STREET VIEW'}
         </button>

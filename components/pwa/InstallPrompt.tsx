@@ -79,7 +79,7 @@ export default function InstallPrompt() {
 
   // ── Android / Chrome: native install prompt ──────────────────────
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-navy-light border-t border-gold/40 px-4 py-3"
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-navy-light border-t border-gold/40 px-4 py-3 safe-bottom"
          style={{ boxShadow: '0 -4px 20px rgba(0,0,0,0.5)' }}>
       <div className="flex items-center gap-3 max-w-lg mx-auto">
         <span className="text-2xl shrink-0">🌍</span>

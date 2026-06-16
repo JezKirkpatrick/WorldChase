@@ -167,7 +167,7 @@ export default function AnswerInput({
           <button
             onClick={() => setConfirmSkip(true)}
             disabled={tokens < 2}
-            className="text-xs font-head text-text-muted hover:text-danger transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="text-xs font-head text-text-muted hover:text-danger transition-colors disabled:opacity-40 disabled:cursor-not-allowed py-2.5 block w-full text-left"
           >
             {tokens < 2 ? '⚠ NOT ENOUGH TOKENS TO SKIP' : 'SKIP ROUND (2 tokens) →'}
           </button>

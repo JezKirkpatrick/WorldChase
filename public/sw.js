@@ -7,6 +7,9 @@ const PRECACHE = [
   '/dashboard',
   '/how-to-play',
   '/offline',
+  '/play',
+  '/leaderboard',
+  '/chat',
 ]
 
 // Install: pre-cache shell routes

@@ -72,7 +72,7 @@ export default function BattleHUD({
       <button
         onClick={onToggleSound}
         title={soundMuted ? 'Unmute (M)' : 'Mute (M)'}
-        className="text-text-muted hover:text-gold transition-colors text-base leading-none p-2 -mr-2"
+        className="text-text-muted hover:text-gold transition-colors text-base leading-none p-3 -mr-2"
       >
         {soundMuted ? '🔇' : '🔊'}
       </button>

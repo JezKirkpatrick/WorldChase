@@ -119,7 +119,7 @@ export default function ClueReveal({ clues, revealedCount, tokens, onReveal, rea
                   <button
                     onClick={() => (freeClues || tokens >= 1) ? setConfirming(i) : undefined}
                     disabled={!freeClues && tokens < 1}
-                    className={`w-full flex items-center justify-between text-left group ${!freeClues && tokens < 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`w-full flex items-center justify-between text-left group py-2.5 ${!freeClues && tokens < 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <span className="text-xs text-text-muted font-head group-hover:text-gold transition-colors">
                       🔒 CLASSIFIED — {freeClues ? 'UNLOCK FREE' : 'UNLOCK FOR 1 TOKEN'}

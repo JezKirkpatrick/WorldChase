@@ -444,7 +444,7 @@ export default function ChatClient({ userId }: { userId: string }) {
         )}
 
         {/* ── Input bar ── */}
-        <div className="shrink-0 border-t border-white/8 bg-navy-light/60 backdrop-blur px-4 py-3 flex items-center gap-3">
+        <div className="shrink-0 border-t border-white/8 bg-navy-light/60 backdrop-blur px-4 py-3 pb-safe flex items-center gap-3">
           <AvatarBubble src={myProfile.equipped_avatar} mine size={7} />
           <input
             ref={inputRef}
