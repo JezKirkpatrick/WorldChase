@@ -86,17 +86,10 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
 
   return (
     <div className="w-full">
-      {/* Header: country name + reference flag */}
-      <div className="flex items-center justify-between mb-4 px-1">
-        <div>
-          <div className="text-white font-head font-bold text-xl tracking-wide">{countryName}</div>
-          <div className="text-text-muted font-head text-xs mt-0.5">Reconstruct the flag</div>
-        </div>
-        <img
-          src={flagSrc}
-          alt={countryName}
-          className="h-10 border border-white/20 rounded-sm opacity-70"
-        />
+      {/* Header: country name only */}
+      <div className="mb-4 px-1">
+        <div className="text-white font-head font-bold text-xl tracking-wide">{countryName}</div>
+        <div className="text-text-muted font-head text-xs mt-0.5">Reconstruct the flag</div>
       </div>
 
       {/* Instruction */}
