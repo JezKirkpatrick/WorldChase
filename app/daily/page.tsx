@@ -23,8 +23,18 @@ export default async function DailyPage() {
 
   const supabase = createClient()
 
-  // Today's country (deterministic per day)
-  const country = DAILY_COUNTRIES[todaysSeed() % DAILY_COUNTRIES.length]
+  const todayStr = new Date().toISOString().split('T')[0]
+
+  // Today's country — AI-picked first, seed fallback
+  const { data: flagEntry } = await supabase
+    .from('daily_flags')
+    .select('country_code, country_name')
+    .eq('date', todayStr)
+    .maybeSingle()
+
+  const country = flagEntry
+    ? { code: flagEntry.country_code, name: flagEntry.country_name }
+    : DAILY_COUNTRIES[todaysSeed() % DAILY_COUNTRIES.length]
 
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
