@@ -111,7 +111,7 @@ export interface Guess {
 export interface TokenTransaction {
   id: string
   user_id: string
-  type: 'purchase' | 'earned_round' | 'earned_login' | 'earned_hidden' | 'earned_referral' | 'spent_clue' | 'spent_skip' | 'admin_grant' | 'vs_wager' | 'vs_win' | 'vs_refund'
+  type: 'purchase' | 'earned_round' | 'earned_login' | 'earned_hidden' | 'earned_referral' | 'spent_clue' | 'spent_skip' | 'admin_grant' | 'vs_wager' | 'vs_win' | 'vs_refund' | 'hunter_pass_weekly'
   amount: number
   stripe_payment_id: string | null
   challenge_id: string | null

@@ -25,21 +25,28 @@ function detectCurrency(): string {
 }
 
 export default function TokensContent() {
-  const [tokens,   setTokens]   = useState(0)
-  const [loading,  setLoading]  = useState<string | null>(null)
-  const [currency, setCurrency] = useState('NZD')
-  const [rate,     setRate]     = useState(1)       // NZD → user currency
-  const [rateReady, setRateReady] = useState(false)
+  const [tokens,       setTokens]      = useState(0)
+  const [isSubscriber, setIsSubscriber] = useState(false)
+  const [loading,      setLoading]     = useState<string | null>(null)
+  const [currency,     setCurrency]    = useState('NZD')
+  const [rate,         setRate]        = useState(1)
+  const [rateReady,    setRateReady]   = useState(false)
   const searchParams = useSearchParams()
-  const success   = searchParams.get('success')
-  const cancelled = searchParams.get('cancelled')
-  const supabase  = createClient()
+  const success      = searchParams.get('success')
+  const cancelled    = searchParams.get('cancelled')
+  const hunterPass   = searchParams.get('hunter_pass')
+  const supabase     = createClient()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      supabase.from('profiles').select('tokens').eq('id', user.id).maybeSingle()
-        .then(({ data }) => data && setTokens(data.tokens ?? 0))
+      supabase.from('profiles').select('tokens, is_subscriber').eq('id', user.id).maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setTokens(data.tokens ?? 0)
+            setIsSubscriber(data.is_subscriber ?? false)
+          }
+        })
     })
 
     const cur = detectCurrency()
@@ -69,11 +76,32 @@ export default function TokensContent() {
     else setLoading(null)
   }
 
+  async function handleSubscribe() {
+    setLoading('hunter_pass')
+    const res = await fetch('/api/stripe/subscribe', { method: 'POST' })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+    else setLoading(null)
+  }
+
+  async function handlePortal() {
+    setLoading('portal')
+    const res = await fetch('/api/stripe/portal', { method: 'POST' })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+    else setLoading(null)
+  }
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
       {success && (
         <div className="mb-6 border border-success/40 bg-success/10 p-4 text-success font-head text-center">
           🪙 {searchParams.get('tokens')} TOKENS DEPLOYED TO YOUR ACCOUNT. HUNT WELL.
+        </div>
+      )}
+      {hunterPass === 'success' && (
+        <div className="mb-6 border border-gold/60 bg-gold/10 p-4 text-gold font-head text-center">
+          🎖 HUNTER PASS ACTIVATED — 15 tokens drop every Monday. Welcome to the pack.
         </div>
       )}
       {cancelled && (
@@ -90,6 +118,57 @@ export default function TokensContent() {
           <div className="mt-3 font-mono text-gold font-bold text-lg">🪙 {tokens} tokens in reserve</div>
         )}
       </div>
+
+      {/* ── HUNTER PASS ── */}
+      <div className="mb-8 relative border-2 border-gold bg-gold/5 p-6 sm:p-8"
+        style={{ boxShadow: '0 0 32px rgba(245,197,24,0.15)' }}>
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          <div className="flex-1">
+            <div className="text-xs font-head tracking-[0.3em] text-gold/70 mb-1">BEST VALUE</div>
+            <h2 className="font-head font-bold text-2xl sm:text-3xl text-gold mb-2">🎖 HUNTER PASS</h2>
+            <p className="text-text-muted font-head text-sm leading-relaxed mb-3">
+              The smartest way to stock up. Subscribe once and get{' '}
+              <span className="text-white font-bold">15 tokens dropped into your account every Monday</span> — automatically, forever, while your pass is active.
+            </p>
+            <div className="flex flex-wrap gap-3 text-xs font-head">
+              <span className="border border-gold/30 px-2.5 py-1 text-gold">✓ 15 tokens / week</span>
+              <span className="border border-gold/30 px-2.5 py-1 text-gold">✓ 60 tokens / month</span>
+              <span className="border border-gold/30 px-2.5 py-1 text-gold">✓ Cancel anytime</span>
+              <span className="border border-gold/30 px-2.5 py-1 text-gold">✓ No contract</span>
+            </div>
+          </div>
+          <div className="sm:text-right shrink-0">
+            <div className="font-mono text-4xl font-bold text-gold mb-0.5">$3</div>
+            <div className="text-text-muted font-head text-sm mb-4">per week · billed weekly</div>
+            {isSubscriber ? (
+              <div className="space-y-2">
+                <div className="px-6 py-2 border border-success/40 text-success font-head font-bold text-sm text-center">
+                  ✓ ACTIVE SUBSCRIBER
+                </div>
+                <button
+                  onClick={handlePortal}
+                  disabled={loading === 'portal'}
+                  className="w-full py-2 border border-white/20 text-text-muted font-head text-xs tracking-widest hover:border-white/40 transition-colors disabled:opacity-50"
+                >
+                  {loading === 'portal' ? 'REDIRECTING...' : 'MANAGE / CANCEL →'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSubscribe}
+                disabled={loading === 'hunter_pass'}
+                className="px-8 py-3.5 bg-gold text-navy font-head font-bold text-sm tracking-widest hover:bg-gold-dim transition-all disabled:opacity-50"
+                style={{ boxShadow: '0 0 20px rgba(245,197,24,0.3)' }}
+              >
+                {loading === 'hunter_pass' ? 'REDIRECTING...' : 'ACTIVATE HUNTER PASS →'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="text-xs text-text-muted font-head text-center mb-6 tracking-widest">— OR BUY TOKENS ONE-TIME —</div>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {TOKEN_PACKAGES.map(pkg => (
@@ -121,7 +200,7 @@ export default function TokensContent() {
       </div>
 
       <div className="mt-8 text-center text-xs text-text-muted font-head space-y-1">
-        <div>Secure payment via Stripe · Tokens credited instantly · No subscription</div>
+        <div>Secure payment via Stripe · Tokens credited instantly · Hunter Pass billed weekly</div>
         {currency !== 'NZD' && rateReady && (
           <div className="text-white/20">Prices shown in {currency} · exact rate applied by Stripe at checkout</div>
         )}

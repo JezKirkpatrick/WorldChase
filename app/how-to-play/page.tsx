@@ -350,6 +350,47 @@ export default async function HowToPlayPage() {
           </div>
         </section>
 
+        {/* ── HUNTER PASS ── */}
+        <section>
+          <h2 className="font-head font-bold text-xl text-gold tracking-wider mb-4">🎖 HUNTER PASS</h2>
+          <div className="relative border-2 border-gold p-5 sm:p-7"
+            style={{ background: 'linear-gradient(135deg, rgba(245,197,24,0.07) 0%, transparent 60%)', boxShadow: '0 0 28px rgba(245,197,24,0.12)' }}>
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
+            <div className="font-head space-y-4">
+              <p className="text-white font-bold text-base sm:text-lg leading-snug">
+                The smartest way to keep your token supply stocked.
+              </p>
+              <p className="text-text-muted text-sm leading-relaxed">
+                Subscribe to the <span className="text-gold font-bold">Hunter Pass</span> for just{' '}
+                <span className="text-gold font-bold text-base">$3 / week</span> and receive{' '}
+                <span className="text-white font-bold">15 tokens automatically every Monday</span> — no manual purchases, no running dry mid-hunt.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                {[
+                  { val: '15', label: 'tokens/week' },
+                  { val: '60', label: 'tokens/month' },
+                  { val: '$3', label: 'per week' },
+                  { val: '∞', label: 'cancel anytime' },
+                ].map(i => (
+                  <div key={i.label} className="border border-gold/30 p-3">
+                    <div className="font-mono font-bold text-gold text-xl">{i.val}</div>
+                    <div className="text-text-muted font-head text-xs mt-0.5">{i.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-1">
+                <Link
+                  href="/tokens"
+                  className="inline-block bg-gold text-navy font-head font-bold text-sm tracking-widest px-7 py-3 hover:bg-gold-dim transition-all"
+                  style={{ boxShadow: '0 0 16px rgba(245,197,24,0.3)' }}
+                >
+                  ACTIVATE HUNTER PASS →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── STREAKS ── */}
         <section>
           <h2 className="font-head font-bold text-xl text-gold tracking-wider mb-4">LOGIN STREAKS</h2>

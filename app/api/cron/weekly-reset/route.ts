@@ -62,9 +62,23 @@ export async function GET(req: NextRequest) {
         status: 'upcoming',
         starts_at: nextMonday.toISOString(),
         ends_at: weekEnd.toISOString(),
-        total_rounds: 20,
+        total_rounds: 25,
         description: theme.description,
       })
+    }
+
+    // Hunter Pass — drop 15 tokens to every active subscriber
+    const { data: subscribers } = await supabase
+      .from('profiles').select('id').eq('is_subscriber', true)
+
+    if (subscribers && subscribers.length > 0) {
+      await Promise.all(subscribers.map(s => Promise.all([
+        supabase.rpc('adjust_tokens', { p_user_id: s.id, p_amount: 15 }),
+        supabase.from('token_transactions').insert({
+          user_id: s.id, type: 'hunter_pass_weekly', amount: 15,
+          description: 'Hunter Pass — weekly token drop',
+        }),
+      ])))
     }
 
     return NextResponse.json({ success: true, timestamp: now.toISOString() })
