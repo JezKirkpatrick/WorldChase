@@ -47,7 +47,7 @@ export default async function GlobalNav() {
     <nav className="h-14 bg-navy-light/95 backdrop-blur border-b border-white/8 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
       {/* Left — logo */}
       <Link href="/dashboard" className="font-head font-bold text-gold tracking-widest text-base hover:text-gold-dim transition-colors whitespace-nowrap">
-        ≡ WORLD CHASE
+        ≡ WC
       </Link>
 
       {/* Centre — links */}
