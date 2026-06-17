@@ -68,7 +68,7 @@ const TIPS = [
   { emoji: '⚡', text: 'Solve within 10 minutes for a 10% speed bonus on top of your base score.' },
   { emoji: '🗺️', text: 'Street View is your best friend. Hop in and look for signs, landscape, or architecture.' },
   { emoji: '🪙', text: 'Don\'t spend tokens recklessly — save them for the hard, extreme, and pro rounds where they matter most.' },
-  { emoji: '📍', text: 'Drop map pins while you explore. You get 5 per round — use them as waypoints.' },
+  { emoji: '📍', text: 'Drop map pins while you explore — right-click on desktop, long-press on mobile. You get 5 per round. Click a pin to remove it.' },
   { emoji: '📡', text: 'Always sweep the map with [H] radar before submitting — hidden tokens are free score.' },
   { emoji: '🧠', text: 'Play the Daily Geo Quiz every day — even 50 pts per quiz adds up fast on the weekly leaderboard.' },
   { emoji: '⚔️', text: 'Challenge friends to a VS Duel — win to earn bonus tokens and bragging rights.' },
@@ -242,7 +242,7 @@ export default async function HowToPlayPage() {
                   <li>🗺️ <span className="text-white font-bold">Interactive map</span> — zoom, pan, explore anywhere</li>
                   <li>🚶 <span className="text-white font-bold">Street View</span> — drop in and look around</li>
                   <li>🛰️ <span className="text-white font-bold">Satellite mode</span> — switch with [S]</li>
-                  <li>📍 <span className="text-white font-bold">Pin drops</span> — click to mark locations (5 max)</li>
+                  <li>📍 <span className="text-white font-bold">Pin drops</span> — right-click (desktop) or long-press (mobile) to mark waypoints (5 max)</li>
                   <li>📡 <span className="text-white font-bold">Token radar</span> — activate with [H]</li>
                 </ul>
               </div>
