@@ -47,13 +47,13 @@ export default function LandingPage() {
       <section className="pt-32 pb-24 px-6 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-pattern opacity-30" />
         <div className="relative max-w-3xl mx-auto">
-          <div className="text-xs font-head font-bold tracking-[0.4em] text-gold mb-4">THE WEEKLY GLOBAL HUNT</div>
+          <div className="text-xs font-head font-bold tracking-[0.4em] text-gold mb-4">FREE ONLINE GEOGRAPHY GAME</div>
           <h1 className="font-head font-bold text-4xl sm:text-5xl md:text-7xl text-white mb-6 leading-tight">
-            The World Is Hiding.<br/>
-            <span className="text-gold">Can You Find It?</span>
+            The Geography Game<br/>
+            <span className="text-gold">That Takes You There.</span>
           </h1>
           <p className="text-text-muted font-head text-base sm:text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto">
-            Twenty cryptic riddles. Twenty extraordinary locations. Thousands of hunters from every corner of the planet. One global leaderboard. The chase begins now.
+            The world's most competitive geography game. Twenty cryptic riddles, twenty extraordinary real-world locations, thousands of players from every continent. Explore Google Maps, solve the clues, and race to the top of the global leaderboard. New hunt every week.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
             <Link href="/auth/signup" className="px-8 sm:px-10 py-4 bg-gold text-navy font-head font-bold text-base sm:text-lg tracking-widest hover:bg-gold-dim transition-all gold-glow">
@@ -120,6 +120,42 @@ export default function LandingPage() {
             Start Hunting — Join Free
           </Link>
           <p className="text-text-muted/50 font-head text-xs mt-4">No credit card required. New event every week.</p>
+        </div>
+      </section>
+
+      {/* FAQ — targets search queries */}
+      <section className="py-20 px-6 border-t border-white/8">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="font-head font-bold text-2xl text-white mb-3">Frequently Asked Questions</h2>
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: [
+                { '@type': 'Question', name: 'What is World Chase?', acceptedAnswer: { '@type': 'Answer', text: 'World Chase is a free online geography game where players solve cryptic riddles to find real locations around the world using Google Maps. It is a weekly competitive geography challenge with a global leaderboard.' } },
+                { '@type': 'Question', name: 'Is World Chase free to play?', acceptedAnswer: { '@type': 'Answer', text: 'Yes, World Chase is completely free to play. Sign up with an email address and start your first geography hunt immediately.' } },
+                { '@type': 'Question', name: 'How is World Chase different from GeoGuessr?', acceptedAnswer: { '@type': 'Answer', text: 'Unlike GeoGuessr where you are dropped randomly into Street View, World Chase gives you cryptic riddles that describe a real location. You use Google Maps to explore and find the exact spot. It is a more puzzle-based geography game.' } },
+                { '@type': 'Question', name: 'What kind of geography game is World Chase?', acceptedAnswer: { '@type': 'Answer', text: 'World Chase is a competitive weekly geography game combining riddles, map exploration, and a live leaderboard. Players solve location puzzles across 20 rounds of increasing difficulty — from famous landmarks to remote and obscure places.' } },
+                { '@type': 'Question', name: 'Can I play a geography map game on my phone?', acceptedAnswer: { '@type': 'Answer', text: 'Yes, World Chase works on any device including phones and tablets. It is a fully mobile-friendly online geography game.' } },
+              ],
+            }) }}
+          />
+          <div className="space-y-6">
+            {[
+              { q: 'What is World Chase?', a: 'World Chase is a free online geography game where you solve cryptic riddles to find real locations around the world using Google Maps. It is a weekly competitive geography challenge with a live global leaderboard.' },
+              { q: 'How is it different from GeoGuessr?', a: 'Unlike GeoGuessr where you are dropped randomly into Street View, World Chase gives you cryptic clues describing a real place. You explore Google Maps to hunt it down — a more puzzle-driven, competitive geography game.' },
+              { q: 'What type of geography game is this?', a: 'World Chase is a riddle-based map game with 20 rounds per week, ranging from famous global landmarks all the way to remote and obscure locations. Think geography quiz meets treasure hunt.' },
+              { q: 'Is it free and can I play on my phone?', a: 'Completely free to sign up and play. World Chase runs in any browser on desktop, tablet, or phone.' },
+            ].map(({ q, a }) => (
+              <div key={q} className="border border-white/8 p-6">
+                <h3 className="font-head font-bold text-white text-sm tracking-wide mb-2">{q}</h3>
+                <p className="text-text-muted font-head text-sm leading-relaxed">{a}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
