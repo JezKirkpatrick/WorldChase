@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { anthropic } from '@/lib/anthropic'
 import { DAILY_COUNTRIES } from '@/lib/countries'
+import { pingIndexNow } from '@/lib/indexnow'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,6 +86,7 @@ Respond with ONLY valid JSON, nothing else:
       country_name: match.name,
     })
 
+    pingIndexNow()
     return NextResponse.json({ success: true, date: tomorrowStr, country: match.name })
   } catch (err: any) {
     console.error(err)
