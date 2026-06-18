@@ -23,7 +23,7 @@ export default async function PublicProfilePage({ params }: { params: { username
 
   if (!profile) notFound()
 
-  const [progressRes, lbRes] = await Promise.all([
+  const [progressRes, lbRes, lbAggRes] = await Promise.all([
     service.from('player_progress')
       .select('status, score_earned, time_taken_seconds, clues_revealed, challenge_id')
       .eq('user_id', profile.id),
@@ -32,6 +32,9 @@ export default async function PublicProfilePage({ params }: { params: { username
       .eq('user_id', profile.id)
       .order('total_score', { ascending: false })
       .limit(1),
+    service.from('leaderboard')
+      .select('total_score, challenges_completed')
+      .eq('user_id', profile.id),
   ])
 
   const progress = progressRes.data ?? []
@@ -39,6 +42,17 @@ export default async function PublicProfilePage({ params }: { params: { username
   const completed = completedRows.length
   const skipped = progress.filter((p: any) => p.status === 'skipped').length
   const totalScore = progress.reduce((s: number, p: any) => s + (p.score_earned ?? 0), 0)
+
+  // For display: use leaderboard aggregates as fallback for seeded/migrated players
+  const lbAgg = (lbAggRes.data ?? []).reduce(
+    (acc: { score: number; rounds: number }, row: any) => ({
+      score:  acc.score  + (Number(row.total_score)          || 0),
+      rounds: acc.rounds + (Number(row.challenges_completed) || 0),
+    }),
+    { score: 0, rounds: 0 }
+  )
+  const displayScore  = Math.max(totalScore, lbAgg.score)
+  const displayRounds = Math.max(completed,  lbAgg.rounds)
   const times = completedRows.filter((p: any) => p.time_taken_seconds).map((p: any) => p.time_taken_seconds as number)
   const bestTime = times.length ? Math.min(...times) : Infinity
   const noClueWin = completedRows.some((p: any) => (p.clues_revealed ?? 1) === 0)
@@ -150,8 +164,8 @@ export default async function PublicProfilePage({ params }: { params: { username
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-5 animate-fade-up stagger-1">
           {[
-            { label: 'ROUNDS WON', value: completed, color: 'text-gold' },
-            { label: 'TOTAL SCORE', value: totalScore.toLocaleString(), color: 'text-electric' },
+            { label: 'ROUNDS WON', value: displayRounds, color: 'text-gold' },
+            { label: 'TOTAL SCORE', value: displayScore.toLocaleString(), color: 'text-electric' },
             { label: 'BEST TIME', value: bestTime === Infinity ? '—' : `${Math.floor(bestTime / 60)}m ${(bestTime % 60).toString().padStart(2,'0')}s`, color: 'text-white' },
           ].map(s => (
             <div key={s.label} className="bg-navy-light border border-white/10 p-4 text-center card-gradient-gold">
