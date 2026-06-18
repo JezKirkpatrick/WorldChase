@@ -3,6 +3,17 @@ export const dynamic = 'force-dynamic'
 export const metadata = {
   title: 'Hall of Fame',
   description: "World Chase Hall of Fame — the greatest geography hunters of all time. Monthly champions and all-time legends.",
+  openGraph: {
+    title: 'World Chase Hall of Fame — Greatest Geography Hunters',
+    description: 'The all-time leaderboard of World Chase. Monthly champions, highest scorers, and geography legends from every corner of the world.',
+    url: 'https://www.worldchase.net/hall-of-fame',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'World Chase Hall of Fame',
+    description: 'The greatest geography hunters of all time.',
+  },
 }
 
 import { createClient } from '@/lib/supabase-server'

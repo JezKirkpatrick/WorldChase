@@ -2,6 +2,17 @@
 export const metadata = {
   title: 'Daily Flag Puzzle',
   description: 'Reconstruct a world flag from scrambled pieces every day. Earn tokens and leaderboard points.',
+  openGraph: {
+    title: 'World Chase Daily Flag Puzzle — Guess the Flag',
+    description: 'A new world flag jigsaw puzzle every day. Piece it together, name the country, earn tokens. Free to play — no signup needed.',
+    url: 'https://www.worldchase.net/daily',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'World Chase Daily Flag Puzzle',
+    description: 'New flag jigsaw every day. Can you name it?',
+  },
 }
 
 import { redirect } from 'next/navigation'

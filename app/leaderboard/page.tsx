@@ -4,6 +4,17 @@ export const revalidate = 60
 export const metadata = {
   title: 'Leaderboard',
   description: 'See who is leading the World Chase global leaderboard this month. Live rankings updated in real time.',
+  openGraph: {
+    title: 'World Chase Leaderboard — Top Geography Hunters',
+    description: 'Live global rankings for World Chase. Who\'s at the top this month? Join thousands of hunters competing worldwide.',
+    url: 'https://www.worldchase.net/leaderboard',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'World Chase Leaderboard — Top Geography Hunters',
+    description: 'Live global rankings. Who\'s hunting hardest this month?',
+  },
 }
 
 import { createClient } from '@/lib/supabase-server'

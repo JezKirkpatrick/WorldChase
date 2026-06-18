@@ -8,6 +8,17 @@ export const metadata: Metadata = {
   title: 'How to Play',
   description: 'Learn how to play World Chase — the weekly competitive geography game. Solve cryptic clues, explore Google Maps, hunt for tokens, and climb the global leaderboard.',
   keywords: ['how to play world chase', 'geography game rules', 'geography quiz guide', 'learn geography game'],
+  openGraph: {
+    title: 'How to Play World Chase — Geography Game Guide',
+    description: 'New to World Chase? Learn how to solve cryptic riddles, explore Google Maps, drop pins, collect tokens, and climb the global leaderboard. Free to play.',
+    url: 'https://www.worldchase.net/how-to-play',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'How to Play World Chase — Geography Game Guide',
+    description: 'New to the game? Learn how to hunt, explore, and climb the leaderboard.',
+  },
 }
 
 const STEPS = [
