@@ -1,0 +1,104 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Create Bubblewrap config
+        run: |
+          mkdir -p android-app
+          cat > android-app/twa-manifest.json << 'EOF'
+          {
+            "packageId": "net.worldchase.app",
+            "host": "www.worldchase.net",
+            "name": "World Chase",
+            "launcherName": "WorldChase",
+            "display": "standalone",
+            "themeColor": "#0B1628",
+            "themeColorDark": "#0B1628",
+            "navigationColor": "#0B1628",
+            "navigationColorDark": "#0B1628",
+            "navigationDividerColor": "#0B1628",
+            "navigationDividerColorDark": "#0B1628",
+            "backgroundColor": "#0B1628",
+            "enableSiteSettingsShortcut": true,
+            "iconUrl": "https://www.worldchase.net/icons/icon-512.png",
+            "maskableIconUrl": "https://www.worldchase.net/icons/icon-maskable-512.png",
+            "monochromeIconUrl": "",
+            "startUrl": "/dashboard",
+            "webManifestUrl": "https://www.worldchase.net/manifest.webmanifest",
+            "orientation": "portrait",
+            "serviceWorkerEnabled": true,
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "generatorAppVersion": "1.22.1",
+            "signingKey": {
+              "path": "android.keystore",
+              "alias": "worldchase"
+            },
+            "appVersionName": "1.0.0",
+            "appVersionCode": 1,
+            "minSdkVersion": 19,
+            "enableNotifications": true,
+            "features": [],
+            "alphaDependencies": { "enabled": false },
+            "enableSiteSettingsShortcut": true,
+            "fallbackType": "customtabs",
+            "splashScreenFadeOutDuration": 300,
+            "isChromeOSOnly": false,
+            "isMetaQuest": false,
+            "fullScopeUrl": "https://www.worldchase.net/",
+            "minSdkVersion": 19,
+            "sdkVersion": 34
+          }
+          EOF
+
+      - name: Generate signing key
+        working-directory: android-app
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore android.keystore \
+            -alias worldchase \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass WorldChase2026 \
+            -keypass WorldChase2026 \
+            -dname "CN=World Chase, OU=App, O=WorldChase, L=Auckland, S=Auckland, C=NZ"
+
+      - name: Init Bubblewrap project
+        working-directory: android-app
+        run: bubblewrap init --manifest https://www.worldchase.net/manifest.webmanifest --directory .
+
+      - name: Build APK and AAB
+        working-directory: android-app
+        run: bubblewrap build --skipPwaValidation
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: worldchase-android
+          path: |
+            android-app/app-release-signed.apk
+            android-app/app-release-bundle.aab
+            android-app/android.keystore
+          retention-days: 30
