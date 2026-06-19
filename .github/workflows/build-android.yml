@@ -83,7 +83,7 @@ jobs:
       - name: Build APK and AAB
         working-directory: android-app
         run: |
-          printf '\nWorldChase2026\nWorldChase2026\n' | \
+          printf '\nWorldChase2026\nWorldChase2026\nWorldChase2026\nWorldChase2026\n' | \
             bubblewrap build --skipPwaValidation
 
       - name: Find output files
