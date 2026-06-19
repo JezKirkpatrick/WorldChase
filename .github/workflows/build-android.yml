@@ -39,7 +39,7 @@ jobs:
             -keypass WorldChase2026 \
             -dname "CN=World Chase, OU=App, O=WorldChase, L=Auckland, S=Auckland, C=NZ"
 
-      - name: Print signing key fingerprint
+      - name: Print SHA-256 fingerprint
         working-directory: android-app
         run: |
           echo "=== SHA-256 FINGERPRINT (needed for assetlinks.json) ==="
@@ -49,26 +49,37 @@ jobs:
             -storepass WorldChase2026 \
             | grep "SHA256:"
 
-      - name: Init Bubblewrap project
+      - name: Init Bubblewrap project (non-interactive)
         working-directory: android-app
         run: |
-          bubblewrap init \
-            --manifest https://www.worldchase.net/manifest.webmanifest \
-            --directory . \
-            --packageId net.worldchase.app \
-            --host www.worldchase.net \
-            --name "World Chase" \
-            --launcherName "WorldChase" \
-            --themeColor "#0B1628" \
-            --backgroundColor "#0B1628" \
-            --startUrl "/dashboard" \
-            --orientation "portrait" \
-            --signingKeyPath android.keystore \
-            --signingKeyAlias worldchase
+          # 'n' = no to JDK install (we have JDK 17 already)
+          # Then Enter for all other prompts to accept defaults
+          printf 'n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n' | \
+            bubblewrap init \
+              --manifest https://www.worldchase.net/manifest.webmanifest \
+              --directory . || true
+          # twa-manifest.json created by init - patch the signing key paths
+          if [ -f twa-manifest.json ]; then
+            node -e "
+              const fs = require('fs');
+              const m = JSON.parse(fs.readFileSync('twa-manifest.json'));
+              m.signingKey = { path: 'android.keystore', alias: 'worldchase' };
+              fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
+              console.log('Patched twa-manifest.json');
+            "
+          fi
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
 
       - name: Build APK and AAB
         working-directory: android-app
-        run: bubblewrap build --skipPwaValidation
+        run: |
+          printf 'WorldChase2026\nWorldChase2026\n' | \
+            bubblewrap build --skipPwaValidation
+
+      - name: List output files
+        working-directory: android-app
+        run: find . -name "*.apk" -o -name "*.aab" | head -20
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -78,4 +89,5 @@ jobs:
             android-app/app-release-signed.apk
             android-app/app-release-bundle.aab
             android-app/android.keystore
+          if-no-files-found: warn
           retention-days: 90
