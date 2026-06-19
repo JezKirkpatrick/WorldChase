@@ -43,13 +43,31 @@ jobs:
       - name: Create working directory
         run: mkdir -p android-app
 
-      - name: Init Bubblewrap project
+      - name: Init Bubblewrap project (using expect to handle cert prompts)
         working-directory: android-app
-        timeout-minutes: 8
+        timeout-minutes: 10
         run: |
-          yes "" | bubblewrap init \
-            --manifest https://www.worldchase.net/manifest.webmanifest \
-            --directory . 2>&1 || true
+          which expect || sudo apt-get install -y expect
+
+          cat > /tmp/init.exp << 'SCRIPT_END'
+          set timeout 120
+          spawn bubblewrap init --manifest https://www.worldchase.net/manifest.webmanifest --directory .
+          while {1} {
+              expect {
+                  "First and Last names" { send "WorldChase\r" }
+                  "Organizational Unit"  { send "WorldChase\r" }
+                  "Organization"         { send "WorldChase\r" }
+                  "City"                 { send "London\r" }
+                  "State"                { send "England\r" }
+                  "Country Code"         { send "US\r" }
+                  ": "                   { send "\r" }
+                  timeout                { exit 1 }
+                  eof                    { break }
+              }
+          }
+          SCRIPT_END
+
+          expect /tmp/init.exp || true
           echo "--- twa-manifest.json ---"
           cat twa-manifest.json 2>/dev/null || echo "NOT CREATED"
 
@@ -67,7 +85,7 @@ jobs:
             echo "No keystore found"
           fi
 
-      - name: Build APK and AAB (no changes to apply, empty password keystore)
+      - name: Build APK and AAB
         working-directory: android-app
         timeout-minutes: 15
         run: |
