@@ -70,7 +70,7 @@ jobs:
             node -e "
               const fs = require('fs');
               const m = JSON.parse(fs.readFileSync('twa-manifest.json'));
-              m.signingKey = { path: '../android.keystore', alias: 'worldchase' };
+              m.signingKey = { path: 'android.keystore', alias: 'worldchase' };
               fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
               console.log('signingKey patched');
               console.log('packageId:', m.packageId);
@@ -83,7 +83,7 @@ jobs:
       - name: Build APK and AAB
         working-directory: android-app
         run: |
-          printf 'WorldChase2026\nWorldChase2026\n' | \
+          printf '\nWorldChase2026\nWorldChase2026\n' | \
             bubblewrap build --skipPwaValidation
 
       - name: Find output files
