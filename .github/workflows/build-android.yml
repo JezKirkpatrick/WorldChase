@@ -19,19 +19,33 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses and install build tools
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "=== SDK path: $SDK ==="
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses 2>/dev/null || true
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" \
+            "build-tools;34.0.0" \
+            "platforms;android-34" \
+            "platform-tools" 2>&1 | tail -5
+
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli@1.24.1
 
       - name: Pre-configure Bubblewrap (skip JDK/SDK prompts)
         run: |
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$SDK\"}" > ~/.bubblewrap/config.json
+          echo "=== Bubblewrap config ==="
+          cat ~/.bubblewrap/config.json
 
       - name: Create working directory
         run: mkdir -p android-app
 
-      - name: Init Bubblewrap project (all defaults, init creates keystore)
+      - name: Init Bubblewrap project
         working-directory: android-app
+        timeout-minutes: 8
         run: |
           yes "" | bubblewrap init \
             --manifest https://www.worldchase.net/manifest.webmanifest \
@@ -48,13 +62,14 @@ jobs:
             echo "=== SHA-256 FINGERPRINT ==="
             keytool -list -v -keystore "$KEYSTORE" -storepass "" 2>/dev/null | grep "SHA256:" || \
             keytool -list -v -keystore "$KEYSTORE" -storepass "android" 2>/dev/null | grep "SHA256:" || \
-            echo "Could not read fingerprint (empty or unknown password)"
+            echo "Could not read fingerprint"
           else
             echo "No keystore found"
           fi
 
       - name: Build APK and AAB (no changes to apply, empty password keystore)
         working-directory: android-app
+        timeout-minutes: 15
         run: |
           printf '\n\n\n\n\n\n' | bubblewrap build --skipPwaValidation
 
