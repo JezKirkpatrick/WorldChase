@@ -26,69 +26,41 @@ jobs:
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-          cat ~/.bubblewrap/config.json
 
       - name: Create working directory
         run: mkdir -p android-app
 
-      - name: Generate signing key
-        working-directory: android-app
-        run: |
-          keytool -genkeypair \
-            -v \
-            -keystore android.keystore \
-            -alias worldchase \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass WorldChase2026 \
-            -keypass WorldChase2026 \
-            -dname "CN=World Chase, OU=App, O=WorldChase, L=Auckland, S=Auckland, C=NZ"
-
-      - name: Print SHA-256 fingerprint
-        working-directory: android-app
-        run: |
-          echo "=== SHA-256 FINGERPRINT (needed for assetlinks.json) ==="
-          keytool -list -v \
-            -keystore android.keystore \
-            -alias worldchase \
-            -storepass WorldChase2026 \
-            | grep "SHA256:"
-
-      - name: Init Bubblewrap project
+      - name: Init Bubblewrap project (all defaults, init creates keystore)
         working-directory: android-app
         run: |
           yes "" | bubblewrap init \
             --manifest https://www.worldchase.net/manifest.webmanifest \
             --directory . 2>&1 || true
-          ls -la
+          echo "--- twa-manifest.json ---"
+          cat twa-manifest.json 2>/dev/null || echo "NOT CREATED"
 
-      - name: Patch signing key in twa-manifest.json
+      - name: Print SHA-256 fingerprint
         working-directory: android-app
         run: |
-          if [ -f twa-manifest.json ]; then
-            node -e "
-              const fs = require('fs');
-              const m = JSON.parse(fs.readFileSync('twa-manifest.json'));
-              m.signingKey = { path: 'android.keystore', alias: 'worldchase' };
-              fs.writeFileSync('twa-manifest.json', JSON.stringify(m, null, 2));
-              console.log('signingKey patched');
-              console.log('packageId:', m.packageId);
-            "
+          KEYSTORE=$(find . -name "*.keystore" 2>/dev/null | head -1)
+          if [ -n "$KEYSTORE" ]; then
+            echo "=== Keystore: $KEYSTORE ==="
+            echo "=== SHA-256 FINGERPRINT ==="
+            keytool -list -v -keystore "$KEYSTORE" -storepass "" 2>/dev/null | grep "SHA256:" || \
+            keytool -list -v -keystore "$KEYSTORE" -storepass "android" 2>/dev/null | grep "SHA256:" || \
+            echo "Could not read fingerprint (empty or unknown password)"
           else
-            echo "ERROR: twa-manifest.json not created"
-            exit 1
+            echo "No keystore found"
           fi
 
-      - name: Build APK and AAB
+      - name: Build APK and AAB (no changes to apply, empty password keystore)
         working-directory: android-app
         run: |
-          printf '\nWorldChase2026\nWorldChase2026\nWorldChase2026\nWorldChase2026\nWorldChase2026\nWorldChase2026\n' | \
-            bubblewrap build --skipPwaValidation
+          printf '\n\n\n\n\n\n' | bubblewrap build --skipPwaValidation
 
       - name: Find output files
         working-directory: android-app
-        run: find . -name "*.apk" -o -name "*.aab" 2>/dev/null
+        run: find . -name "*.apk" -o -name "*.aab" 2>/dev/null || echo "No APK/AAB found"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -97,6 +69,6 @@ jobs:
           path: |
             android-app/app-release-signed.apk
             android-app/app-release-bundle.aab
-            android-app/android.keystore
+            android-app/*.keystore
           if-no-files-found: warn
           retention-days: 90
