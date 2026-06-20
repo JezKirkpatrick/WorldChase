@@ -61,7 +61,7 @@ jobs:
                   "State"                { send "England\r" }
                   "Country Code"         { send "US\r" }
                   ": "                   { send "\r" }
-                  timeout                { break }
+                  timeout                { set timeout -1; exp_continue }
                   eof                    { break }
               }
           }
