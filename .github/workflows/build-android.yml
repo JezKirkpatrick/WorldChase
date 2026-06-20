@@ -149,7 +149,22 @@ jobs:
         working-directory: android-app
         timeout-minutes: 15
         run: |
-          printf 'android\nandroid\nandroid\nandroid\n' | bubblewrap build --skipPwaValidation
+          which expect || sudo apt-get install -y expect
+
+          cat > /tmp/build.exp << 'SCRIPT_END'
+          set timeout 300
+          spawn bubblewrap build --skipPwaValidation
+          while {1} {
+              expect {
+                  -re {Y/n}         { send "Y\r" }
+                  -re {[Pp]assword} { send "android\r" }
+                  timeout           { set timeout -1; exp_continue }
+                  eof               { break }
+              }
+          }
+          SCRIPT_END
+
+          expect /tmp/build.exp
 
       - name: Find output files
         working-directory: android-app
