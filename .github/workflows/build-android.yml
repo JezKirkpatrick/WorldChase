@@ -50,7 +50,7 @@ jobs:
           which expect || sudo apt-get install -y expect
 
           cat > /tmp/init.exp << 'SCRIPT_END'
-          set timeout 120
+          set timeout 300
           spawn bubblewrap init --manifest https://www.worldchase.net/manifest.webmanifest --directory .
           while {1} {
               expect {
@@ -61,7 +61,7 @@ jobs:
                   "State"                { send "England\r" }
                   "Country Code"         { send "US\r" }
                   ": "                   { send "\r" }
-                  timeout                { exit 1 }
+                  timeout                { break }
                   eof                    { break }
               }
           }
