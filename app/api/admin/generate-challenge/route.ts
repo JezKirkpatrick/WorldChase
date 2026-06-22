@@ -22,16 +22,21 @@ AVOID: ${eventTheme.avoidRegions}\n`
 ${themeSection}
 Generate ONE Street View Observation challenge for Round ${roundNumber}, difficulty: ${difficulty.toUpperCase()}.
 
-Pick a REAL, visually interesting street, square, market, or landmark that has OFFICIAL Google Street View car coverage (blue lines on Google Maps) — NOT user-contributed 360° photos. The location must have navigable street-level imagery with road arrows so players can walk along the street.
-The observation question must be answerable by carefully looking at the Street View imagery.
-Questions should be specific and have a clear, unambiguous answer.
+CRITICAL — STREET VIEW COVERAGE REQUIREMENT:
+The location MUST have official Google Street View car coverage (blue road lines on Google Maps). Players will be dropped into live Street View — if it doesn't exist the round breaks entirely.
+SAFE REGIONS with extensive Street View: Western Europe, North America, Japan, South Korea, Australia, New Zealand, Brazil major cities, South Africa major cities, major cities in Southeast Asia.
+AVOID for EASY/MEDIUM rounds: Pacific islands (Cook Islands, Tonga, Samoa, Fiji, Solomon Islands, Vanuatu etc.), most of Sub-Saharan Africa (outside major cities), Central Asia, rural India, rural Southeast Asia. These regions often have NO car Street View.
+For HARD/EXTREME/PRO: you may pick more obscure areas but the specific road/street you give MUST have the blue Google car line — not just photo spheres. Verify by imagining the exact GPS coordinates exist on a main/secondary road, not a remote trail.
+NOT user-contributed 360° photos. The location must have navigable street-level imagery with road arrows so players can walk along the street.
+
+The observation question must be answerable by carefully looking at the Street View imagery. Questions should be specific with a clear, unambiguous answer.
 
 DIFFICULTY GUIDE for observation questions:
-- EASY: Count something large and obvious (flags, vehicles, market stalls) on a famous street in the theme region. The answer must be a simple small number (1–9) anyone can count at a glance.
-- MEDIUM: Identify something specific (color, word, symbol) on a recognizable but less-famous location in the theme region.
-- HARD: Count or identify something subtle on an obscure street or small town.
-- EXTREME: Spot a tiny or hidden detail in a very remote or unusual location.
-- PRO: An absurdly obscure location — a ghost town, micro-territory, unnamed island, or place so remote it barely appears on Google Maps. The observation detail must be nearly impossible to spot without careful navigation.
+- EASY: A world-famous street, boulevard, or plaza in a major tourist city (Paris, Tokyo, New York, London, Sydney, Rome, etc.). Count something large and obvious (flags, vehicles, market stalls). Answer must be a simple small number (1–9).
+- MEDIUM: Identify something specific (color, word, symbol) on a recognizable but less-famous location in a well-covered country.
+- HARD: Count or identify something subtle on a less-visited but still Street View covered street or small town.
+- EXTREME: Spot a tiny or hidden detail in an unusual but car-covered location.
+- PRO: An obscure location that still has blue car Street View lines — a small town, unusual road, or remote settlement with confirmed coverage. NOT an unmapped island. The detail must be nearly impossible to spot.
 
 CLUE WRITING RULES — CRITICAL:
 Players are dropped into Google Street View with NO idea where to look or which way to navigate. Every clue MUST contain two parts:
