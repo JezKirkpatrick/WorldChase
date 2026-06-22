@@ -36,17 +36,23 @@ export async function POST(req: NextRequest) {
     .select('id, name')
     .eq('status', 'active')
 
-  const eventsToGenerate: { id: string; name: string }[] = []
+  // Build list of events with their missing round numbers
+  const eventsToGenerate: { id: string; name: string; missingRounds: number[] }[] = []
   for (const event of activeEvents ?? []) {
-    const { count } = await supabase
+    const { data: existing } = await supabase
       .from('challenges')
-      .select('id', { count: 'exact', head: true })
+      .select('round_number')
       .eq('event_id', event.id)
-    if ((count ?? 0) === 0) eventsToGenerate.push(event)
+    const existingRounds = new Set((existing ?? []).map(c => c.round_number))
+    const missingRounds = []
+    for (let r = 1; r <= 25; r++) {
+      if (!existingRounds.has(r)) missingRounds.push(r)
+    }
+    if (missingRounds.length > 0) eventsToGenerate.push({ ...event, missingRounds })
   }
 
   if (eventsToGenerate.length === 0)
-    return NextResponse.json({ success: true, message: 'No events need generation' })
+    return NextResponse.json({ success: true, message: 'All events complete' })
 
   const { data: recentEvents } = await supabase
     .from('monthly_events')
@@ -74,11 +80,22 @@ export async function POST(req: NextRequest) {
   for (const event of eventsToGenerate) {
     const themeId = inferThemeId(event.name)
     const theme = EVENT_THEMES.find(t => t.id === themeId) ?? EVENT_THEMES[0]
-    const existingLocations = [...recentExclusions]
+
+    const { data: existingChallenges } = await supabase
+      .from('challenges')
+      .select('location_name, location_country')
+      .eq('event_id', event.id)
+
+    const existingLocations = [
+      ...recentExclusions,
+      ...(existingChallenges ?? [])
+        .filter(c => c.location_name)
+        .map(c => c.location_country ? `${c.location_name}, ${c.location_country}` : c.location_name),
+    ]
     const failedRounds: number[] = []
     let generatedCount = 0
 
-    for (let round = 1; round <= 25; round++) {
+    for (const round of event.missingRounds) {
       try {
         const res = await fetch(`${origin}/api/admin/generate-challenge`, {
           method: 'POST',
