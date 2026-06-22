@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     const tokenCount = 2 + Math.floor(Math.random() * 3)
     await fetch(`${req.nextUrl.origin}/api/admin/generate-hidden-tokens`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-internal-secret': process.env.CRON_SECRET ?? '' },
       body: JSON.stringify({
         challengeId: data.id,
         centerLat: challengeData.location_lat,

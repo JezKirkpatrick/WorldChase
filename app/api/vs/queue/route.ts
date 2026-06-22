@@ -144,9 +144,10 @@ export async function POST(req: NextRequest) {
     }),
   ])
 
+  const queueExpiry = new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour to find a match
   const { data: match, error } = await admin
     .from('vs_matches')
-    .insert({ challenge_id: challenge.id, challenger_id: user.id, wager, match_type: 'queue' })
+    .insert({ challenge_id: challenge.id, challenger_id: user.id, wager, match_type: 'queue', expires_at: queueExpiry })
     .select('id')
     .single()
 

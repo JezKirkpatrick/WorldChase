@@ -8,7 +8,7 @@ interface CountdownTimerProps {
 
 export default function CountdownTimer({ seconds, speedBonusWindow = 600 }: CountdownTimerProps) {
   const isSpeedWindow = seconds < speedBonusWindow
-  const isCritical = seconds > 1500
+  const isCritical = seconds < 120
 
   return (
     <div className={`flex items-center gap-1.5 font-mono font-bold ${isCritical ? 'text-danger animate-pulse' : isSpeedWindow ? 'text-success' : 'text-electric'}`}>

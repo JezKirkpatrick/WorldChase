@@ -28,9 +28,17 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: match } = await admin.from('vs_matches').select('*').eq('id', matchId).single()
+  const { data: match } = await admin.from('vs_matches').select('*').eq('id', matchId).maybeSingle()
   if (!match) return NextResponse.json({ error: 'Duel not found' }, { status: 404 })
   if (match.status !== 'active') return NextResponse.json({ error: 'Duel not active' }, { status: 400 })
+
+  // Enforce VS duel time limit server-side (30 min for WC)
+  if (match.started_at) {
+    const elapsedMs = Date.now() - new Date(match.started_at).getTime()
+    if (elapsedMs > 1800 * 1000) {
+      return NextResponse.json({ error: 'Duel time limit exceeded' }, { status: 400 })
+    }
+  }
 
   const isChallenger = match.challenger_id === user.id
   const isOpponent = match.opponent_id === user.id
@@ -40,7 +48,7 @@ export async function POST(req: NextRequest) {
     .from('challenges')
     .select('answer_keywords, location_name')
     .eq('id', match.challenge_id)
-    .single()
+    .maybeSingle()
 
   if (!challenge) return NextResponse.json({ error: 'Challenge not found' }, { status: 404 })
 
