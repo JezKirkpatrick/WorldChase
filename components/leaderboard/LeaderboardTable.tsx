@@ -261,7 +261,8 @@ export default function LeaderboardTable({ eventId, currentUserId, userCountry }
   }
 
   const filteredTop = rerank(filterByCountry(top))
-  const filteredNbh = neighbourhood ? rerank(filterByCountry(neighbourhood)) : null
+  // Neighbourhood keeps server ranks — reranking would reset them to 1, 2, 3...
+  const filteredNbh = neighbourhood ?? null
   const filteredAll = rerank(filterByCountry(allEntries))
 
   const countLabel = scope === 'country' && selectedCountry

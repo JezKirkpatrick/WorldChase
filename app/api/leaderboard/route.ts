@@ -82,8 +82,9 @@ export async function GET(req: NextRequest) {
     const lbMap: Record<string, any> = {}
     for (const row of (lbRows as any[]) ?? []) lbMap[row.user_id] = row
 
+    // Only include users who have an actual leaderboard entry for this event
     const allUserIds = new Set<string>()
-    for (const p of (profiles as any[]) ?? []) allUserIds.add(p.id)
+    for (const row of (lbRows as any[]) ?? []) allUserIds.add(row.user_id)
 
     const merged = Array.from(allUserIds).map(uid => ({
       user_id:              uid,
