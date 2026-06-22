@@ -1,7 +1,8 @@
 {
   "crons": [
     { "path": "/api/cron/weekly-reset",    "schedule": "0 0 * * 1" },
-    { "path": "/api/cron/weekly-generate", "schedule": "5 0 * * 1" },
+    { "path": "/api/cron/weekly-generate", "schedule": "15 0 * * 1" },
+    { "path": "/api/cron/check-event",     "schedule": "0 6 * * *" },
     { "path": "/api/cron/daily-bonus",     "schedule": "0 8 * * *" },
     { "path": "/api/cron/daily-quiz",      "schedule": "0 0 * * *" },
     { "path": "/api/cron/daily-flag-pick", "schedule": "0 23 * * *" }
