@@ -100,7 +100,7 @@ function EntryRow({ entry, isMe, delay = 0, allTime = false }: { entry: any; isM
         <span className="hidden sm:block text-right font-mono text-sm text-text-muted">
           {allTime
             ? (entry.challenges_completed > 0 ? entry.challenges_completed : '—')
-            : (entry.challenges_completed > 0 ? `${entry.challenges_completed}/20` : '—')}
+            : (entry.challenges_completed > 0 ? `${entry.challenges_completed}/25` : '—')}
         </span>
         <span className={`text-right font-mono font-bold text-sm ${rank != null && (rank <= 3 || isMe) ? 'text-gold' : 'text-white'}`}>
           {entry.total_score > 0 ? entry.total_score.toLocaleString() : '—'}
@@ -108,7 +108,7 @@ function EntryRow({ entry, isMe, delay = 0, allTime = false }: { entry: any; isM
         <div className="hidden md:block text-right">
           {allTime
             ? <span className="text-xs text-electric font-head">{entry.challenges_completed} rounds</span>
-            : entry.challenges_completed === 20
+            : entry.challenges_completed === 25
               ? <span className="text-xs text-success font-head tracking-wider">✓ DONE</span>
               : <span className="text-xs text-electric font-head">HUNTING</span>}
         </div>
