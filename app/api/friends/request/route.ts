@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { createClient, createServiceClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +11,8 @@ export async function POST(req: Request) {
   const { targetUserId } = await req.json()
   if (!targetUserId || targetUserId === user.id) return NextResponse.json({ error: 'Invalid target' }, { status: 400 })
 
-  const { error } = await supabase.from('friendships').insert({
+  const service = createServiceClient()
+  const { error } = await service.from('friendships').insert({
     requester_id: user.id,
     addressee_id: targetUserId,
     status: 'pending',

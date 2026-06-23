@@ -27,16 +27,28 @@ export default function AdminPlayersPage() {
     if (!selected) return
     const amount = parseInt(grantAmount)
     if (!amount) return
-    await supabase.rpc('adjust_tokens', { p_user_id: selected.id, p_amount: amount })
-    await supabase.from('token_transactions').insert({ user_id: selected.id, type: 'admin_grant', amount, description: `Admin grant` })
-    setSelected(p => p ? { ...p, tokens: p.tokens + amount } : null)
-    setGrantAmount('')
+    const res = await fetch('/api/admin/players/grant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: selected.id, amount }),
+    })
+    if (res.ok) {
+      setSelected(p => p ? { ...p, tokens: p.tokens + amount } : null)
+      setGrantAmount('')
+    }
   }
 
   async function toggleBan(player: Profile) {
-    await supabase.from('profiles').update({ is_banned: !player.is_banned }).eq('id', player.id)
-    setResults(prev => prev.map(p => p.id === player.id ? { ...p, is_banned: !p.is_banned } : p))
-    if (selected?.id === player.id) setSelected(p => p ? { ...p, is_banned: !p.is_banned } : null)
+    const newBan = !player.is_banned
+    const res = await fetch('/api/admin/players/ban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: player.id, ban: newBan }),
+    })
+    if (res.ok) {
+      setResults(prev => prev.map(p => p.id === player.id ? { ...p, is_banned: newBan } : p))
+      if (selected?.id === player.id) setSelected(p => p ? { ...p, is_banned: newBan } : null)
+    }
   }
 
   return (

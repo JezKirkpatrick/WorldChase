@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { createClient, createServiceClient } from '@/lib/supabase-server'
 import { ACHIEVEMENTS } from '@/lib/achievements'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,8 @@ export async function POST(req: Request) {
     if (!claimed) return NextResponse.json({ error: 'Achievement not earned' }, { status: 403 })
   }
 
-  const { error } = await supabase
+  const service = createServiceClient()
+  const { error } = await service
     .from('profiles')
     .update({ equipped_badge: achievementId ?? null })
     .eq('id', user.id)

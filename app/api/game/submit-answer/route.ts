@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const safeGuess = String(guessText).slice(0, 200)
 
     const [challengeRes, progressRes] = await Promise.all([
-      supabase.from('challenges').select('*').eq('id', challengeId).single(),
+      supabase.from('challenges').select('*').eq('id', challengeId).maybeSingle(),
       supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', userId).maybeSingle(),
     ])
 
@@ -70,6 +70,14 @@ export async function POST(req: NextRequest) {
 
     const maxAttempts = challenge.difficulty === 'easy' ? 10 : 5
     if (progress.attempts >= maxAttempts) return NextResponse.json({ error: 'Max attempts reached' }, { status: 400 })
+
+    // Enforce the round time limit server-side
+    if (progress.started_at && challenge.time_limit_seconds) {
+      const elapsed = Math.floor((Date.now() - new Date(progress.started_at).getTime()) / 1000)
+      if (elapsed > challenge.time_limit_seconds) {
+        return NextResponse.json({ error: 'Time limit exceeded — round is locked' }, { status: 400 })
+      }
+    }
 
     const quickMatch = keywordMatch(safeGuess, challenge.answer_keywords ?? [])
 
@@ -97,9 +105,9 @@ export async function POST(req: NextRequest) {
       const raw     = aiResponse.content[0].type === 'text' ? aiResponse.content[0].text : '{}'
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
       let result: any = {}
-      try { result = JSON.parse(cleaned) } catch { /* fall through to safe defaults */ }
-      // Strict boolean — !! would convert the string "false" to true, marking wrong answers correct
-      is_correct  = result.is_correct === true
+      try { result = JSON.parse(cleaned) } catch { /* fall through to keyword match */ }
+      // Fall back to keyword match if AI response is unparseable — don't penalise correct answers for AI failures
+      is_correct  = 'is_correct' in result ? result.is_correct === true : quickMatch
       feedback    = typeof result.feedback === 'string' ? result.feedback : (is_correct ? 'Correct!' : 'Not quite — keep hunting.')
       confidence  = typeof result.confidence === 'number' ? result.confidence : (is_correct ? 1.0 : 0.0)
     }
@@ -163,7 +171,7 @@ export async function POST(req: NextRequest) {
           .select('rank')
           .eq('user_id', userId)
           .eq('event_id', challenge.event_id)
-          .single()
+          .maybeSingle()
         if (newRankData?.rank) {
           // Find players we just passed (rank was between their old rank and new rank)
           const { data: overtaken } = await supabase

@@ -37,21 +37,24 @@ export async function POST(req: NextRequest) {
     // One-time purchase
     if (!userId || !tokens) return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
     const paymentIntentId = session.payment_intent as string
-
-    const { data: existing } = await supabase
-      .from('token_transactions').select('id')
-      .eq('stripe_payment_id', paymentIntentId).maybeSingle()
-    if (existing) return NextResponse.json({ received: true })
-
     const tokenAmount = parseInt(tokens)
-    await Promise.all([
-      supabase.rpc('adjust_tokens', { p_user_id: userId, p_amount: tokenAmount }),
-      supabase.from('token_transactions').insert({
+
+    // Insert first — unique constraint on stripe_payment_id prevents double-processing
+    // even if Stripe retries the webhook simultaneously. Only grant tokens if insert lands.
+    const { data: txn, error: txnError } = await supabase
+      .from('token_transactions')
+      .insert({
         user_id: userId, type: 'purchase', amount: tokenAmount,
         stripe_payment_id: paymentIntentId,
         description: `Purchased ${tokenAmount} tokens`,
-      }),
-    ])
+      })
+      .select('id')
+      .maybeSingle()
+
+    if (txnError?.code === '23505') return NextResponse.json({ received: true }) // duplicate webhook
+    if (txnError || !txn) return NextResponse.json({ error: 'DB error' }, { status: 500 })
+
+    await supabase.rpc('adjust_tokens', { p_user_id: userId, p_amount: tokenAmount })
   }
 
   // ── Subscription cancelled / expired ────────────────────────────────
