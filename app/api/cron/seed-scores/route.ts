@@ -6,31 +6,31 @@ export const dynamic = 'force-dynamic'
 // Scores use avg per-round values: easy≈750, medium≈1100, hard≈2000, extreme≈3200, pro≈5500
 // Difficulty ladder: rounds 1-5 easy, 6-10 medium, 11-15 hard, 16-20 extreme, 21-25 pro
 const FAKE_PLAYERS = [
-  { id: 'f0000001-f001-4000-a001-000000000001', username: 'MapMaster_X',    country: 'United States',  country_code: 'us', equipped_avatar: '🗺️', completedRounds: 25, baseScore: 62750 },
-  { id: 'f0000001-f001-4000-a001-000000000002', username: 'GeoQuest_Pro',   country: 'United Kingdom', country_code: 'gb', equipped_avatar: '🧭', completedRounds: 25, baseScore: 61200 },
-  { id: 'f0000001-f001-4000-a001-000000000003', username: 'AtlasHunter',    country: 'Australia',      country_code: 'au', equipped_avatar: '🌏', completedRounds: 25, baseScore: 59800 },
-  { id: 'f0000001-f001-4000-a001-000000000004', username: 'ChaseMaster',    country: 'Sweden',         country_code: 'se', equipped_avatar: '🏹', completedRounds: 25, baseScore: 58100 },
-  { id: 'f0000001-f001-4000-a001-000000000005', username: 'TerraMaster',    country: 'Japan',          country_code: 'jp', equipped_avatar: '⛩️', completedRounds: 24, baseScore: 57250 },
-  { id: 'f0000001-f001-4000-a001-000000000006', username: 'NomadHero',      country: 'Norway',         country_code: 'no', equipped_avatar: '🧭', completedRounds: 24, baseScore: 56000 },
-  { id: 'f0000001-f001-4000-a001-000000000007', username: 'GlobeTracer',    country: 'South Korea',    country_code: 'kr', equipped_avatar: '🔭', completedRounds: 23, baseScore: 51750 },
-  { id: 'f0000001-f001-4000-a001-000000000008', username: 'HuntPro',        country: 'Chile',          country_code: 'cl', equipped_avatar: '🏔️', completedRounds: 23, baseScore: 50500 },
-  { id: 'f0000001-f001-4000-a001-000000000009', username: 'TravelRacer88',  country: 'New Zealand',    country_code: 'nz', equipped_avatar: '✈️', completedRounds: 22, baseScore: 46250 },
-  { id: 'f0000001-f001-4000-a001-000000000010', username: 'WayfinderX',     country: 'Netherlands',    country_code: 'nl', equipped_avatar: '🌤️', completedRounds: 22, baseScore: 45100 },
-  { id: 'f0000001-f001-4000-a001-000000000011', username: 'OceanHunter',    country: 'Spain',          country_code: 'es', equipped_avatar: '🌊', completedRounds: 21, baseScore: 40750 },
-  { id: 'f0000001-f001-4000-a001-000000000012', username: 'GlobeTrekker',   country: 'Canada',         country_code: 'ca', equipped_avatar: '🌐', completedRounds: 21, baseScore: 39600 },
-  { id: 'f0000001-f001-4000-a001-000000000013', username: 'MapNinja',       country: 'Brazil',         country_code: 'br', equipped_avatar: '⚡', completedRounds: 20, baseScore: 35250 },
-  { id: 'f0000001-f001-4000-a001-000000000014', username: 'LandmarkPro',    country: 'Argentina',      country_code: 'ar', equipped_avatar: '🏟️', completedRounds: 20, baseScore: 34200 },
-  { id: 'f0000001-f001-4000-a001-000000000015', username: 'RouteRacer',     country: 'Germany',        country_code: 'de', equipped_avatar: '🏎️', completedRounds: 19, baseScore: 32050 },
-  { id: 'f0000001-f001-4000-a001-000000000016', username: 'GeoHawk',        country: 'Nigeria',        country_code: 'ng', equipped_avatar: '🦅', completedRounds: 19, baseScore: 31000 },
-  { id: 'f0000001-f001-4000-a001-000000000017', username: 'SavannaRex',     country: 'Kenya',          country_code: 'ke', equipped_avatar: '🦁', completedRounds: 18, baseScore: 28850 },
-  { id: 'f0000001-f001-4000-a001-000000000018', username: 'TrailBlazer',    country: 'India',          country_code: 'in', equipped_avatar: '🏕️', completedRounds: 18, baseScore: 27800 },
-  { id: 'f0000001-f001-4000-a001-000000000019', username: 'HorizonPro',     country: 'Poland',         country_code: 'pl', equipped_avatar: '🌅', completedRounds: 17, baseScore: 25650 },
-  { id: 'f0000001-f001-4000-a001-000000000020', username: 'GeoScholar',     country: 'Philippines',    country_code: 'ph', equipped_avatar: '📚', completedRounds: 17, baseScore: 24700 },
-  { id: 'f0000001-f001-4000-a001-000000000021', username: 'WanderWarrior',  country: 'Singapore',      country_code: 'sg', equipped_avatar: '⚔️', completedRounds: 16, baseScore: 22450 },
-  { id: 'f0000001-f001-4000-a001-000000000022', username: 'MapRanger',      country: 'Czech Republic', country_code: 'cz', equipped_avatar: '🧭', completedRounds: 16, baseScore: 21600 },
-  { id: 'f0000001-f001-4000-a001-000000000023', username: 'SkyWatcher',     country: 'Portugal',       country_code: 'pt', equipped_avatar: '🌤️', completedRounds: 15, baseScore: 19250 },
-  { id: 'f0000001-f001-4000-a001-000000000024', username: 'TrailFinder',    country: 'Morocco',        country_code: 'ma', equipped_avatar: '🌄', completedRounds: 15, baseScore: 18500 },
-  { id: 'f0000001-f001-4000-a001-000000000025', username: 'ExploreXtreme',  country: 'Turkey',         country_code: 'tr', equipped_avatar: '🔍', completedRounds: 14, baseScore: 17250 },
+  { id: 'f0000001-f001-4000-a001-000000000001', username: 'jake_92',      country: 'United States',  country_code: 'us', equipped_avatar: '🌍', completedRounds: 25, baseScore: 62750 },
+  { id: 'f0000001-f001-4000-a001-000000000002', username: 'sarahm',       country: 'United Kingdom', country_code: 'gb', equipped_avatar: '🌎', completedRounds: 25, baseScore: 61200 },
+  { id: 'f0000001-f001-4000-a001-000000000003', username: 'tom_b83',      country: 'Australia',      country_code: 'au', equipped_avatar: '🌏', completedRounds: 25, baseScore: 59800 },
+  { id: 'f0000001-f001-4000-a001-000000000004', username: 'mikeyg',       country: 'Sweden',         country_code: 'se', equipped_avatar: '⚡', completedRounds: 25, baseScore: 58100 },
+  { id: 'f0000001-f001-4000-a001-000000000005', username: 'pete77',       country: 'Japan',          country_code: 'jp', equipped_avatar: '🎯', completedRounds: 24, baseScore: 57250 },
+  { id: 'f0000001-f001-4000-a001-000000000006', username: 'dani_k',       country: 'Norway',         country_code: 'no', equipped_avatar: '🏔️', completedRounds: 24, baseScore: 56000 },
+  { id: 'f0000001-f001-4000-a001-000000000007', username: 'russ_nz',      country: 'South Korea',    country_code: 'kr', equipped_avatar: '🌊', completedRounds: 23, baseScore: 51750 },
+  { id: 'f0000001-f001-4000-a001-000000000008', username: 'chrism',       country: 'Chile',          country_code: 'cl', equipped_avatar: '✈️', completedRounds: 23, baseScore: 50500 },
+  { id: 'f0000001-f001-4000-a001-000000000009', username: 'benhunt',      country: 'New Zealand',    country_code: 'nz', equipped_avatar: '🗺️', completedRounds: 22, baseScore: 46250 },
+  { id: 'f0000001-f001-4000-a001-000000000010', username: 'ellie_j',      country: 'Netherlands',    country_code: 'nl', equipped_avatar: '🌸', completedRounds: 22, baseScore: 45100 },
+  { id: 'f0000001-f001-4000-a001-000000000011', username: 'adam_k',       country: 'Spain',          country_code: 'es', equipped_avatar: '🔥', completedRounds: 21, baseScore: 40750 },
+  { id: 'f0000001-f001-4000-a001-000000000012', username: 'lucy_r',       country: 'Canada',         country_code: 'ca', equipped_avatar: '⭐', completedRounds: 21, baseScore: 39600 },
+  { id: 'f0000001-f001-4000-a001-000000000013', username: 'robw',         country: 'Brazil',         country_code: 'br', equipped_avatar: '🏄', completedRounds: 20, baseScore: 35250 },
+  { id: 'f0000001-f001-4000-a001-000000000014', username: 'kez_uk',       country: 'Argentina',      country_code: 'ar', equipped_avatar: '💫', completedRounds: 20, baseScore: 34200 },
+  { id: 'f0000001-f001-4000-a001-000000000015', username: 'nath_p',       country: 'Germany',        country_code: 'de', equipped_avatar: '🚀', completedRounds: 19, baseScore: 32050 },
+  { id: 'f0000001-f001-4000-a001-000000000016', username: 'stevo88',      country: 'Nigeria',        country_code: 'ng', equipped_avatar: '🦊', completedRounds: 19, baseScore: 31000 },
+  { id: 'f0000001-f001-4000-a001-000000000017', username: 'jess_m',       country: 'Kenya',          country_code: 'ke', equipped_avatar: '🌺', completedRounds: 18, baseScore: 28850 },
+  { id: 'f0000001-f001-4000-a001-000000000018', username: 'davec',        country: 'India',          country_code: 'in', equipped_avatar: '🎲', completedRounds: 18, baseScore: 27800 },
+  { id: 'f0000001-f001-4000-a001-000000000019', username: 'leah_g',       country: 'Poland',         country_code: 'pl', equipped_avatar: '🌙', completedRounds: 17, baseScore: 25650 },
+  { id: 'f0000001-f001-4000-a001-000000000020', username: 'mark99',       country: 'Philippines',    country_code: 'ph', equipped_avatar: '🏆', completedRounds: 17, baseScore: 24700 },
+  { id: 'f0000001-f001-4000-a001-000000000021', username: 'carl_j',       country: 'Singapore',      country_code: 'sg', equipped_avatar: '🎮', completedRounds: 16, baseScore: 22450 },
+  { id: 'f0000001-f001-4000-a001-000000000022', username: 'kat_b',        country: 'Czech Republic', country_code: 'cz', equipped_avatar: '🦋', completedRounds: 16, baseScore: 21600 },
+  { id: 'f0000001-f001-4000-a001-000000000023', username: 'dan_h',        country: 'Portugal',       country_code: 'pt', equipped_avatar: '🎯', completedRounds: 15, baseScore: 19250 },
+  { id: 'f0000001-f001-4000-a001-000000000024', username: 'emma_r',       country: 'Morocco',        country_code: 'ma', equipped_avatar: '🌴', completedRounds: 15, baseScore: 18500 },
+  { id: 'f0000001-f001-4000-a001-000000000025', username: 'kieran7',      country: 'Turkey',         country_code: 'tr', equipped_avatar: '⚽', completedRounds: 14, baseScore: 17250 },
 ]
 
 function jitter(base: number): number {
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
       tokens: 0,
       total_score_alltime: 0,
     })),
-    { onConflict: 'id', ignoreDuplicates: true }
+    { onConflict: 'id', ignoreDuplicates: false }
   )
 
   // Check who already has a leaderboard entry for this event
