@@ -13,7 +13,7 @@ const FAKE_PLAYERS = [
   { id: 'f0000001-f001-4000-a001-000000000005', username: 'pete77',       country: 'Japan',          country_code: 'jp', equipped_avatar: '🎯', completedRounds: 24, baseScore: 57250 },
   { id: 'f0000001-f001-4000-a001-000000000006', username: 'dani_k',       country: 'Norway',         country_code: 'no', equipped_avatar: '🏔️', completedRounds: 24, baseScore: 56000 },
   { id: 'f0000001-f001-4000-a001-000000000007', username: 'russ_nz',      country: 'South Korea',    country_code: 'kr', equipped_avatar: '🌊', completedRounds: 23, baseScore: 51750 },
-  { id: 'f0000001-f001-4000-a001-000000000008', username: 'chrism',       country: 'Chile',          country_code: 'cl', equipped_avatar: '✈️', completedRounds: 23, baseScore: 50500 },
+  { id: 'f0000001-f001-4000-a001-000000000008', username: 'chris_cl',     country: 'Chile',          country_code: 'cl', equipped_avatar: '✈️', completedRounds: 23, baseScore: 50500 },
   { id: 'f0000001-f001-4000-a001-000000000009', username: 'benhunt',      country: 'New Zealand',    country_code: 'nz', equipped_avatar: '🗺️', completedRounds: 22, baseScore: 46250 },
   { id: 'f0000001-f001-4000-a001-000000000010', username: 'ellie_j',      country: 'Netherlands',    country_code: 'nl', equipped_avatar: '🌸', completedRounds: 22, baseScore: 45100 },
   { id: 'f0000001-f001-4000-a001-000000000011', username: 'adam_k',       country: 'Spain',          country_code: 'es', equipped_avatar: '🔥', completedRounds: 21, baseScore: 40750 },
