@@ -1,5 +1,5 @@
 // World Chase Service Worker
-const CACHE = 'worldchase-v1'
+const CACHE = 'worldchase-v2'
 
 // Assets to pre-cache on install
 const PRECACHE = [
