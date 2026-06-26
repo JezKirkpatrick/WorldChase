@@ -9,6 +9,27 @@ export const dynamic = 'force-dynamic'
 
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 
+// Verify Street View coverage via Google's free Metadata API before saving the challenge.
+// Returns true if coverage exists (or if the check itself fails — fail open).
+async function verifyStreetView(lat: number, lng: number): Promise<boolean> {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  if (!key) return true
+  try {
+    for (const radius of [150, 500]) {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=${radius}&source=outdoor&key=${key}`,
+        { headers: { Referer: 'https://worldchase.net' } }
+      )
+      const data = await res.json()
+      if (data.status === 'OK') return true
+      if (radius === 500 && data.status === 'ZERO_RESULTS') return false
+    }
+    return true
+  } catch {
+    return true // network error — fail open so generation isn't blocked
+  }
+}
+
 function buildStreetViewPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme): string {
   const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000, pro: 10000 }
   const narrativeStyle = NARRATIVE_STYLES[(roundNumber - 1) % NARRATIVE_STYLES.length]
@@ -173,7 +194,29 @@ export async function POST(req: NextRequest) {
 
     const raw = response.content[0].type === 'text' ? response.content[0].text : '{}'
     const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
-    const challengeData = JSON.parse(cleaned)
+
+    let challengeData: any
+    try {
+      challengeData = JSON.parse(cleaned)
+    } catch {
+      return NextResponse.json({ error: 'AI returned invalid JSON — regenerate' }, { status: 422 })
+    }
+
+    // Reject placeholder 0,0 coordinates
+    if (
+      Math.abs(challengeData.location_lat ?? 0) < 0.001 &&
+      Math.abs(challengeData.location_lng ?? 0) < 0.001
+    ) {
+      return NextResponse.json({ error: 'AI returned zero coordinates — regenerate' }, { status: 422 })
+    }
+
+    // For Street View rounds, verify coverage exists before saving
+    if (isStreetViewRound) {
+      const hasCoverage = await verifyStreetView(challengeData.location_lat, challengeData.location_lng)
+      if (!hasCoverage) {
+        return NextResponse.json({ error: 'No Street View coverage at AI coordinates — regenerate' }, { status: 422 })
+      }
+    }
 
     // Validate clues — reject if the AI returned duplicates or no distinct texts
     if (Array.isArray(challengeData.clues)) {

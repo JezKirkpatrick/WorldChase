@@ -74,13 +74,13 @@ export default function MapPanel({
   const toggleStreetView = useCallback(() => {
     if (!mapRef.current) return
     const sv = mapRef.current.getStreetView()
-    const next = !sv.getVisible()
-    if (next) {
+    if (!sv.getVisible()) {
+      setSvUnavailable(false) // reset error banner before retrying
       loadOutdoorPanorama(sv, startLat, startLng, streetViewHeading, streetViewPitch)
     } else {
       sv.setVisible(false)
     }
-    setInStreetView(next)
+    // setInStreetView is handled by the 'visible_changed' listener — don't set it here
   }, [mapRef, startLat, startLng, streetViewHeading, streetViewPitch])
 
   const resetView = useCallback(() => {

@@ -85,40 +85,41 @@ export async function GET(req: NextRequest) {
       let generatedCount = 0
 
       for (let round = 1; round <= 25; round++) {
-        try {
-          const res = await fetch(`${origin}/api/admin/generate-challenge`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-cron-secret': process.env.CRON_SECRET ?? '',
-            },
-            body: JSON.stringify({
-              roundNumber: round,
-              difficulty: DIFFICULTY_FOR_ROUND(round),
-              eventId: event.id,
-              existingLocations,
-              eventTheme: theme,
-              eventName: event.name,
-            }),
-          })
+        let success = false
+        for (let attempt = 1; attempt <= 3 && !success; attempt++) {
+          try {
+            const res = await fetch(`${origin}/api/admin/generate-challenge`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-cron-secret': process.env.CRON_SECRET ?? '',
+              },
+              body: JSON.stringify({
+                roundNumber: round,
+                difficulty: DIFFICULTY_FOR_ROUND(round),
+                eventId: event.id,
+                existingLocations,
+                eventTheme: theme,
+                eventName: event.name,
+              }),
+            })
 
-          if (res.ok) {
-            const result = await res.json()
-            if (result.challenge?.location_name) {
-              const loc = result.challenge.location_country
-                ? `${result.challenge.location_name}, ${result.challenge.location_country}`
-                : result.challenge.location_name
-              existingLocations.push(loc)
-              generatedCount++
-            } else {
-              failedRounds.push(round)
+            if (res.ok) {
+              const result = await res.json()
+              if (result.challenge?.location_name) {
+                const loc = result.challenge.location_country
+                  ? `${result.challenge.location_name}, ${result.challenge.location_country}`
+                  : result.challenge.location_name
+                existingLocations.push(loc)
+                generatedCount++
+                success = true
+              }
             }
-          } else {
-            failedRounds.push(round)
-          }
-        } catch {
-          failedRounds.push(round)
+          } catch {}
+          // Brief pause between retries so we don't hammer the AI
+          if (!success && attempt < 3) await new Promise(r => setTimeout(r, 2000))
         }
+        if (!success) failedRounds.push(round)
       }
 
       results.push({ eventId: event.id, eventName: event.name, generatedCount, failedRounds })
