@@ -124,7 +124,7 @@ export default async function DashboardPage() {
           {[
             { label: 'TOKENS', value: profile?.tokens ?? 0, color: 'text-gold', href: '/tokens', glow: 'hover:shadow-[0_0_20px_rgba(245,197,24,0.15)]' },
             { label: 'SCORE',  value: leaderboardEntry?.total_score?.toLocaleString() ?? '0', color: 'text-electric', href: null, glow: '' },
-            { label: 'ROUNDS', value: `${completedCount}/20`, color: 'text-white', href: '/play', glow: '' },
+            { label: 'ROUNDS', value: `${completedCount}/25`, color: 'text-white', href: '/play', glow: '' },
             { label: 'DAYS LEFT', value: daysLeft, color: daysLeft <= 3 ? 'text-danger' : 'text-success', href: null, glow: '' },
           ].map((s, i) => (
             <div key={s.label} className={`animate-fade-up bg-navy-light border border-white/10 p-3 text-center transition-all ${s.glow}`}

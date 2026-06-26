@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
     if (!cosmeticId) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
     const [cosmeticRes, profileRes, ownedRes] = await Promise.all([
-      supabase.from('cosmetics').select('*').eq('id', cosmeticId).single(),
-      supabase.from('profiles').select('tokens').eq('id', user.id).single(),
+      supabase.from('cosmetics').select('*').eq('id', cosmeticId).maybeSingle(),
+      supabase.from('profiles').select('tokens').eq('id', user.id).maybeSingle(),
       supabase.from('user_cosmetics').select('id').eq('user_id', user.id).eq('cosmetic_id', cosmeticId).maybeSingle(),
     ])
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
-    const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', user.id).single()
+    const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', user.id).maybeSingle()
     return NextResponse.json({ newTokenBalance: profileData?.tokens ?? null })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? 'Internal error' }, { status: 500 })

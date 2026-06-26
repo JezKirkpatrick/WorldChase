@@ -16,13 +16,13 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: match } = await admin.from('vs_matches').select('*').eq('id', matchId).single()
+  const { data: match } = await admin.from('vs_matches').select('*').eq('id', matchId).maybeSingle()
   if (!match) return NextResponse.json({ error: 'Duel not found' }, { status: 404 })
   if (match.challenger_id === user.id) return NextResponse.json({ error: 'Cannot join your own duel' }, { status: 400 })
   if (match.status !== 'pending') return NextResponse.json({ error: 'Duel is no longer open' }, { status: 400 })
   if (new Date(match.expires_at) < new Date()) return NextResponse.json({ error: 'Duel has expired' }, { status: 400 })
 
-  const { data: profile } = await admin.from('profiles').select('tokens').eq('id', user.id).single()
+  const { data: profile } = await admin.from('profiles').select('tokens').eq('id', user.id).maybeSingle()
   if (!profile || profile.tokens < match.wager) {
     return NextResponse.json({ error: `Not enough tokens (need ${match.wager})` }, { status: 400 })
   }

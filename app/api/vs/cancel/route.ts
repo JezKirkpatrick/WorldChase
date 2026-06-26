@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: match } = await admin.from('vs_matches').select('*').eq('id', matchId).single()
+  const { data: match } = await admin.from('vs_matches').select('*').eq('id', matchId).maybeSingle()
   if (!match) return NextResponse.json({ error: 'Duel not found' }, { status: 404 })
   if (match.challenger_id !== user.id) return NextResponse.json({ error: 'Only the challenger can cancel' }, { status: 403 })
   if (match.status !== 'pending') return NextResponse.json({ error: 'Can only cancel pending duels' }, { status: 400 })

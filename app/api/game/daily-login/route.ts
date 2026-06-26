@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
           tokens: 1, current_streak: 0, last_login_date: null,
         })
         .select('current_streak,last_login_date,tokens')
-        .single()
+        .maybeSingle()
 
       if (createError?.code === '23505') {
         const { data: retryProfile, error: retryError } = await supabase
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             display_name: displayName, tokens: 1, current_streak: 0, last_login_date: null,
           })
           .select('current_streak,last_login_date,tokens')
-          .single()
+          .maybeSingle()
         if (retryError || !retryProfile) return NextResponse.json({ streak: 0, bonus: 0 })
         profile = retryProfile
       } else if (createError || !newProfile) {
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       ])
     }
 
-    const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).single()
+    const { data: profileData } = await supabase.from('profiles').select('tokens').eq('id', userId).maybeSingle()
     return NextResponse.json({ streak: newStreak, bonus, newTokenBalance: profileData?.tokens ?? null })
   } catch (err: any) {
     console.error('daily-login error:', err)

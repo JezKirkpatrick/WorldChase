@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         .select('hidden_tokens_found')
         .eq('user_id', user.id)
         .eq('challenge_id', challengeId)
-        .single()
+        .maybeSingle()
 
       await service.from('player_progress').update({
         hidden_tokens_found: (prog?.hidden_tokens_found ?? 0) + discoveries.length,

@@ -17,7 +17,7 @@ export default async function VsMatchPage({ params }: PageProps) {
     .from('vs_matches')
     .select('*')
     .eq('id', params.matchId)
-    .single()
+    .maybeSingle()
 
   if (!match) notFound()
 
@@ -30,7 +30,9 @@ export default async function VsMatchPage({ params }: PageProps) {
     .from('challenges')
     .select('riddle_text, clues, difficulty, location_country')
     .eq('id', match.challenge_id)
-    .single()
+    .maybeSingle()
+
+  if (!challenge) notFound()
 
   // Load both participant profiles in one query
   const participantIds = [match.challenger_id, match.opponent_id].filter(Boolean) as string[]

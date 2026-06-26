@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
   ])
 
   const { data: updatedProfile } = await admin
-    .from('profiles').select('tokens').eq('id', user.id).single()
+    .from('profiles').select('tokens').eq('id', user.id).maybeSingle()
 
   return NextResponse.json({
     correct: true,

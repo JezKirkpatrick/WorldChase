@@ -296,7 +296,7 @@ export default function GamePage({ params }: PageProps) {
     )
   }
 
-  const nextRound = challenge.round_number < 20 ? challenge.round_number + 1 : null
+  const nextRound = challenge.round_number < 25 ? challenge.round_number + 1 : null
 
   return (
     <div ref={mapContainerRef} className="relative h-dvh flex flex-col bg-navy overflow-hidden">
@@ -355,7 +355,7 @@ export default function GamePage({ params }: PageProps) {
 
       <BattleHUD
         round={challenge.round_number}
-        totalRounds={20}
+        totalRounds={25}
         difficulty={challenge.difficulty}
         timeElapsed={timeElapsed}
         rank={rank}
@@ -460,7 +460,7 @@ export default function GamePage({ params }: PageProps) {
           onClick={() => { if (mobilePanelExpanded) { collapsePanel() } else { setMobilePanelExpanded(true) } }}
         >
           <div className="flex items-center gap-2">
-            <span className="text-xs font-head text-text-muted tracking-widest">R{challenge.round_number}/20</span>
+            <span className="text-xs font-head text-text-muted tracking-widest">R{challenge.round_number}/25</span>
             <DifficultyBadge difficulty={challenge.difficulty} />
           </div>
           <div className="flex items-center gap-3">

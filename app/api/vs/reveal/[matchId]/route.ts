@@ -17,7 +17,7 @@ export async function GET(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: match } = await admin.from('vs_matches').select('*').eq('id', params.matchId).single()
+  const { data: match } = await admin.from('vs_matches').select('*').eq('id', params.matchId).maybeSingle()
   if (!match) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   // Only participants can see the answer reveal
@@ -32,7 +32,7 @@ export async function GET(
     .from('challenges')
     .select('location_name, location_country, fun_fact')
     .eq('id', match.challenge_id)
-    .single()
+    .maybeSingle()
 
   return NextResponse.json({
     locationName: challenge?.location_name,

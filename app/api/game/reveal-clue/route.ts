@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const [progressRes, profileRes, challengeRes] = await Promise.all([
       supabase.from('player_progress').select('*').eq('challenge_id', challengeId).eq('user_id', user.id).maybeSingle(),
       supabase.from('profiles').select('tokens').eq('id', user.id).maybeSingle(),
-      supabase.from('challenges').select('id, event_id, clues, difficulty').eq('id', challengeId).single(),
+      supabase.from('challenges').select('id, event_id, clues, difficulty').eq('id', challengeId).maybeSingle(),
     ])
 
     if (!profileRes.data) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       const { data: created } = await supabase.from('player_progress').upsert({
         user_id: user.id, event_id: challengeRes.data.event_id, challenge_id: challengeId,
         status: 'active', started_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,challenge_id' }).select().single()
+      }, { onConflict: 'user_id,challenge_id' }).select().maybeSingle()
       if (!created) return NextResponse.json({ error: 'Progress not found' }, { status: 404 })
       progressData = created
     }

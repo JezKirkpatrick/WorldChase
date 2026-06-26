@@ -30,7 +30,7 @@ export function useGameState(challengeId: string) {
 
       // 2. Load challenge + user's guesses in parallel
       const [challengeRes, guessesRes] = await Promise.all([
-        supabase.from('challenges').select('*').eq('id', challengeId).single(),
+        supabase.from('challenges').select('*').eq('id', challengeId).maybeSingle(),
         supabase.from('guesses').select('*').eq('challenge_id', challengeId).eq('user_id', user.id).order('created_at'),
       ])
 
@@ -65,7 +65,7 @@ export function useGameState(challengeId: string) {
             started_at: new Date().toISOString(),
           })
           .select()
-          .single()
+          .maybeSingle()
 
         if (insertError && insertError.code === '23505') {
           // Unique conflict — row was created by a parallel request; fetch it
@@ -74,7 +74,7 @@ export function useGameState(challengeId: string) {
             .select('*')
             .eq('challenge_id', challengeId)
             .eq('user_id', user.id)
-            .single()
+            .maybeSingle()
           finalProgress = existingProgress as PlayerProgress | null
         } else {
           finalProgress = newProgress as PlayerProgress | null

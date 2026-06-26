@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle()
     if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const { quizId, title, scheduledAt, generateQuestions = false } = await req.json()
@@ -85,7 +85,7 @@ Generate all 20 questions. Start from id 0.`,
       const update: any = { scheduled_at: scheduledAt }
       if (title) update.title = title
       if (questions) update.questions = questions
-      const { data, error } = await service.from('geo_quizzes').update(update).eq('id', quizId).select().single()
+      const { data, error } = await service.from('geo_quizzes').update(update).eq('id', quizId).select().maybeSingle()
       if (error) throw error
       quiz = data
     } else {
@@ -94,7 +94,7 @@ Generate all 20 questions. Start from id 0.`,
         scheduled_at: scheduledAt,
         status: 'upcoming',
         questions: questions ?? [],
-      }).select().single()
+      }).select().maybeSingle()
       if (error) throw error
       quiz = data
     }

@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       .from('geo_quizzes')
       .select('status, questions, event_id')
       .eq('id', quizId)
-      .single()
+      .maybeSingle()
 
     if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 })
     if (quiz.status !== 'live') return NextResponse.json({ error: 'Quiz not live' }, { status: 400 })

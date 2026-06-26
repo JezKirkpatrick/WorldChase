@@ -19,6 +19,7 @@ function shuffleOptions(questions: any[]): any[] {
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
+  if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -150,7 +151,7 @@ Generate all 20 questions. Start from id 0.`,
         event_id: event?.id ?? null,
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) throw error
 
