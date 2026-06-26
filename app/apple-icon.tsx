@@ -12,29 +12,21 @@ export default function AppleIcon() {
           height: '100%',
           background: '#0B1628',
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: 4,
+          borderRadius: '24px',
         }}
       >
-        {/* Globe ring */}
         <div
           style={{
-            width: 90,
-            height: 90,
-            borderRadius: '50%',
-            border: '6px solid #F2B143',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
+            color: '#F2B143',
+            fontSize: 96,
+            fontWeight: 900,
+            fontFamily: 'sans-serif',
+            letterSpacing: '-4px',
           }}
         >
-          <div style={{ color: '#F2B143', fontSize: 38, fontWeight: 900, fontFamily: 'sans-serif' }}>W</div>
-        </div>
-        <div style={{ color: '#F2B143', fontSize: 22, fontWeight: 700, fontFamily: 'sans-serif', letterSpacing: 4 }}>
-          CHASE
+          WC
         </div>
       </div>
     ),
