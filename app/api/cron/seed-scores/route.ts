@@ -38,6 +38,7 @@ function jitter(base: number): number {
 }
 
 export async function GET(req: NextRequest) {
+  if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   const auth = req.headers.get('authorization')
   const isValid = auth === `Bearer ${process.env.CRON_SECRET}` || auth === `Bearer ${process.env.ADMIN_SECRET}`
   if (!isValid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
