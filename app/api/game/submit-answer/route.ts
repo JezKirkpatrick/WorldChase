@@ -71,14 +71,6 @@ export async function POST(req: NextRequest) {
     const maxAttempts = challenge.difficulty === 'easy' ? 10 : 5
     if (progress.attempts >= maxAttempts) return NextResponse.json({ error: 'Max attempts reached' }, { status: 400 })
 
-    // Enforce the round time limit server-side
-    if (progress.started_at && challenge.time_limit_seconds) {
-      const elapsed = Math.floor((Date.now() - new Date(progress.started_at).getTime()) / 1000)
-      if (elapsed > challenge.time_limit_seconds) {
-        return NextResponse.json({ error: 'Time limit exceeded — round is locked' }, { status: 400 })
-      }
-    }
-
     const quickMatch = keywordMatch(safeGuess, challenge.answer_keywords ?? [])
 
     let is_correct: boolean
