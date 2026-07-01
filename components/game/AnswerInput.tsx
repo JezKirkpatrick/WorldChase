@@ -66,7 +66,7 @@ export default function AnswerInput({
   return (
     <div className="space-y-3">
       <div className="text-xs text-gold font-head font-bold tracking-widest flex items-center gap-2">
-        SUBMIT YOUR LOCATION
+        SUBMIT YOUR ANSWER
         <div className="flex-1 h-px bg-gold/20" />
       </div>
 
@@ -76,7 +76,7 @@ export default function AnswerInput({
             ref={inputRef}
             value={answer}
             onChange={e => setAnswer(e.target.value)}
-            placeholder={isExhausted ? 'No attempts remaining' : 'Name the location...'}
+            placeholder={isExhausted ? 'No attempts remaining' : 'Your answer...'}
             disabled={isExhausted || submitting}
             autoComplete="off"
             spellCheck={false}
