@@ -31,7 +31,7 @@ export default function AnswerInput({
   // Auto-focus on desktop only — skip touch devices to prevent keyboard hijack on mobile
   useEffect(() => {
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return
-    const t = setTimeout(() => inputRef.current?.focus(), 300)
+    const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 300)
     return () => clearTimeout(t)
   }, [])
 
