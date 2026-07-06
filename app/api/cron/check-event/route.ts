@@ -31,13 +31,55 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceClient()
 
-  const { data: activeEvents } = await supabase
+  const { data: fetchedActiveEvents } = await supabase
     .from('monthly_events')
     .select('id, name')
     .eq('status', 'active')
 
-  if (!activeEvents || activeEvents.length === 0) {
-    return NextResponse.json({ success: true, message: 'No active events' })
+  let activeEvents = fetchedActiveEvents ?? []
+
+  if (activeEvents.length === 0) {
+    // Safety net: create and activate an event for this week so generation proceeds
+    const { count: allEvents } = await supabase
+      .from('monthly_events')
+      .select('id', { count: 'exact', head: true })
+
+    const fallbackTheme = EVENT_THEMES[(allEvents ?? 0) % EVENT_THEMES.length]
+    const thisMonday = new Date()
+    const dow = thisMonday.getUTCDay()
+    thisMonday.setUTCDate(thisMonday.getUTCDate() - (dow === 0 ? 6 : dow - 1))
+    thisMonday.setUTCHours(0, 0, 0, 0)
+    const thisWeekEnd = new Date(thisMonday)
+    thisWeekEnd.setUTCDate(thisWeekEnd.getUTCDate() + 7)
+    const thisWeekSlug = `hunt-${thisMonday.toISOString().slice(0, 10)}`
+
+    const { data: existingThisWeek } = await supabase
+      .from('monthly_events')
+      .select('id, name')
+      .eq('slug', thisWeekSlug)
+      .maybeSingle()
+
+    if (existingThisWeek) {
+      await supabase.from('monthly_events').update({ status: 'active' }).eq('id', existingThisWeek.id)
+      activeEvents = [existingThisWeek]
+    } else {
+      const weekLabel = thisMonday.toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+      })
+      const { data: inserted } = await supabase.from('monthly_events').insert({
+        name: `${fallbackTheme.label} Hunt — ${weekLabel}`,
+        slug: thisWeekSlug,
+        month: thisMonday.getUTCMonth() + 1,
+        year: thisMonday.getUTCFullYear(),
+        status: 'active',
+        starts_at: thisMonday.toISOString(),
+        ends_at: thisWeekEnd.toISOString(),
+        total_rounds: 25,
+        description: fallbackTheme.description,
+      }).select('id, name').single()
+      if (!inserted) return NextResponse.json({ success: true, message: 'No active events' })
+      activeEvents = [inserted]
+    }
   }
 
   const eventsNeedingFill: { id: string; name: string; existing: number[] }[] = []

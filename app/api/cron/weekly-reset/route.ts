@@ -68,6 +68,55 @@ export async function GET(req: NextRequest) {
       })
     }
 
+    // Safety net: if no active event exists, create and activate one for this week
+    const { data: activeCheck } = await supabase
+      .from('monthly_events')
+      .select('id')
+      .eq('status', 'active')
+      .limit(1)
+
+    if (!activeCheck || activeCheck.length === 0) {
+      const { count: allEvents } = await supabase
+        .from('monthly_events')
+        .select('id', { count: 'exact', head: true })
+
+      const fallbackTheme = EVENT_THEMES[((allEvents ?? 1) - 1) % EVENT_THEMES.length]
+
+      const thisMonday = new Date(now)
+      const dow = thisMonday.getUTCDay()
+      thisMonday.setUTCDate(thisMonday.getUTCDate() - (dow === 0 ? 6 : dow - 1))
+      thisMonday.setUTCHours(0, 0, 0, 0)
+
+      const thisWeekEnd = new Date(thisMonday)
+      thisWeekEnd.setUTCDate(thisWeekEnd.getUTCDate() + 7)
+      const thisWeekSlug = `hunt-${thisMonday.toISOString().slice(0, 10)}`
+
+      const { data: existingThisWeek } = await supabase
+        .from('monthly_events')
+        .select('id')
+        .eq('slug', thisWeekSlug)
+        .maybeSingle()
+
+      if (existingThisWeek) {
+        await supabase.from('monthly_events').update({ status: 'active' }).eq('id', existingThisWeek.id)
+      } else {
+        const thisWeekLabel = thisMonday.toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+        })
+        await supabase.from('monthly_events').insert({
+          name: `${fallbackTheme.label} Hunt — ${thisWeekLabel}`,
+          slug: thisWeekSlug,
+          month: thisMonday.getUTCMonth() + 1,
+          year: thisMonday.getUTCFullYear(),
+          status: 'active',
+          starts_at: thisMonday.toISOString(),
+          ends_at: thisWeekEnd.toISOString(),
+          total_rounds: 25,
+          description: fallbackTheme.description,
+        })
+      }
+    }
+
     // Hunter Pass — drop 15 tokens to every active subscriber (idempotent)
     const { data: subscribers } = await supabase
       .from('profiles').select('id').eq('is_subscriber', true)
