@@ -148,40 +148,45 @@ export async function GET(req: NextRequest) {
     const failedRounds: number[] = []
     let generatedCount = 0
 
-    for (const round of event.existing) {
-      try {
-        const res = await fetch(`${origin}/api/admin/generate-challenge`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-cron-secret': process.env.CRON_SECRET ?? '',
-          },
-          body: JSON.stringify({
-            roundNumber: round,
-            difficulty: DIFFICULTY_FOR_ROUND(round),
-            eventId: event.id,
-            existingLocations,
-            eventTheme: theme,
-            eventName: event.name,
-          }),
-        })
-
-        if (res.ok) {
-          const result = await res.json()
-          if (result.challenge?.location_name) {
-            const loc = result.challenge.location_country
-              ? `${result.challenge.location_name}, ${result.challenge.location_country}`
-              : result.challenge.location_name
-            existingLocations.push(loc)
-            generatedCount++
-          } else {
-            failedRounds.push(round)
+    for (let b = 0; b < event.existing.length; b += 5) {
+      const batch = event.existing.slice(b, b + 5)
+      const batchResults = await Promise.allSettled(
+        batch.map(async (round) => {
+          for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+              const res = await fetch(`${origin}/api/admin/generate-challenge`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-cron-secret': process.env.CRON_SECRET ?? '' },
+                body: JSON.stringify({
+                  roundNumber: round,
+                  difficulty: DIFFICULTY_FOR_ROUND(round),
+                  eventId: event.id,
+                  existingLocations: [...existingLocations],
+                  eventTheme: theme,
+                  eventName: event.name,
+                }),
+              })
+              if (res.ok) {
+                const result = await res.json()
+                if (result.challenge?.location_name) return result.challenge
+              }
+            } catch {}
+            if (attempt < 2) await new Promise(r => setTimeout(r, 1000))
           }
+          return null
+        })
+      )
+      for (let i = 0; i < batch.length; i++) {
+        const r = batchResults[i]
+        if (r.status === 'fulfilled' && r.value) {
+          const loc = r.value.location_country
+            ? `${r.value.location_name}, ${r.value.location_country}`
+            : r.value.location_name
+          existingLocations.push(loc)
+          generatedCount++
         } else {
-          failedRounds.push(round)
+          failedRounds.push(batch[i])
         }
-      } catch {
-        failedRounds.push(round)
       }
     }
 

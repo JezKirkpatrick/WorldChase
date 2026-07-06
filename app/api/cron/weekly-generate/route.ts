@@ -84,42 +84,48 @@ export async function GET(req: NextRequest) {
       const failedRounds: number[] = []
       let generatedCount = 0
 
-      for (let round = 1; round <= 25; round++) {
-        let success = false
-        for (let attempt = 1; attempt <= 3 && !success; attempt++) {
-          try {
-            const res = await fetch(`${origin}/api/admin/generate-challenge`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-cron-secret': process.env.CRON_SECRET ?? '',
-              },
-              body: JSON.stringify({
-                roundNumber: round,
-                difficulty: DIFFICULTY_FOR_ROUND(round),
-                eventId: event.id,
-                existingLocations,
-                eventTheme: theme,
-                eventName: event.name,
-              }),
-            })
-
-            if (res.ok) {
-              const result = await res.json()
-              if (result.challenge?.location_name) {
-                const loc = result.challenge.location_country
-                  ? `${result.challenge.location_name}, ${result.challenge.location_country}`
-                  : result.challenge.location_name
-                existingLocations.push(loc)
-                generatedCount++
-                success = true
-              }
+      // Generate in parallel batches of 5 — sequential (~375s) always exceeds the 300s Vercel limit
+      const allRounds = Array.from({ length: 25 }, (_, i) => i + 1)
+      for (let b = 0; b < allRounds.length; b += 5) {
+        const batch = allRounds.slice(b, b + 5)
+        const batchResults = await Promise.allSettled(
+          batch.map(async (round) => {
+            for (let attempt = 1; attempt <= 2; attempt++) {
+              try {
+                const res = await fetch(`${origin}/api/admin/generate-challenge`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'x-cron-secret': process.env.CRON_SECRET ?? '' },
+                  body: JSON.stringify({
+                    roundNumber: round,
+                    difficulty: DIFFICULTY_FOR_ROUND(round),
+                    eventId: event.id,
+                    existingLocations: [...existingLocations],
+                    eventTheme: theme,
+                    eventName: event.name,
+                  }),
+                })
+                if (res.ok) {
+                  const result = await res.json()
+                  if (result.challenge?.location_name) return result.challenge
+                }
+              } catch {}
+              if (attempt < 2) await new Promise(r => setTimeout(r, 1000))
             }
-          } catch {}
-          // Brief pause between retries so we don't hammer the AI
-          if (!success && attempt < 3) await new Promise(r => setTimeout(r, 2000))
+            return null
+          })
+        )
+        for (let i = 0; i < batch.length; i++) {
+          const r = batchResults[i]
+          if (r.status === 'fulfilled' && r.value) {
+            const loc = r.value.location_country
+              ? `${r.value.location_name}, ${r.value.location_country}`
+              : r.value.location_name
+            existingLocations.push(loc)
+            generatedCount++
+          } else {
+            failedRounds.push(batch[i])
+          }
         }
-        if (!success) failedRounds.push(round)
       }
 
       results.push({ eventId: event.id, eventName: event.name, generatedCount, failedRounds })
