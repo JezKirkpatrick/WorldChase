@@ -68,7 +68,13 @@ export default function GamePage({ params }: PageProps) {
     script.id = 'gmap-script'
     script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`
     script.async = true
-    script.onload = () => setMapsReady(true)
+    script.onload = () => {
+      if ((window as any).google?.maps?.Map) { setMapsReady(true); return }
+      const readyPoll = setInterval(() => {
+        if ((window as any).google?.maps?.Map) { clearInterval(readyPoll); setMapsReady(true) }
+      }, 50)
+    }
+    script.onerror = () => { document.getElementById('gmap-script')?.remove() }
     document.head.appendChild(script)
   }, [])
 
