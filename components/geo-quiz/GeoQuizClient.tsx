@@ -170,7 +170,7 @@ export default function GeoQuizClient({ initialQuiz, userId, initialAnswers, alr
       <PreView
         quiz={initialQuiz}
         userId={userId}
-        onStart={() => { setCurrentQ(0); setPhase('question') }}
+        onStart={() => { window.scrollTo(0, 0); setCurrentQ(0); setPhase('question') }}
         resumeFrom={Object.keys(initialAnswers).length > 0 ? firstUnanswered() : null}
       />
     )
