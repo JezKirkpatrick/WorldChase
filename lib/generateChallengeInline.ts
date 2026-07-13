@@ -6,7 +6,7 @@ import type { EventTheme } from '@/lib/eventThemes'
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 
 export const DIFFICULTY_FOR_ROUND = (round: number): string =>
-  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : round <= 20 ? 'extreme' : 'pro'
+  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : 'extreme'
 
 export function inferThemeId(name: string): string {
   const n = name.toLowerCase()
