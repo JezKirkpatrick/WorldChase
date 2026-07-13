@@ -1,26 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase-server'
-import { EVENT_THEMES } from '@/lib/eventThemes'
+import {
+  generateChallengeInline,
+  getRecentExclusions,
+  DIFFICULTY_FOR_ROUND,
+  inferThemeId,
+  EVENT_THEMES,
+} from '@/lib/generateChallengeInline'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 300
-
-const DIFFICULTY_FOR_ROUND = (round: number): string =>
-  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : round <= 20 ? 'extreme' : 'pro'
-
-function inferThemeId(name: string): string {
-  const n = name.toLowerCase()
-  if (n.includes('asia') || n.includes('pacific')) return 'asia_pacific'
-  if (n.includes('america')) return 'americas'
-  if (n.includes('africa') || n.includes('middle')) return 'africa_middle'
-  if (n.includes('europe') || n.includes('hidden')) return 'europe_hidden'
-  if (n.includes('natural') || n.includes('wonder')) return 'natural_wonders'
-  if (n.includes('ancient') || n.includes('civiliz')) return 'ancient_worlds'
-  if (n.includes('island')) return 'islands'
-  if (n.includes('urban')) return 'urban_jungle'
-  if (n.includes('extreme') || n.includes('remote')) return 'extreme_remote'
-  return 'global'
-}
+export const maxDuration = 60
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
@@ -29,111 +18,78 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  try {
-    const supabase = createServiceClient()
+  const supabase = createServiceClient()
 
-    // Find active events that have no challenges yet
-    const { data: activeEvents } = await supabase
-      .from('monthly_events')
-      .select('id, name')
-      .eq('status', 'active')
+  const { data: activeEvents } = await supabase
+    .from('monthly_events')
+    .select('id, name')
+    .eq('status', 'active')
 
-    const eventsToGenerate: { id: string; name: string }[] = []
-    for (const event of activeEvents ?? []) {
-      const { count } = await supabase
-        .from('challenges')
-        .select('id', { count: 'exact', head: true })
-        .eq('event_id', event.id)
-      if ((count ?? 0) === 0) eventsToGenerate.push(event)
-    }
+  const eventsToFill: { id: string; name: string; missing: number[] }[] = []
 
-    if (eventsToGenerate.length === 0) {
-      return NextResponse.json({ success: true, message: 'No events need generation' })
-    }
+  for (const event of activeEvents ?? []) {
+    const { data: existing } = await supabase
+      .from('challenges')
+      .select('round_number')
+      .eq('event_id', event.id)
 
-    // Collect locations + countries from the last 2 completed events to block repeats
-    const { data: recentEvents } = await supabase
-      .from('monthly_events')
-      .select('id')
-      .eq('status', 'completed')
-      .order('ends_at', { ascending: false })
-      .limit(2)
+    const existingRounds = new Set((existing ?? []).map(c => c.round_number))
+    const missing = Array.from({ length: 25 }, (_, i) => i + 1).filter(r => !existingRounds.has(r))
+    if (missing.length > 0) eventsToFill.push({ id: event.id, name: event.name, missing })
+  }
 
-    const recentEventIds = (recentEvents ?? []).map(e => e.id)
-    let recentExclusions: string[] = []
+  if (eventsToFill.length === 0) {
+    return NextResponse.json({ success: true, message: 'No events need generation' })
+  }
 
-    if (recentEventIds.length > 0) {
-      const { data: recentChallenges } = await supabase
-        .from('challenges')
-        .select('location_name, location_country')
-        .in('event_id', recentEventIds)
+  const recentExclusions = await getRecentExclusions(supabase)
+  const results = []
 
-      // Pass as "Location, Country" so AI avoids both the place AND the country
-      recentExclusions = (recentChallenges ?? [])
+  for (const event of eventsToFill) {
+    const themeId = inferThemeId(event.name)
+    const theme = EVENT_THEMES.find(t => t.id === themeId) ?? EVENT_THEMES[0]
+
+    const { data: existingChallenges } = await supabase
+      .from('challenges')
+      .select('location_name, location_country')
+      .eq('event_id', event.id)
+
+    const existingLocations = [
+      ...recentExclusions,
+      ...(existingChallenges ?? [])
         .filter(c => c.location_name)
-        .map(c => c.location_country ? `${c.location_name}, ${c.location_country}` : c.location_name)
-    }
+        .map(c => c.location_country ? `${c.location_name}, ${c.location_country}` : c.location_name),
+    ]
 
-    const origin = req.nextUrl.origin
-    const results = []
+    let generatedCount = 0
+    const failedRounds: number[] = []
 
-    for (const event of eventsToGenerate) {
-      const themeId = inferThemeId(event.name)
-      const theme = EVENT_THEMES.find(t => t.id === themeId) ?? EVENT_THEMES[0]
-      const existingLocations = [...recentExclusions]
-      const failedRounds: number[] = []
-      let generatedCount = 0
+    // Process in parallel batches of 5 — inline Anthropic calls, no self-referential fetch
+    for (let b = 0; b < event.missing.length; b += 5) {
+      const batch = event.missing.slice(b, b + 5)
+      const batchResults = await Promise.allSettled(
+        batch.map(round => generateChallengeInline({
+          roundNumber: round,
+          difficulty: DIFFICULTY_FOR_ROUND(round),
+          eventId: event.id,
+          existingLocations: [...existingLocations],
+          eventTheme: theme,
+        }))
+      )
 
-      // Generate in parallel batches of 5 — sequential (~375s) always exceeds the 300s Vercel limit
-      const allRounds = Array.from({ length: 25 }, (_, i) => i + 1)
-      for (let b = 0; b < allRounds.length; b += 5) {
-        const batch = allRounds.slice(b, b + 5)
-        const batchResults = await Promise.allSettled(
-          batch.map(async (round) => {
-            for (let attempt = 1; attempt <= 2; attempt++) {
-              try {
-                const res = await fetch(`${origin}/api/admin/generate-challenge`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'x-cron-secret': process.env.CRON_SECRET ?? '' },
-                  body: JSON.stringify({
-                    roundNumber: round,
-                    difficulty: DIFFICULTY_FOR_ROUND(round),
-                    eventId: event.id,
-                    existingLocations: [...existingLocations],
-                    eventTheme: theme,
-                    eventName: event.name,
-                  }),
-                })
-                if (res.ok) {
-                  const result = await res.json()
-                  if (result.challenge?.location_name) return result.challenge
-                }
-              } catch {}
-              if (attempt < 2) await new Promise(r => setTimeout(r, 1000))
-            }
-            return null
-          })
-        )
-        for (let i = 0; i < batch.length; i++) {
-          const r = batchResults[i]
-          if (r.status === 'fulfilled' && r.value) {
-            const loc = r.value.location_country
-              ? `${r.value.location_name}, ${r.value.location_country}`
-              : r.value.location_name
-            existingLocations.push(loc)
-            generatedCount++
-          } else {
-            failedRounds.push(batch[i])
-          }
+      for (let i = 0; i < batch.length; i++) {
+        const r = batchResults[i]
+        if (r.status === 'fulfilled' && r.value) {
+          existingLocations.push(r.value)
+          generatedCount++
+        } else {
+          failedRounds.push(batch[i])
         }
       }
-
-      results.push({ eventId: event.id, eventName: event.name, generatedCount, failedRounds })
     }
 
-    return NextResponse.json({ success: true, results })
-  } catch (err) {
-    console.error(err)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    results.push({ eventId: event.id, eventName: event.name, generatedCount, failedRounds })
   }
+
+  return NextResponse.json({ success: true, results })
 }
