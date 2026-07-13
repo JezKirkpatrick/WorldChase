@@ -35,7 +35,6 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
 
   const flagSrc = `https://flagcdn.com/w640/${countryCode.toLowerCase()}.png`
 
-  // Load flag to canvas and pre-compute a colour signature per piece
   useEffect(() => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
@@ -44,7 +43,7 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
       if (!canvas) return
       canvas.width = img.width
       canvas.height = img.height
-      const ctx = canvas.getContext('2d')
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })
       if (!ctx) return
       ctx.drawImage(img, 0, 0)
       const pw = Math.floor(img.width / cols)
@@ -54,7 +53,6 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
         for (let p = 0; p < total; p++) {
           const data = ctx.getImageData((p % cols) * pw, Math.floor(p / cols) * ph, pw, ph).data
           const sig: number[] = []
-          // Sample every 50th pixel (RGB only)
           for (let i = 0; i < data.length; i += 200) sig.push(data[i], data[i + 1], data[i + 2])
           sigs.push(sig)
         }
@@ -72,7 +70,7 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
     if (!sa || !sb) return false
     let diff = 0
     for (let i = 0; i < sa.length; i++) diff += Math.abs(sa[i] - sb[i])
-    return diff / sa.length < 15 // avg channel diff < 15/255
+    return diff / sa.length < 15
   }
 
   function isSolved(p: number[]): boolean {
@@ -82,17 +80,6 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
       if (hasPixels) return looksTheSame(pieceId, slotIdx)
       return Math.floor(pieceId / cols) === Math.floor(slotIdx / cols)
     })
-  }
-
-  function pieceStyle(pieceId: number): React.CSSProperties {
-    const pc = pieceId % cols
-    const pr = Math.floor(pieceId / cols)
-    return {
-      backgroundImage: `url(${flagSrc})`,
-      backgroundSize: `${cols * 100}% ${rows * 100}%`,
-      backgroundPosition: `${cols > 1 ? (pc / (cols - 1)) * 100 : 0}% ${rows > 1 ? (pr / (rows - 1)) * 100 : 0}%`,
-      backgroundRepeat: 'no-repeat',
-    }
   }
 
   async function handleSolve() {
@@ -181,17 +168,39 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
           className="absolute inset-0 grid"
           style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
         >
-          {pieces.map((pieceId, slotIdx) => (
-            <div
-              key={slotIdx}
-              onClick={() => handleClick(slotIdx)}
-              style={pieceStyle(pieceId)}
-              className={[
-                'cursor-pointer border border-black/20 w-full h-full transition-none',
-                selected === slotIdx ? 'ring-2 ring-inset ring-gold brightness-75' : '',
-              ].filter(Boolean).join(' ')}
-            />
-          ))}
+          {pieces.map((pieceId, slotIdx) => {
+            const pc = pieceId % cols
+            const pr = Math.floor(pieceId / cols)
+            const isSelected = selected === slotIdx
+            return (
+              <div
+                key={slotIdx}
+                onClick={() => handleClick(slotIdx)}
+                className="relative overflow-hidden cursor-pointer border border-black/20"
+              >
+                {/* img approach: immune to CORS cache state that breaks CSS backgroundImage */}
+                <img
+                  src={flagSrc}
+                  alt=""
+                  aria-hidden
+                  draggable={false}
+                  style={{
+                    position: 'absolute',
+                    width: `${cols * 100}%`,
+                    height: `${rows * 100}%`,
+                    left: `-${pc * 100}%`,
+                    top: `-${pr * 100}%`,
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    filter: isSelected ? 'brightness(0.65)' : undefined,
+                  }}
+                />
+                {isSelected && (
+                  <div className="absolute inset-0 ring-2 ring-inset ring-gold pointer-events-none" />
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
