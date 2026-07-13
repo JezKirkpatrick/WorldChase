@@ -82,26 +82,20 @@ export async function POST(req: NextRequest) {
     let generatedCount = 0
     const failedRounds: number[] = []
 
-    for (let b = 0; b < missingRounds.length; b += 5) {
-      const batch = missingRounds.slice(b, b + 5)
-      const batchResults = await Promise.allSettled(
-        batch.map(round => generateChallengeInline({
-          roundNumber: round,
-          difficulty: DIFFICULTY_FOR_ROUND(round),
-          eventId: event.id,
-          existingLocations: [...existingLocations],
-          eventTheme: theme,
-        }))
-      )
-
-      for (let i = 0; i < batch.length; i++) {
-        const r = batchResults[i]
-        if (r.status === 'fulfilled' && r.value) {
-          existingLocations.push(r.value)
-          generatedCount++
-        } else {
-          failedRounds.push(batch[i])
-        }
+    // Sequential generation — each round sees all previously picked locations, preventing duplicates
+    for (const round of missingRounds) {
+      const result = await generateChallengeInline({
+        roundNumber: round,
+        difficulty: DIFFICULTY_FOR_ROUND(round),
+        eventId: event.id,
+        existingLocations: [...existingLocations],
+        eventTheme: theme,
+      })
+      if (result) {
+        existingLocations.push(result)
+        generatedCount++
+      } else {
+        failedRounds.push(round)
       }
     }
 

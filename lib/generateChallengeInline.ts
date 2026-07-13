@@ -209,6 +209,17 @@ export async function generateChallengeInline(params: {
       challengeData.clues = challengeData.clues.map((c: any, idx: number) => ({ ...c, order: idx + 1 }))
     }
 
+    // Reject if this country is already used in this event (catches race conditions in parallel calls)
+    if (challengeData.location_country) {
+      const countryLower = challengeData.location_country.toLowerCase().trim()
+      const isDuplicate = existingLocations.some(loc => {
+        const parts = loc.toLowerCase().split(',')
+        const locCountry = (parts[parts.length - 1] ?? '').trim()
+        return locCountry === countryLower || locCountry.includes(countryLower) || countryLower.includes(locCountry)
+      })
+      if (isDuplicate) return null
+    }
+
     const supabase = getSupabase()
     const { data, error } = await supabase.from('challenges').insert({
       ...challengeData,
