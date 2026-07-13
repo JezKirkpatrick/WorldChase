@@ -35,7 +35,7 @@ function randomOffset(km: number) {
   return { dLat: (dist * Math.cos(angle)) / 111.32, dLng: (dist * Math.sin(angle)) / 111.32 }
 }
 
-function buildStreetViewPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme): string {
+function buildStreetViewPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme, currentEventLocations?: string[]): string {
   const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000, pro: 10000 }
   const narrativeStyle = NARRATIVE_STYLES[(roundNumber - 1) % NARRATIVE_STYLES.length]
   const themeSection = eventTheme
@@ -44,7 +44,8 @@ REQUIRED REGION FOCUS: ${eventTheme.regionFocus}
 AVOID: ${eventTheme.avoidRegions}\n`
     : ''
 
-  const usedCountries = [...new Set(existingLocations
+  const banSource = currentEventLocations ?? existingLocations
+  const usedCountries = [...new Set(banSource
     .map(loc => (loc.split(',').pop() ?? '').trim())
     .filter(c => c))]
   const countryBan = usedCountries.length > 0
@@ -109,7 +110,7 @@ Respond with ONLY valid JSON — no markdown:
 }`
 }
 
-function buildPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme): string {
+function buildPrompt(roundNumber: number, difficulty: string, existingLocations: string[], eventTheme?: EventTheme, currentEventLocations?: string[]): string {
   const pointsMap: Record<string, number> = { easy: 500, medium: 1000, hard: 2500, extreme: 5000, pro: 10000 }
   const narrativeStyle = NARRATIVE_STYLES[(roundNumber - 1) % NARRATIVE_STYLES.length]
   const themeSection = eventTheme
@@ -118,7 +119,8 @@ REQUIRED REGION FOCUS: ${eventTheme.regionFocus}
 AVOID: ${eventTheme.avoidRegions}\n`
     : ''
 
-  const usedCountries = [...new Set(existingLocations
+  const banSource = currentEventLocations ?? existingLocations
+  const usedCountries = [...new Set(banSource
     .map(loc => (loc.split(',').pop() ?? '').trim())
     .filter(c => c))]
   const countryBan = usedCountries.length > 0
@@ -189,11 +191,21 @@ export async function generateChallengeInline(params: {
   const { roundNumber, difficulty, eventId, existingLocations, eventTheme } = params
 
   try {
+    // Query current event's challenges BEFORE calling AI — used for both prompt ban list and duplicate check
+    const supabase = getSupabase()
+    const { data: existingEventChallenges } = await supabase
+      .from('challenges')
+      .select('location_name, location_country')
+      .eq('event_id', eventId)
+    const currentEventLocations = (existingEventChallenges ?? [])
+      .filter(c => c.location_name)
+      .map(c => c.location_country ? `${c.location_name}, ${c.location_country}` : c.location_name)
+
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
     const isStreetView = STREET_VIEW_ROUNDS.includes(roundNumber)
     const prompt = isStreetView
-      ? buildStreetViewPrompt(roundNumber, difficulty, existingLocations, eventTheme)
-      : buildPrompt(roundNumber, difficulty, existingLocations, eventTheme)
+      ? buildStreetViewPrompt(roundNumber, difficulty, existingLocations, eventTheme, currentEventLocations)
+      : buildPrompt(roundNumber, difficulty, existingLocations, eventTheme, currentEventLocations)
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -223,16 +235,10 @@ export async function generateChallengeInline(params: {
       challengeData.clues = challengeData.clues.map((c: any, idx: number) => ({ ...c, order: idx + 1 }))
     }
 
-    const supabase = getSupabase()
-
-    // Country uniqueness: only check within this event (not across events — that would over-restrict)
+    // Country uniqueness check using pre-fetched event data (no second DB query)
     if (challengeData.location_country) {
       const countryLower = challengeData.location_country.toLowerCase().split('/')[0].trim()
-      const { data: usedCountries } = await supabase
-        .from('challenges')
-        .select('location_country')
-        .eq('event_id', eventId)
-      const isDuplicate = (usedCountries ?? []).some(c => {
+      const isDuplicate = (existingEventChallenges ?? []).some(c => {
         const cLower = (c.location_country ?? '').toLowerCase().split('/')[0].trim()
         return cLower === countryLower || cLower.includes(countryLower) || countryLower.includes(cLower)
       })
