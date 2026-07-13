@@ -209,18 +209,21 @@ export async function generateChallengeInline(params: {
       challengeData.clues = challengeData.clues.map((c: any, idx: number) => ({ ...c, order: idx + 1 }))
     }
 
-    // Reject if this country is already used in this event (catches race conditions in parallel calls)
+    const supabase = getSupabase()
+
+    // Country uniqueness: only check within this event (not across events — that would over-restrict)
     if (challengeData.location_country) {
-      const countryLower = challengeData.location_country.toLowerCase().trim()
-      const isDuplicate = existingLocations.some(loc => {
-        const parts = loc.toLowerCase().split(',')
-        const locCountry = (parts[parts.length - 1] ?? '').trim()
-        return locCountry === countryLower || locCountry.includes(countryLower) || countryLower.includes(locCountry)
+      const countryLower = challengeData.location_country.toLowerCase().split('/')[0].trim()
+      const { data: usedCountries } = await supabase
+        .from('challenges')
+        .select('location_country')
+        .eq('event_id', eventId)
+      const isDuplicate = (usedCountries ?? []).some(c => {
+        const cLower = (c.location_country ?? '').toLowerCase().split('/')[0].trim()
+        return cLower === countryLower || cLower.includes(countryLower) || countryLower.includes(cLower)
       })
       if (isDuplicate) return null
     }
-
-    const supabase = getSupabase()
     const { data, error } = await supabase.from('challenges').insert({
       ...challengeData,
       event_id: eventId,
