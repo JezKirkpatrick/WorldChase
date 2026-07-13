@@ -12,17 +12,22 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
-  // Must be logged-in admin
-  const supabaseAuth = createClient()
-  const { data: { user } } = await supabaseAuth.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Allow CRON_SECRET (for server-side triggering) or logged-in admin
+  const auth = req.headers.get('authorization')
+  const isCron = process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`
 
-  const { data: profile } = await supabaseAuth
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .maybeSingle()
-  if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!isCron) {
+    const supabaseAuth = createClient()
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: profile } = await supabaseAuth
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (!profile?.is_admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const body = await req.json().catch(() => ({}))
   const { eventId } = body
