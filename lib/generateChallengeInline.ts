@@ -44,8 +44,15 @@ REQUIRED REGION FOCUS: ${eventTheme.regionFocus}
 AVOID: ${eventTheme.avoidRegions}\n`
     : ''
 
+  const usedCountries = [...new Set(existingLocations
+    .map(loc => (loc.split(',').pop() ?? '').trim())
+    .filter(c => c))]
+  const countryBan = usedCountries.length > 0
+    ? `\nBANNED COUNTRIES (already used this event — do NOT pick any of these): ${usedCountries.join(', ')}\n`
+    : ''
+
   return `You are the game master for "World Chase" — a competitive geography game.
-${themeSection}
+${themeSection}${countryBan}
 Generate ONE Street View Observation challenge for Round ${roundNumber}, difficulty: ${difficulty.toUpperCase()}.
 
 CRITICAL — STREET VIEW COVERAGE REQUIREMENT:
@@ -111,8 +118,15 @@ REQUIRED REGION FOCUS: ${eventTheme.regionFocus}
 AVOID: ${eventTheme.avoidRegions}\n`
     : ''
 
+  const usedCountries = [...new Set(existingLocations
+    .map(loc => (loc.split(',').pop() ?? '').trim())
+    .filter(c => c))]
+  const countryBan = usedCountries.length > 0
+    ? `\nBANNED COUNTRIES (already used this event — do NOT pick any of these): ${usedCountries.join(', ')}\n`
+    : ''
+
   return `You are the game master for "World Chase" — a brutal weekly geography competition where players pay real money for extra clues and race for a global leaderboard.
-${themeSection}
+${themeSection}${countryBan}
 Generate ONE unique, extraordinary challenge for Round ${roundNumber}, difficulty: ${difficulty.toUpperCase()}.
 
 GEOGRAPHIC DIVERSITY RULE: This challenge must be in a DIFFERENT country than every location in the existing list below. Spread across different sub-regions of the theme's focus area.
