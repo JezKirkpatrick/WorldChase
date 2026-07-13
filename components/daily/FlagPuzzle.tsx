@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 
 interface Props {
@@ -31,46 +31,102 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
   const [error, setError] = useState<string | null>(null)
   const startRef = useRef(Date.now())
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const flagImgRef = useRef<HTMLImageElement | null>(null)
   const sigsRef = useRef<number[][]>([])
 
   const flagSrc = `https://flagcdn.com/w640/${countryCode.toLowerCase()}.png`
+
+  const draw = useCallback((currentPieces: number[], currentSelected: number | null) => {
+    const canvas = canvasRef.current
+    const img = flagImgRef.current
+    if (!canvas || !img) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const W = canvas.width
+    const H = canvas.height
+    const pw = W / cols
+    const ph = H / rows
+    const srcW = Math.floor(img.naturalWidth / cols)
+    const srcH = Math.floor(img.naturalHeight / rows)
+
+    ctx.clearRect(0, 0, W, H)
+
+    for (let slot = 0; slot < total; slot++) {
+      const pieceId = currentPieces[slot]
+      const dstC = slot % cols
+      const dstR = Math.floor(slot / cols)
+      const srcC = pieceId % cols
+      const srcR = Math.floor(pieceId / cols)
+
+      // Draw the piece directly from the source image
+      ctx.drawImage(img, srcC * srcW, srcR * srcH, srcW, srcH, dstC * pw, dstR * ph, pw, ph)
+
+      // Selection highlight
+      if (slot === currentSelected) {
+        ctx.fillStyle = 'rgba(212, 175, 55, 0.3)'
+        ctx.fillRect(dstC * pw, dstR * ph, pw, ph)
+        ctx.strokeStyle = 'rgba(212, 175, 55, 1)'
+        ctx.lineWidth = 3
+        ctx.strokeRect(dstC * pw + 1.5, dstR * ph + 1.5, pw - 3, ph - 3)
+      }
+
+      // Grid lines between pieces
+      ctx.strokeStyle = 'rgba(0,0,0,0.25)'
+      ctx.lineWidth = 1
+      ctx.strokeRect(dstC * pw + 0.5, dstR * ph + 0.5, pw - 1, ph - 1)
+    }
+  }, [cols, rows, total])
 
   useEffect(() => {
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => {
+      flagImgRef.current = img
       const canvas = canvasRef.current
-      if (!canvas) return
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d', { willReadFrequently: true })
-      if (!ctx) return
-      ctx.drawImage(img, 0, 0)
-      const pw = Math.floor(img.width / cols)
-      const ph = Math.floor(img.height / rows)
-      try {
-        const sigs: number[][] = []
-        for (let p = 0; p < total; p++) {
-          const data = ctx.getImageData((p % cols) * pw, Math.floor(p / cols) * ph, pw, ph).data
-          const sig: number[] = []
-          for (let i = 0; i < data.length; i += 200) sig.push(data[i], data[i + 1], data[i + 2])
-          sigs.push(sig)
-        }
-        sigsRef.current = sigs
-      } catch {
-        // CORS blocked — will fall back to row-match
+      if (canvas) {
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
       }
+      // Pixel signatures for smart solve detection
+      const temp = document.createElement('canvas')
+      temp.width = img.naturalWidth
+      temp.height = img.naturalHeight
+      const tCtx = temp.getContext('2d', { willReadFrequently: true })
+      if (tCtx) {
+        tCtx.drawImage(img, 0, 0)
+        const spw = Math.floor(img.naturalWidth / cols)
+        const sph = Math.floor(img.naturalHeight / rows)
+        const sigs: number[][] = []
+        try {
+          for (let p = 0; p < total; p++) {
+            const data = tCtx.getImageData((p % cols) * spw, Math.floor(p / cols) * sph, spw, sph).data
+            const sig: number[] = []
+            for (let i = 0; i < data.length; i += 200) sig.push(data[i], data[i + 1], data[i + 2])
+            sigs.push(sig)
+          }
+          sigsRef.current = sigs
+        } catch { /* CORS blocked — row fallback used */ }
+      }
+      draw(pieces, selected)
     }
     img.src = flagSrc
-  }, [flagSrc, cols, rows, total])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flagSrc])
+
+  // Redraw whenever pieces or selected changes
+  useEffect(() => {
+    draw(pieces, selected)
+  }, [pieces, selected, draw])
 
   function looksTheSame(a: number, b: number): boolean {
     if (a === b) return true
-    const sa = sigsRef.current[a], sb = sigsRef.current[b]
-    if (!sa || !sb) return false
+    const sa = sigsRef.current[a]
+    const sb = sigsRef.current[b]
+    if (!sa?.length || !sb?.length) return false
     let diff = 0
     for (let i = 0; i < sa.length; i++) diff += Math.abs(sa[i] - sb[i])
-    return diff / sa.length < 15
+    return diff / sa.length < 3
   }
 
   function isSolved(p: number[]): boolean {
@@ -114,10 +170,22 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
     if (isSolved(newPieces)) handleSolve()
   }
 
+  function handleCanvasClick(e: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvas.width / rect.width
+    const scaleY = canvas.height / rect.height
+    const x = (e.clientX - rect.left) * scaleX
+    const y = (e.clientY - rect.top) * scaleY
+    const col = Math.floor(x / (canvas.width / cols))
+    const row = Math.floor(y / (canvas.height / rows))
+    if (col < 0 || col >= cols || row < 0 || row >= rows) return
+    handleClick(row * cols + col)
+  }
+
   return (
     <div className="w-full">
-      <canvas ref={canvasRef} className="hidden" />
-
       {solved && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy/95 backdrop-blur-sm px-6">
           {submitting ? (
@@ -163,46 +231,14 @@ export default function FlagPuzzle({ countryCode, countryName, cols, rows, event
         Tap a piece to select it <span className="text-gold">●</span> then tap another to swap
       </p>
 
-      <div className="w-full border border-white/20 relative" style={{ aspectRatio: '3 / 2' }}>
-        <div
-          className="absolute inset-0 grid"
-          style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
-        >
-          {pieces.map((pieceId, slotIdx) => {
-            const pc = pieceId % cols
-            const pr = Math.floor(pieceId / cols)
-            const isSelected = selected === slotIdx
-            return (
-              <div
-                key={slotIdx}
-                onClick={() => handleClick(slotIdx)}
-                className="relative overflow-hidden cursor-pointer border border-black/20"
-              >
-                {/* img approach: immune to CORS cache state that breaks CSS backgroundImage */}
-                <img
-                  src={flagSrc}
-                  alt=""
-                  aria-hidden
-                  draggable={false}
-                  style={{
-                    position: 'absolute',
-                    width: `${cols * 100}%`,
-                    height: `${rows * 100}%`,
-                    left: `-${pc * 100}%`,
-                    top: `-${pr * 100}%`,
-                    pointerEvents: 'none',
-                    userSelect: 'none',
-                    filter: isSelected ? 'brightness(0.65)' : undefined,
-                  }}
-                />
-                {isSelected && (
-                  <div className="absolute inset-0 ring-2 ring-inset ring-gold pointer-events-none" />
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      <canvas
+        ref={canvasRef}
+        onClick={handleCanvasClick}
+        className="w-full border border-white/20 cursor-pointer block"
+        style={{ aspectRatio: `${cols}/${rows}` }}
+        width={cols * 100}
+        height={rows * 100}
+      />
     </div>
   )
 }
