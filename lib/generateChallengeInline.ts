@@ -180,8 +180,7 @@ Respond with ONLY valid JSON — no markdown:
 }`
 }
 
-// Returns the "Location, Country" string on success (for deduplication), null on failure.
-export async function generateChallengeInline(params: {
+async function tryGenerateOnce(params: {
   roundNumber: number
   difficulty: string
   eventId: string
@@ -281,6 +280,19 @@ export async function generateChallengeInline(params: {
   } catch {
     return null
   }
+}
+
+// Retries once on failure — handles transient AI errors, bad coordinates, banned-country picks
+export async function generateChallengeInline(params: {
+  roundNumber: number
+  difficulty: string
+  eventId: string
+  existingLocations: string[]
+  eventTheme?: EventTheme
+}): Promise<string | null> {
+  const result = await tryGenerateOnce(params)
+  if (result !== null) return result
+  return tryGenerateOnce(params)
 }
 
 export async function getRecentExclusions(supabase: ReturnType<typeof getSupabase>): Promise<string[]> {
