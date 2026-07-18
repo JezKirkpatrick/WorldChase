@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     // Score: max 300, time-based
     const MAX_SCORE = 300
     const score = Math.max(50, MAX_SCORE - Math.floor((timeTaken ?? 0) / 5))
-    const tokensEarned = 5
+    const tokensEarned = 2
 
     // Get current token balance for response
     const { data: profile } = await supabase
