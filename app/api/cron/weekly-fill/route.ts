@@ -11,6 +11,10 @@ import {
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
+// Backup cron — runs at 00:35 UTC on Mondays (5 min after weekly-generate).
+// Idempotent: skips rounds that already exist, only fills gaps.
+// If weekly-generate finished fine, this returns in under a second.
+
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
   if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
@@ -39,7 +43,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (eventsToFill.length === 0) {
-    return NextResponse.json({ success: true, message: 'No events need generation' })
+    return NextResponse.json({ success: true, message: 'No gaps to fill' })
   }
 
   const recentExclusions = await getRecentExclusions(supabase)
@@ -64,7 +68,6 @@ export async function GET(req: NextRequest) {
     let generatedCount = 0
     const failedRounds: number[] = []
 
-    // Sequential — each round sees all previously picked locations, no country duplicates
     for (const round of event.missing) {
       const result = await generateChallengeInline({
         roundNumber: round,
@@ -81,7 +84,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Second pass: retry any rounds that failed in the first pass
+    // Second pass on any remaining failures
     if (failedRounds.length > 0) {
       for (const round of failedRounds) {
         const result = await generateChallengeInline({

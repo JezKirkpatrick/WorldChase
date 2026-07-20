@@ -2,6 +2,7 @@
   "crons": [
     { "path": "/api/cron/weekly-reset",    "schedule": "0 0 * * 1" },
     { "path": "/api/cron/weekly-generate", "schedule": "30 0 * * 1" },
+    { "path": "/api/cron/weekly-fill",     "schedule": "35 0 * * 1" },
     { "path": "/api/cron/seed-scores",     "schedule": "45 0 * * 1" },
     { "path": "/api/cron/check-event",     "schedule": "0 6 * * *" },
     { "path": "/api/cron/daily-bonus",     "schedule": "0 8 * * *" },
