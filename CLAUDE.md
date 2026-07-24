@@ -23,7 +23,7 @@ A fix is NOT done when the file is saved. A fix is done when it is **pushed to g
 - **Sister site:** KidsWorldChase at `C:\Users\kiwis\OneDrive\Desktop\Claude\KidsWorldChase`
 
 ## SUPABASE
-- **Project ref:** `vwpyxsqjfbkrxtmduixs` (check infrastructure.md memory for full keys)
+- **Project ref:** `wqwmbqmjoaptacmvokfp` (URL: https://wqwmbqmjoaptacmvokfp.supabase.co)
 - **SQL:** Use management API via curl, do NOT ask user to paste SQL into dashboard
 - **Client rules:** Use `createServiceClient()` (service role) for any DB writes/RPCs. `createClient()` (anon) is for auth only. Using the wrong client silently fails — this has broken achievements and token adjustments before.
 
