@@ -55,6 +55,7 @@ export default async function GlobalNav() {
         <Link href="/play"        className="relative text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">PLAY{user && <PlayDot userId={user.id} />}</Link>
         <Link href="/quiz"        className="text-xs font-head font-bold tracking-widest text-electric hover:text-white transition-colors whitespace-nowrap">GEO QUIZ</Link>
         <Link href="/vs"          className="relative text-xs font-head font-bold tracking-widest text-gold hover:text-white transition-colors whitespace-nowrap">VS DUEL{user && <VsDot userId={user.id} />}</Link>
+        <Link href="/ranked"      className="text-xs font-head font-bold tracking-widest text-orange-400 hover:text-white transition-colors whitespace-nowrap">ARENA</Link>
         <Link href="/leaderboard" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">LEADERBOARD</Link>
         <Link href="/daily"       className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">DAILY</Link>
         <Link href="/shop"        className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">SHOP</Link>
