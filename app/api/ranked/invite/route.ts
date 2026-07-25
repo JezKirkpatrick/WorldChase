@@ -10,7 +10,7 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-async function generateArenaChallenge(admin: ReturnType<typeof createClient>, arenaLevel: number) {
+async function generateArenaChallenge(admin: any, arenaLevel: number): Promise<{ id: string } | { _error: string }> {
   const diffKey = getArenaChallengeDifficulty(arenaLevel)
   const timeLimit = DIFFICULTY_CONFIG[diffKey].timeLimit
 
