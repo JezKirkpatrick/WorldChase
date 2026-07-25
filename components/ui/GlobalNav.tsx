@@ -2,9 +2,8 @@ import Link from 'next/link'
 import { cache } from 'react'
 import { getUser, getProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase-server'
-import LogoutButton from '@/components/ui/LogoutButton'
-import ShareButton from '@/components/ui/ShareButton'
 import UnreadDMsBadge from '@/components/ui/UnreadDMsBadge'
+import NavDropdown from '@/components/ui/NavDropdown'
 import { PlayDot, VsDot, ChatDot } from '@/components/ui/NavActivityDots'
 import VsNotifier from '@/components/vs/VsNotifier'
 import DMNotifier from '@/components/ui/DMNotifier'
@@ -71,8 +70,8 @@ export default async function GlobalNav() {
         </Link>
         <Link href="/archive"     className="hidden lg:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">ARCHIVE</Link>
         <Link href="/hall-of-fame" className="hidden lg:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-gold transition-colors whitespace-nowrap">HALL OF FAME</Link>
-        <Link href="/how-to-play" className="hidden xl:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">HOW TO PLAY</Link>
-        <a href="https://kidsworldchase.net" target="_blank" rel="noopener noreferrer" className="hidden xl:inline text-xs font-head font-bold tracking-widest text-green-400 hover:text-white border border-green-400/40 px-2 py-0.5 rounded transition-colors whitespace-nowrap">KWC ↗</a>
+        <Link href="/how-to-play" className="hidden lg:inline text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors whitespace-nowrap">HOW TO PLAY</Link>
+        <a href="https://kidsworldchase.net" target="_blank" rel="noopener noreferrer" className="hidden lg:inline text-xs font-head font-bold tracking-widest text-green-400 hover:text-white border border-green-400/40 px-2 py-0.5 rounded transition-colors whitespace-nowrap">KWC ↗</a>
         {profile?.is_admin && (
           <Link href="/admin" className="text-xs font-head font-bold tracking-widest text-danger hover:text-danger/70 transition-colors whitespace-nowrap">ADMIN</Link>
         )}
@@ -96,15 +95,7 @@ export default async function GlobalNav() {
         <Link href="/profile" className="shrink-0 hover:scale-105 transition-transform block" title="Profile">
           <Avatar emoji={avatar} border={border} size="sm" />
         </Link>
-        <div className="hidden sm:flex items-center gap-2">
-          <Link href="/support" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-electric transition-colors px-2 py-1">
-            SUPPORT
-          </Link>
-          <Link href="/settings" className="text-xs font-head font-bold tracking-widest text-text-muted hover:text-white transition-colors px-2 py-1">
-            SETTINGS
-          </Link>
-          <LogoutButton />
-        </div>
+        <NavDropdown />
         {/* Mobile hamburger — replaces inline links */}
         <MobileNav pendingCount={pendingCount} isAdmin={!!profile?.is_admin} hasUser={!!user} myId={user?.id} />
       </div>
