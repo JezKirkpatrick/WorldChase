@@ -61,12 +61,7 @@ export default function MobileNav({ pendingCount, isAdmin, hasUser, myId }: Prop
                 VS DUEL {myId && <VsDot userId={myId} inline />}
               </Link>
 
-              <Link href="/ranked" onClick={close}
-                className="px-4 py-4 font-head font-bold text-sm tracking-widest border-b border-r border-white/5 hover:bg-white/5 active:bg-white/10 transition-colors text-orange-400 whitespace-nowrap overflow-hidden">
-                ⚔️ ARENA
-              </Link>
-
-              <Link href="/daily" onClick={close}
+<Link href="/daily" onClick={close}
                 className="px-4 py-4 font-head font-bold text-sm tracking-widest border-b border-r border-white/5 hover:bg-white/5 active:bg-white/10 transition-colors text-text-muted whitespace-nowrap overflow-hidden">
                 DAILY
               </Link>
