@@ -5,6 +5,27 @@ import type { EventTheme } from '@/lib/eventThemes'
 
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 
+// Verify Street View coverage via Google's free Metadata API before saving the challenge.
+// Returns true if coverage exists (or if the check itself fails — fail open).
+async function verifyStreetView(lat: number, lng: number): Promise<boolean> {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  if (!key) return true
+  try {
+    for (const radius of [150, 500]) {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=${radius}&source=outdoor&key=${key}`,
+        { headers: { Referer: 'https://worldchase.net' } }
+      )
+      const data = await res.json()
+      if (data.status === 'OK') return true
+      if (radius === 500 && data.status === 'ZERO_RESULTS') return false
+    }
+    return true
+  } catch {
+    return true // network error — fail open so generation isn't blocked
+  }
+}
+
 export const DIFFICULTY_FOR_ROUND = (round: number): string =>
   round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : 'extreme'
 
@@ -227,6 +248,13 @@ async function tryGenerateOnce(params: {
       Math.abs(challengeData.location_lng ?? 0) < 0.001
     ) return null
 
+    // For Street View rounds, verify coverage exists before saving — the AI's
+    // claim that a location has coverage is frequently wrong.
+    if (isStreetView) {
+      const hasCoverage = await verifyStreetView(challengeData.location_lat, challengeData.location_lng)
+      if (!hasCoverage) return null
+    }
+
     if (Array.isArray(challengeData.clues)) {
       const texts = challengeData.clues.map((c: any) => (c.text ?? '').trim().toLowerCase())
       const unique = new Set(texts)
@@ -282,7 +310,9 @@ async function tryGenerateOnce(params: {
   }
 }
 
-// Retries once on failure — handles transient AI errors, bad coordinates, banned-country picks
+// Retries on failure — handles transient AI errors, bad coordinates, banned-country picks,
+// and (for Street View rounds) failed coverage verification. Street View rounds get more
+// attempts since coverage rejection is a common, expected outcome, not a rare edge case.
 export async function generateChallengeInline(params: {
   roundNumber: number
   difficulty: string
@@ -290,9 +320,12 @@ export async function generateChallengeInline(params: {
   existingLocations: string[]
   eventTheme?: EventTheme
 }): Promise<string | null> {
-  const result = await tryGenerateOnce(params)
-  if (result !== null) return result
-  return tryGenerateOnce(params)
+  const attempts = STREET_VIEW_ROUNDS.includes(params.roundNumber) ? 4 : 2
+  for (let i = 0; i < attempts; i++) {
+    const result = await tryGenerateOnce(params)
+    if (result !== null) return result
+  }
+  return null
 }
 
 export async function getRecentExclusions(supabase: ReturnType<typeof getSupabase>): Promise<string[]> {
