@@ -243,6 +243,13 @@ async function tryGenerateOnce(params: {
       return null
     }
 
+    // round_number/difficulty/street_view_only are deterministic from the caller —
+    // never trust the AI's copy of them, it sometimes gets street_view_only wrong
+    // even when the generated question/riddle content is correctly street-view-style.
+    challengeData.round_number = roundNumber
+    challengeData.difficulty = difficulty
+    challengeData.street_view_only = isStreetView
+
     if (
       Math.abs(challengeData.location_lat ?? 0) < 0.001 &&
       Math.abs(challengeData.location_lng ?? 0) < 0.001

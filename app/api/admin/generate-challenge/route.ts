@@ -202,6 +202,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'AI returned invalid JSON — regenerate' }, { status: 422 })
     }
 
+    // round_number/difficulty/street_view_only are deterministic from the request —
+    // never trust the AI's copy of them, it sometimes gets street_view_only wrong
+    // even when the generated question/riddle content is correctly street-view-style.
+    challengeData.round_number = roundNumber
+    challengeData.difficulty = difficulty
+    challengeData.street_view_only = isStreetViewRound
+
     // Reject placeholder 0,0 coordinates
     if (
       Math.abs(challengeData.location_lat ?? 0) < 0.001 &&
