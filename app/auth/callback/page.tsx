@@ -28,14 +28,27 @@ async function createProfileIfNeeded(supabase: ReturnType<typeof createClient>, 
     tokens: 2, current_streak: 0, last_login_date: null,
   })
 
+  let finalUsername = username
+  let created = !insertError
+
   if (insertError?.code === '23505') {
-    await supabase.from('profiles').insert({
+    finalUsername = `hunter_${user.id.slice(0, 8)}`
+    const { error: fallbackError } = await supabase.from('profiles').insert({
       id: user.id,
-      username: `hunter_${user.id.slice(0, 8)}`,
+      username: finalUsername,
       display_name: meta.display_name || meta.full_name || meta.name || null,
       country_code: countryCode,
       tokens: 2, current_streak: 0, last_login_date: null,
     })
+    created = !fallbackError
+  }
+
+  if (created) {
+    fetch('/api/admin/notify-signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: finalUsername }),
+    }).catch(() => {})
   }
 }
 

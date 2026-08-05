@@ -15,16 +15,21 @@ export default async function AdminPage() {
   const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).maybeSingle()
   if (!profile?.is_admin) redirect('/dashboard')
 
-  const [eventRes, profileCountRes, txRes] = await Promise.all([
+  const [eventRes, realCountRes, fakeCountRes, txRes, recentRealRes] = await Promise.all([
     supabase.from('monthly_events').select('*').eq('status', 'active').maybeSingle(),
-    supabase.from('profiles').select('id', { count: 'exact' }),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_fake', false),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_fake', true),
     supabase.from('token_transactions').select('amount').eq('type', 'purchase'),
+    supabase.from('profiles').select('id, username, country, created_at')
+      .eq('is_fake', false).order('created_at', { ascending: false }).limit(15),
   ])
 
   const totalRevenue = (txRes.data ?? []).reduce((sum: number, t: any) => sum + t.amount, 0)
+  const recentReal = recentRealRes.data ?? []
 
   const stats = [
-    { label: 'TOTAL HUNTERS', value: profileCountRes.count ?? 0 },
+    { label: 'REAL HUNTERS', value: realCountRes.count ?? 0 },
+    { label: 'SEEDED (FAKE)', value: fakeCountRes.count ?? 0 },
     { label: 'TOKEN REVENUE', value: `🪙 ${totalRevenue.toLocaleString()}` },
     { label: 'ACTIVE EVENT', value: eventRes.data?.name ?? 'None' },
   ]
@@ -39,13 +44,31 @@ export default async function AdminPage() {
       <div className="max-w-4xl mx-auto px-6 py-10">
         <h1 className="font-head font-bold text-2xl text-white mb-8">ADMIN DASHBOARD</h1>
 
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
           {stats.map(s => (
             <div key={s.label} className="bg-navy-light border border-white/10 p-5">
               <div className="text-xs font-head text-text-muted tracking-widest mb-2">{s.label}</div>
               <div className="font-mono font-bold text-gold text-xl">{s.value}</div>
             </div>
           ))}
+        </div>
+
+        {/* ── Real hunters (newest first) — the actual people to go compete against ── */}
+        <div className="mb-10 border border-white/10 p-6">
+          <div className="text-xs font-head text-gold tracking-widest mb-1">REAL HUNTERS — NEWEST FIRST</div>
+          <div className="text-text-muted font-head text-xs mb-4">Excludes seeded/fake accounts. You'll also get a push notification the moment one of these signs up.</div>
+          {recentReal.length === 0 ? (
+            <div className="text-text-muted font-head text-sm">No real hunters yet.</div>
+          ) : (
+            <div className="space-y-1">
+              {recentReal.map(p => (
+                <Link key={p.id} href={`/admin/players`} className="flex items-center justify-between px-3 py-2 border border-white/5 hover:border-gold/30 transition-colors">
+                  <span className="font-head font-bold text-white text-sm">{p.username}</span>
+                  <span className="text-text-muted font-head text-xs">{p.country ?? '—'} · {new Date(p.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4">
