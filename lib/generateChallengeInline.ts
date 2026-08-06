@@ -26,8 +26,13 @@ async function verifyStreetView(lat: number, lng: number): Promise<boolean> {
   }
 }
 
+// Rebalanced after user feedback ("too hard for the normal public, only good for geo
+// experts") — real-player data showed most non-admin signups stalled after round 1-2.
+// Old curve was 5 easy / 5 medium / 5 hard / 10(!) extreme. New curve front-loads more
+// genuinely-easy rounds and shrinks the brutal extreme tail, restoring the unused "pro"
+// tier (already fully supported in scoring/UI) for just the last 2 rounds.
 export const DIFFICULTY_FOR_ROUND = (round: number): string =>
-  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : 'extreme'
+  round <= 8 ? 'easy' : round <= 14 ? 'medium' : round <= 19 ? 'hard' : round <= 23 ? 'extreme' : 'pro'
 
 export function inferThemeId(name: string): string {
   const n = name.toLowerCase()
@@ -86,9 +91,9 @@ NOT user-contributed 360° photos. The location must have navigable street-level
 
 The observation question must be answerable by carefully looking at the Street View imagery. Questions should be specific with a clear, unambiguous answer.
 
-DIFFICULTY GUIDE for observation questions:
-- EASY: A world-famous street, boulevard, or plaza in a major tourist city (Paris, Tokyo, New York, London, Sydney, Rome, etc.). Count something large and obvious (flags, vehicles, market stalls). Answer must be a simple small number (1–9).
-- MEDIUM: Identify something specific (color, word, symbol) on a recognizable but less-famous location in a well-covered country.
+DIFFICULTY GUIDE for observation questions — this game is for the GENERAL PUBLIC, not geography experts. EASY and MEDIUM must be genuinely easy:
+- EASY: A world-famous street, boulevard, or plaza in a major tourist city (Paris, Tokyo, New York, London, Sydney, Rome, etc.) that a school-age child would recognise by name. Count something large, obvious, and impossible to miscount (e.g. how many traffic lights are visible, how many flags on the building ahead). Answer must be a simple small number (1–9). Do not require the player to look closely or notice something subtle — it should be visible at a glance.
+- MEDIUM: Identify something specific (color, word, symbol) on a recognizable but less-famous location in a well-covered country. Still findable within a few seconds of looking in the right direction, not a close inspection.
 - HARD: Count or identify something subtle on a less-visited but still Street View covered street or small town.
 - EXTREME: Spot a tiny or hidden detail in an unusual but car-covered location.
 - PRO: An obscure location that still has blue car Street View lines — a small town, unusual road, or remote settlement with confirmed coverage. NOT an unmapped island. The detail must be nearly impossible to spot.
@@ -154,9 +159,9 @@ Generate ONE unique, extraordinary challenge for Round ${roundNumber}, difficult
 
 GEOGRAPHIC DIVERSITY RULE: This challenge must be in a DIFFERENT country than every location in the existing list below. Spread across different sub-regions of the theme's focus area.
 
-DIFFICULTY GUIDE:
-- EASY: The most iconic, universally-recognised landmarks in the theme region — places every person would know.
-- MEDIUM: Remarkable but less globally-famous destinations within the theme region.
+DIFFICULTY GUIDE — this game is for the GENERAL PUBLIC, not geography experts. Most players never get past the early rounds, so EASY and MEDIUM must be genuinely easy, not "easy for a geography buff":
+- EASY: Only the handful of landmarks a school-age child could name on sight, even having never traveled — Eiffel Tower, Statue of Liberty, Great Wall of China, Sydney Opera House, Big Ben, Colosseum, Taj Mahal, Pyramids of Giza, Christ the Redeemer, Golden Gate Bridge, Mount Fuji. If you have to think twice about whether an average person would know it, it is NOT easy — pick something more famous.
+- MEDIUM: A well-known destination most well-travelled adults would recognise from photos or movies, but a notch below the EASY tier's global fame — still a "yes I've heard of that" reaction, not a "never heard of it."
 - HARD: Genuinely obscure — remote towns, unusual geological features, niche cultural sites within the theme region.
 - EXTREME: The most forgotten, bizarre, inhospitable, or absurdly remote locations within the theme region.
 - PRO: Beyond extreme. Places that even seasoned geographers would fail to identify — micro-territories, abandoned ghost settlements, unnamed glaciers, island specks in the open ocean, border anomalies, or locations so obscure they barely appear on any map. The riddle must give almost nothing away. Map start must be on a different continent to the answer.

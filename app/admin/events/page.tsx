@@ -38,8 +38,9 @@ export default function AdminEventsPage() {
     if (data) {
       setEvents(p => [data, ...p])
       // Auto-generate 20 rounds
+      // Keep in sync with lib/generateChallengeInline.ts's DIFFICULTY_FOR_ROUND
       const difficultyFor = (round: number) =>
-        round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : round <= 20 ? 'extreme' : 'pro'
+        round <= 8 ? 'easy' : round <= 14 ? 'medium' : round <= 19 ? 'hard' : round <= 23 ? 'extreme' : 'pro'
 
       // Pre-load ALL existing challenge locations from the entire DB to avoid repeats
       setGenProgress('Loading existing locations...')

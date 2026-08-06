@@ -5,8 +5,9 @@ import { EVENT_THEMES } from '@/lib/eventThemes'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
+// Keep in sync with lib/generateChallengeInline.ts's DIFFICULTY_FOR_ROUND
 const DIFFICULTY_FOR_ROUND = (round: number): string =>
-  round <= 5 ? 'easy' : round <= 10 ? 'medium' : round <= 15 ? 'hard' : round <= 20 ? 'extreme' : 'pro'
+  round <= 8 ? 'easy' : round <= 14 ? 'medium' : round <= 19 ? 'hard' : round <= 23 ? 'extreme' : 'pro'
 
 function inferThemeId(name: string): string {
   const n = name.toLowerCase()
