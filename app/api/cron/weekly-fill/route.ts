@@ -11,7 +11,12 @@ import {
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
-// Backup cron — runs at 00:35 UTC on Mondays (5 min after weekly-generate).
+// Backup cron — runs at 00:40 UTC on Mondays, 10 min after weekly-generate starts.
+// weekly-generate has a hard 300s (5 min) Vercel timeout, so a 10-minute gap
+// guarantees it has fully finished (or been killed) before this runs — closes
+// a race condition where both crons generated challenges for the same event
+// concurrently, each working from a stale duplicate-check snapshot, and picked
+// the same landmark for multiple rounds (e.g. Christ the Redeemer x6 in one event).
 // Idempotent: skips rounds that already exist, only fills gaps.
 // If weekly-generate finished fine, this returns in under a second.
 
