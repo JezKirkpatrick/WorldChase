@@ -44,10 +44,16 @@ export default function MapPanel({
 
   function loadOutdoorPanorama(sv: google.maps.StreetViewPanorama, lat: number, lng: number, heading: number, pitch: number) {
     const svc = new google.maps.StreetViewService()
+    // A real street-level panorama always has at least one navigation link (arrow).
+    // Google's "outdoor" source tag is uploader-supplied and sometimes mistags indoor
+    // photo spheres (e.g. a museum gallery) as outdoor when they sit near a real street —
+    // status "OK" alone isn't proof of navigable street-level coverage, links.length is.
+    const isNavigable = (data: any) => Array.isArray(data?.links) && data.links.length > 0
+
     svc.getPanorama(
       { location: { lat, lng }, radius: 150, source: (google.maps as any).StreetViewSource?.OUTDOOR ?? 'OUTDOOR' },
       (data: any, status: any) => {
-        if (status === 'OK' && data?.location?.pano) {
+        if (status === 'OK' && data?.location?.pano && isNavigable(data)) {
           sv.setPano(data.location.pano)
           sv.setPov({ heading, pitch })
           sv.setVisible(true)
@@ -55,12 +61,12 @@ export default function MapPanel({
           svc.getPanorama(
             { location: { lat, lng }, radius: 500, source: (google.maps as any).StreetViewSource?.OUTDOOR ?? 'OUTDOOR' },
             (data2: any, status2: any) => {
-              if (status2 === 'OK' && data2?.location?.pano) {
+              if (status2 === 'OK' && data2?.location?.pano && isNavigable(data2)) {
                 sv.setPano(data2.location.pano)
                 sv.setPov({ heading, pitch })
                 sv.setVisible(true)
               } else {
-                // No Street View coverage — stay on map view, show message
+                // No navigable Street View coverage — stay on map view, show message
                 sv.setVisible(false)
                 setSvUnavailable(true)
               }
