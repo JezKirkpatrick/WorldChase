@@ -5,22 +5,45 @@ import type { EventTheme } from '@/lib/eventThemes'
 
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 
+// Haversine distance in metres — used to check the matched panorama is actually
+// close to the requested spot, not just "some outdoor coverage exists somewhere nearby".
+function distanceMetres(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+
 // Verify Street View coverage via Google's free Metadata API before saving the challenge.
-// Returns true if coverage exists (or if the check itself fails — fail open).
+// Returns true if coverage exists close enough to actually represent the intended spot
+// (or if the check itself fails — fail open). A location like a pedestrian-only bridge
+// can return "OK" from a wide-radius search while the real matched panorama sits on an
+// unrelated street blocks away — status OK alone isn't proof the location is right, the
+// matched pano's own distance from the requested coordinates is.
 async function verifyStreetView(lat: number, lng: number): Promise<boolean> {
   const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   if (!key) return true
   try {
-    for (const radius of [150, 500]) {
+    // Tight radius first — if coverage exists this close, it's genuinely at the spot.
+    for (const radius of [50, 150, 500]) {
       const res = await fetch(
         `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=${radius}&source=outdoor&key=${key}`,
         { headers: { Referer: 'https://worldchase.net' } }
       )
       const data = await res.json()
-      if (data.status === 'OK') return true
+      if (data.status === 'OK' && data.location) {
+        const matchedDistance = distanceMetres(lat, lng, data.location.lat, data.location.lng)
+        // Only accept if the matched panorama is close enough that it will actually
+        // show the intended landmark, not just "the nearest drivable street".
+        if (matchedDistance <= 75) return true
+      }
       if (radius === 500 && data.status === 'ZERO_RESULTS') return false
     }
-    return true
+    return false
   } catch {
     return true // network error — fail open so generation isn't blocked
   }
