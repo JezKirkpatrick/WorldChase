@@ -9,24 +9,81 @@ export const dynamic = 'force-dynamic'
 
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 
+// Haversine distance in metres — used to check the matched panorama is actually
+// close to the requested spot, not just "some outdoor coverage exists somewhere nearby".
+function distanceMetres(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
+
 // Verify Street View coverage via Google's free Metadata API before saving the challenge.
-// Returns true if coverage exists (or if the check itself fails — fail open).
+// Returns true if coverage exists close enough to actually represent the intended spot
+// (or if the check itself fails — fail open). A location like a pedestrian-only bridge
+// can return "OK" from a wide-radius search while the real matched panorama sits on an
+// unrelated street blocks away — status OK alone isn't proof the location is right, the
+// matched pano's own distance from the requested coordinates is.
 async function verifyStreetView(lat: number, lng: number): Promise<boolean> {
   const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   if (!key) return true
   try {
-    for (const radius of [150, 500]) {
+    for (const radius of [50, 150, 500]) {
       const res = await fetch(
         `https://maps.googleapis.com/maps/api/streetview/metadata?location=${lat},${lng}&radius=${radius}&source=outdoor&key=${key}`,
         { headers: { Referer: 'https://worldchase.net' } }
       )
       const data = await res.json()
-      if (data.status === 'OK') return true
+      if (data.status === 'OK' && data.location) {
+        const matchedDistance = distanceMetres(lat, lng, data.location.lat, data.location.lng)
+        if (matchedDistance <= 75) return true
+      }
       if (radius === 500 && data.status === 'ZERO_RESULTS') return false
     }
-    return true
+    return false
   } catch {
     return true // network error — fail open so generation isn't blocked
+  }
+}
+
+// Verify the panorama actually SHOWS what the riddle/question describes, not just that
+// coverage exists nearby — geometry checks above pass locations where the matched pano
+// is real, close, and navigable, but simply doesn't frame the scene the AI wrote about.
+async function verifyStreetViewContent(
+  lat: number, lng: number, heading: number, pitch: number,
+  question: string, riddleText: string
+): Promise<boolean> {
+  const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  if (!mapsKey) return true
+  try {
+    const imgRes = await fetch(
+      `https://maps.googleapis.com/maps/api/streetview?size=640x400&location=${lat},${lng}&heading=${heading}&pitch=${pitch}&fov=90&key=${mapsKey}`
+    )
+    if (!imgRes.ok) return true
+    const buf = Buffer.from(await imgRes.arrayBuffer())
+    const base64 = buf.toString('base64')
+
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text', text: `This is the exact Google Street View frame a player will see for a geography game round. The player must answer this by looking at ONLY this image: "${question}"\nScene the game claims this is: "${riddleText}"\nIs the described object/scene actually visible and answerable from this exact frame — not "probably nearby" or "would be visible if rotated", but literally in this image? Reply with ONLY JSON, no markdown: {"visible": true or false, "reason": "one short sentence"}` }
+        ]
+      }] as any,
+    })
+    const raw = response.content[0].type === 'text' ? response.content[0].text : '{}'
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+    const parsed = JSON.parse(cleaned)
+    return parsed.visible === true
+  } catch {
+    return true // vision check itself failing shouldn't block generation — fail open
   }
 }
 
@@ -222,6 +279,15 @@ export async function POST(req: NextRequest) {
       const hasCoverage = await verifyStreetView(challengeData.location_lat, challengeData.location_lng)
       if (!hasCoverage) {
         return NextResponse.json({ error: 'No Street View coverage at AI coordinates — regenerate' }, { status: 422 })
+      }
+
+      const contentMatches = await verifyStreetViewContent(
+        challengeData.location_lat, challengeData.location_lng,
+        challengeData.street_view_heading ?? 0, challengeData.street_view_pitch ?? 0,
+        challengeData.street_view_question ?? '', challengeData.riddle_text ?? ''
+      )
+      if (!contentMatches) {
+        return NextResponse.json({ error: 'AI scene does not match what is actually visible at these coordinates — regenerate' }, { status: 422 })
       }
     }
 
