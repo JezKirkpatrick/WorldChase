@@ -6,6 +6,10 @@ import { NARRATIVE_STYLES } from '@/lib/eventThemes'
 import type { EventTheme } from '@/lib/eventThemes'
 
 export const dynamic = 'force-dynamic'
+// No default here meant Vercel's plan default (well under 300s) — the new Street View
+// content-verification step (image fetch + vision call) adds real per-attempt latency,
+// so make the ceiling explicit rather than risk a slow single attempt timing out.
+export const maxDuration = 300
 
 const STREET_VIEW_ROUNDS = [1, 6, 11, 16]
 

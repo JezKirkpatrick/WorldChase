@@ -9,7 +9,11 @@ import {
 } from '@/lib/generateChallengeInline'
 
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+// Was 60 — the new Street View content-verification step (image fetch + vision call
+// per generation attempt) can push a single gap-filled street-view round past that on
+// its own, let alone a run that gap-fills more than one round. Matches the other
+// generation routes, which already run at 300 on this plan without issue.
+export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
   // Allow CRON_SECRET (for server-side triggering) or logged-in admin
