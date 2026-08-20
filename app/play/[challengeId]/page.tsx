@@ -514,7 +514,7 @@ export default function GamePage({ params }: PageProps) {
           rankBefore={rank}
           rankAfter={rank ? rank - 1 : null}
           nextRound={nextRound}
-          onContinue={() => { router.refresh(); router.push('/play') }}
+          onContinue={() => { window.location.href = '/play' }}
         />
       )}
 
