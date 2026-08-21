@@ -1,7 +1,7 @@
 'use client'
 
 export const dynamic = 'force-dynamic'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import type { Profile } from '@/types/user'
@@ -9,19 +9,28 @@ import type { Profile } from '@/types/user'
 export default function AdminPlayersPage() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Profile[]>([])
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<Profile | null>(null)
   const [grantAmount, setGrantAmount] = useState('')
   const supabase = createClient()
 
-  async function search() {
+  const search = useCallback(async (q: string) => {
     setLoading(true)
-    const { data } = await supabase.from('profiles').select('*')
-      .or(`username.ilike.%${query}%`)
-      .limit(20)
+    let dbQuery = supabase.from('profiles').select('*', { count: 'exact' })
+      .eq('is_fake', false)
+      .order('created_at', { ascending: false })
+      .limit(200)
+    if (q.trim()) dbQuery = dbQuery.ilike('username', `%${q.trim()}%`)
+    const { data, count } = await dbQuery
     setResults(data ?? [])
+    setTotal(count ?? 0)
     setLoading(false)
-  }
+  }, [supabase])
+
+  // Load every real player up front — the page used to start empty and require
+  // typing something first, which made it look like most players didn't exist.
+  useEffect(() => { search('') }, [search])
 
   async function grantTokens() {
     if (!selected) return
@@ -59,13 +68,16 @@ export default function AdminPlayersPage() {
       </nav>
 
       <div className="max-w-3xl mx-auto px-6 py-10">
-        <h1 className="font-head font-bold text-2xl text-white mb-8">MANAGE PLAYERS</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="font-head font-bold text-2xl text-white">MANAGE PLAYERS</h1>
+          <span className="text-text-muted font-head text-sm">{total} real player{total === 1 ? '' : 's'}</span>
+        </div>
 
         <div className="flex gap-3 mb-6">
-          <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && search()}
+          <input value={query} onChange={e => setQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && search(query)}
             placeholder="Search by username..."
             className="flex-1 bg-navy-light border border-white/20 px-4 py-3 text-white font-head outline-none focus:border-gold/60" />
-          <button onClick={search} disabled={loading} className="px-6 py-3 bg-gold text-navy font-head font-bold text-sm tracking-wider hover:bg-gold-dim disabled:opacity-50">
+          <button onClick={() => search(query)} disabled={loading} className="px-6 py-3 bg-gold text-navy font-head font-bold text-sm tracking-wider hover:bg-gold-dim disabled:opacity-50">
             SEARCH
           </button>
         </div>
