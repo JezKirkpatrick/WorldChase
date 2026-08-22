@@ -125,20 +125,15 @@ export async function POST(req: NextRequest) {
         speed_bonus_earned: score.speedMultiplier > 1.0,
       }).eq('id', progress.id)
 
-      // Fetch current leaderboard entry so we can increment atomically
-      const { data: lbEntry } = await supabase
-        .from('leaderboard')
-        .select('total_score, challenges_completed')
-        .eq('user_id', userId)
-        .eq('event_id', challenge.event_id)
-        .maybeSingle()
-
-      const leaderboardUpsert = supabase.from('leaderboard').upsert({
-        user_id:              userId,
-        event_id:             challenge.event_id,
-        total_score:          (lbEntry?.total_score          ?? 0) + score.finalScore,
-        challenges_completed: (lbEntry?.challenges_completed ?? 0) + 1,
-      }, { onConflict: 'user_id,event_id' })
+      // Single shared, atomic RPC for every feature that touches the leaderboard (hunt
+      // rounds, Geo Quiz, Daily Flag Pick) — see lib note in geo-quiz/daily-flag routes.
+      // p_round_completed=true is what drives the "X/25" hunt round-progress counter.
+      const leaderboardUpsert = supabase.rpc('credit_leaderboard', {
+        p_user_id: userId,
+        p_event_id: challenge.event_id,
+        p_score_delta: score.finalScore,
+        p_round_completed: true,
+      })
 
       if (tokenReward > 0) {
         await Promise.all([

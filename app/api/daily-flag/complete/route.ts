@@ -47,22 +47,16 @@ export async function POST(req: NextRequest) {
       }),
     ]
 
-    // Add to leaderboard if active event
+    // Add to leaderboard if active event — single shared, atomic RPC for every
+    // feature that touches the leaderboard. p_round_completed defaults to false,
+    // so this never bumps the "X/25" hunt round-progress counter.
     if (eventId) {
-      const { data: lbEntry } = await supabase
-        .from('leaderboard')
-        .select('total_score')
-        .eq('user_id', user.id)
-        .eq('event_id', eventId)
-        .maybeSingle()
-      // Daily flag score adds to the event leaderboard total (bonus content), but must
-      // NOT bump challenges_completed — see identical note in geo-quiz/submit-answer.
       ops.push(
-        supabase.from('leaderboard').upsert({
-          user_id: user.id,
-          event_id: eventId,
-          total_score: (lbEntry?.total_score ?? 0) + score,
-        }, { onConflict: 'user_id,event_id' })
+        supabase.rpc('credit_leaderboard', {
+          p_user_id: user.id,
+          p_event_id: eventId,
+          p_score_delta: score,
+        })
       )
     }
 

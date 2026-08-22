@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-server'
 import SeedShopButton from '@/components/admin/SeedShopButton'
 import FixAvatarsButton from '@/components/admin/FixAvatarsButton'
 import ChatSqlBlock from '@/components/admin/ChatSqlBlock'
+import ReconcileLeaderboardButton from '@/components/admin/ReconcileLeaderboardButton'
 
 export default async function AdminPage() {
   const supabase = createClient()
@@ -83,6 +84,17 @@ export default async function AdminPage() {
               <div className="text-text-muted font-head text-xs">{l.desc}</div>
             </Link>
           ))}
+        </div>
+
+        {/* ── Leaderboard integrity check ── */}
+        <div className="mb-6 border border-gold/20 p-6">
+          <div className="text-xs font-head text-gold tracking-widest mb-1">LEADERBOARD INTEGRITY</div>
+          <div className="text-text-muted font-head text-xs mb-4">
+            Recomputes every real player's round-progress and score from their actual completed rounds, and fixes any drift.
+            Side features (Geo Quiz, Daily Flag Pick) go through the shared credit_leaderboard function now, so this should
+            normally find nothing — safe to run any time as a check.
+          </div>
+          <ReconcileLeaderboardButton />
         </div>
 
         {/* ── Shop tools ── */}
