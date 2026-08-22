@@ -73,16 +73,19 @@ export async function POST(req: NextRequest) {
 
       const { data: lbEntry } = await service
         .from('leaderboard')
-        .select('total_score, challenges_completed')
+        .select('total_score')
         .eq('user_id', user.id)
         .eq('event_id', quiz.event_id)
         .maybeSingle()
 
+      // Live Geo Quiz score adds to the event leaderboard total (bonus content),
+      // but must NOT bump challenges_completed — that field drives the "X/25" hunt
+      // round-progress shown on the leaderboard, and a quiz session isn't a hunt round.
+      // Was previously incrementing it by 1, silently inflating everyone's round count.
       await service.from('leaderboard').upsert({
         user_id: user.id,
         event_id: quiz.event_id,
         total_score: (lbEntry?.total_score ?? 0) + totalQuizScore,
-        challenges_completed: (lbEntry?.challenges_completed ?? 0) + 1,
       }, { onConflict: 'user_id,event_id' })
     }
 

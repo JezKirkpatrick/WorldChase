@@ -51,16 +51,17 @@ export async function POST(req: NextRequest) {
     if (eventId) {
       const { data: lbEntry } = await supabase
         .from('leaderboard')
-        .select('total_score, challenges_completed')
+        .select('total_score')
         .eq('user_id', user.id)
         .eq('event_id', eventId)
         .maybeSingle()
+      // Daily flag score adds to the event leaderboard total (bonus content), but must
+      // NOT bump challenges_completed — see identical note in geo-quiz/submit-answer.
       ops.push(
         supabase.from('leaderboard').upsert({
           user_id: user.id,
           event_id: eventId,
           total_score: (lbEntry?.total_score ?? 0) + score,
-          challenges_completed: (lbEntry?.challenges_completed ?? 0) + 1,
         }, { onConflict: 'user_id,event_id' })
       )
     }
