@@ -327,6 +327,24 @@ async function tryGenerateOnce(params: {
       Math.abs(challengeData.location_lng ?? 0) < 0.001
     ) return null
 
+    // answer_keywords must be a non-empty list of real strings — an empty/malformed
+    // list means quick keyword matching can never succeed and every guess falls
+    // through to the AI judge, which is slower and was the root cause of a real
+    // grading bug (judge fell back to comparing against location_name instead).
+    if (
+      !Array.isArray(challengeData.answer_keywords) ||
+      challengeData.answer_keywords.length === 0 ||
+      challengeData.answer_keywords.some((k: any) => typeof k !== 'string' || !k.trim())
+    ) return null
+
+    // riddle_text is flavour text only — street_view_question is the sole graded
+    // question. A "?" here means the AI wrote a competing question (found live:
+    // riddle asked "how many lampposts" while the graded answer was letters
+    // carved on a nearby monument), which misleads players into answering the
+    // wrong thing. Cheap check, run before the expensive Street View calls below
+    // so a bad generation is rejected without burning a Google/vision API call.
+    if (isStreetView && String(challengeData.riddle_text ?? '').includes('?')) return null
+
     // For Street View rounds, verify coverage exists before saving — the AI's
     // claim that a location has coverage is frequently wrong.
     if (isStreetView) {
