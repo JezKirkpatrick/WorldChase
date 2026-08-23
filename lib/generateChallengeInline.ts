@@ -191,7 +191,7 @@ Respond with ONLY valid JSON — no markdown:
   "street_view_only": true,
   "street_view_question": "The exact observation question players must answer",
   "points_value": ${pointsMap[difficulty] ?? 500},
-  "riddle_text": "A one-sentence intro setting the scene in the specified narrative style. Do not give away the answer.",
+  "riddle_text": "A one-sentence intro setting the scene in the specified narrative style. Must NOT pose its own question or ask the player to count/spot/find anything — street_view_question is the only graded question. Do not give away the answer.",
   "clues": [
     {"order":1,"text":"[Direction: vague] + [Observation: vague hint]"},
     {"order":2,"text":"[Direction: slightly more specific] + [Observation: more specific hint]"},

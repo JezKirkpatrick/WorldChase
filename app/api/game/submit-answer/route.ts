@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         max_tokens: 120,
         messages: [{
           role: 'user',
-          content: `Geography game judge. Correct location: "${challenge.location_name}, ${challenge.location_country}". Player answered: "${safeGuess}". Keywords: ${JSON.stringify(challenge.answer_keywords)}. Is this correct? Be generous with spelling/transliterations. Reply ONLY valid JSON: {"is_correct":true,"feedback":"one energetic sentence — congratulate if correct, tiny non-spoiler nudge if wrong, never reveal answer","confidence":0.9}`
+          content: `Geography game judge. The correct answer for this round must match one of these keywords: ${JSON.stringify(challenge.answer_keywords)}. This is a round about "${challenge.location_name}, ${challenge.location_country}", but the actual graded question may ask about a specific detail (a count, letter, color, or feature) rather than the general place name — judge strictly against the keywords, not just whether the guess names the right place. Player answered: "${safeGuess}". Be generous with spelling/transliterations of the keyword answer itself. Reply ONLY valid JSON: {"is_correct":true,"feedback":"one energetic sentence — congratulate if correct, tiny non-spoiler nudge if wrong, never reveal answer","confidence":0.9}`
         }],
       })
 
