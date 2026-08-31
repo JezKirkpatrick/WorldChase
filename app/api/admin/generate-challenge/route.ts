@@ -26,6 +26,36 @@ function distanceMetres(lat1: number, lng1: number, lat2: number, lng2: number):
   return 2 * R * Math.asin(Math.sqrt(a))
 }
 
+// map_start distance from the answer, per difficulty (see prompt text below) — the AI
+// frequently ignores this instruction outright (observed live: "medium" rounds landing
+// on a different continent, thousands of km off a 10-30km target), so it's enforced
+// deterministically here rather than trusted from the model's output.
+const MAP_START_RANGE_KM: Record<string, [number, number]> = {
+  easy: [2, 5], medium: [10, 30], hard: [50, 150], extreme: [200, 500], pro: [3000, 15000],
+}
+
+function bearingDegrees(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const phi1 = toRad(lat1), phi2 = toRad(lat2)
+  const dLambda = toRad(lng2 - lng1)
+  const y = Math.sin(dLambda) * Math.cos(phi2)
+  const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLambda)
+  return Math.atan2(y, x)
+}
+
+// Given a start point, bearing (radians), and distance, compute the destination point —
+// used to correct an out-of-range map_start while preserving the AI's chosen direction.
+function destinationPoint(lat1: number, lng1: number, bearingRad: number, distanceKm: number): { lat: number; lng: number } {
+  const R = 6371
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const toDeg = (r: number) => (r * 180) / Math.PI
+  const d = distanceKm / R
+  const phi1 = toRad(lat1), lam1 = toRad(lng1)
+  const phi2 = Math.asin(Math.sin(phi1) * Math.cos(d) + Math.cos(phi1) * Math.sin(d) * Math.cos(bearingRad))
+  const lam2 = lam1 + Math.atan2(Math.sin(bearingRad) * Math.sin(d) * Math.cos(phi1), Math.cos(d) - Math.sin(phi1) * Math.sin(phi2))
+  return { lat: toDeg(phi2), lng: toDeg(lam2) }
+}
+
 // Verify Street View coverage via Google's free Metadata API before saving the challenge.
 // Returns true if coverage exists close enough to actually represent the intended spot
 // (or if the check itself fails — fail open). A location like a pedestrian-only bridge
@@ -285,6 +315,26 @@ export async function POST(req: NextRequest) {
       Math.abs(challengeData.location_lng ?? 0) < 0.001
     ) {
       return NextResponse.json({ error: 'AI returned zero coordinates — regenerate' }, { status: 422 })
+    }
+
+    // Street View rounds start the player directly in Street View at the answer's own
+    // coordinates — map_start distance rules below only apply to draggable-map rounds.
+    if (!isStreetViewRound) {
+      const [minKm, maxKm] = MAP_START_RANGE_KM[difficulty] ?? [10, 30]
+      const actualKm = distanceMetres(
+        challengeData.location_lat, challengeData.location_lng,
+        challengeData.map_start_lat, challengeData.map_start_lng
+      ) / 1000
+      if (actualKm < minKm || actualKm > maxKm) {
+        const bearing = bearingDegrees(
+          challengeData.location_lat, challengeData.location_lng,
+          challengeData.map_start_lat, challengeData.map_start_lng
+        )
+        const targetKm = (minKm + maxKm) / 2
+        const corrected = destinationPoint(challengeData.location_lat, challengeData.location_lng, bearing, targetKm)
+        challengeData.map_start_lat = corrected.lat
+        challengeData.map_start_lng = corrected.lng
+      }
     }
 
     // For Street View rounds, verify coverage exists before saving
