@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase-server'
 import {
   generateChallengeInline,
@@ -11,6 +12,11 @@ import {
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
+// cron-job.org's request timeout is hard-capped at 30s (can't be raised, even on paid
+// tiers) but generating 25 rounds of AI challenges takes minutes. Respond immediately
+// and do the real work via waitUntil so Vercel keeps the function alive (up to
+// maxDuration) after the HTTP response is sent, instead of the connection getting
+// killed at 30s with zero challenges written.
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
   if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
@@ -18,6 +24,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  waitUntil(runWeeklyGenerate())
+  return NextResponse.json({ accepted: true })
+}
+
+async function runWeeklyGenerate() {
   const supabase = createServiceClient()
 
   const { data: activeEvents } = await supabase
@@ -39,7 +50,8 @@ export async function GET(req: NextRequest) {
   }
 
   if (eventsToFill.length === 0) {
-    return NextResponse.json({ success: true, message: 'No events need generation' })
+    console.log('[weekly-generate] No events need generation')
+    return
   }
 
   const recentExclusions = await getRecentExclusions(supabase)
@@ -101,5 +113,5 @@ export async function GET(req: NextRequest) {
     results.push({ eventId: event.id, eventName: event.name, generatedCount, failedRounds })
   }
 
-  return NextResponse.json({ success: true, results })
+  console.log('[weekly-generate] Done', JSON.stringify(results))
 }

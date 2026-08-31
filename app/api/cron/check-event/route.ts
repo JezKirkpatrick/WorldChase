@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase-server'
 import { EVENT_THEMES } from '@/lib/eventThemes'
 import {
@@ -15,14 +16,19 @@ export const dynamic = 'force-dynamic'
 // generation routes, which already run at 300 on this plan without issue.
 export const maxDuration = 300
 
+// cron-job.org's request timeout is hard-capped at 30s (can't be raised) but a run
+// that needs to gap-fill Street View rounds can take minutes. Respond immediately and
+// do the real work via waitUntil, so Vercel keeps the function alive past the response.
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
   const isValid = auth === `Bearer ${process.env.CRON_SECRET}` || auth === `Bearer ${process.env.ADMIN_SECRET}`
   if (!isValid) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  return runCheckEvent()
+  waitUntil(runCheckEvent())
+  return NextResponse.json({ accepted: true })
 }
 
-// Allows the admin to manually trigger from browser or curl without needing CRON_SECRET
+// Allows the admin to manually trigger from browser or curl without needing CRON_SECRET.
+// Kept synchronous (not waitUntil) — a human calling this directly wants the actual result.
 export async function POST(req: NextRequest) {
   const { createClient } = await import('@/lib/supabase-server')
   const supabase = createClient()

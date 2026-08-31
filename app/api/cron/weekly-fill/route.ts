@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServiceClient } from '@/lib/supabase-server'
 import {
   generateChallengeInline,
@@ -20,6 +21,8 @@ export const maxDuration = 300
 // Idempotent: skips rounds that already exist, only fills gaps.
 // If weekly-generate finished fine, this returns in under a second.
 
+// cron-job.org's request timeout is hard-capped at 30s (can't be raised) but filling
+// gaps can take minutes. Respond immediately, do the real work via waitUntil.
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
   if (!process.env.CRON_SECRET) return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
@@ -27,6 +30,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  waitUntil(runWeeklyFill())
+  return NextResponse.json({ accepted: true })
+}
+
+async function runWeeklyFill() {
   const supabase = createServiceClient()
 
   const { data: activeEvents } = await supabase
@@ -48,7 +56,8 @@ export async function GET(req: NextRequest) {
   }
 
   if (eventsToFill.length === 0) {
-    return NextResponse.json({ success: true, message: 'No gaps to fill' })
+    console.log('[weekly-fill] No gaps to fill')
+    return
   }
 
   const recentExclusions = await getRecentExclusions(supabase)
@@ -109,5 +118,5 @@ export async function GET(req: NextRequest) {
     results.push({ eventId: event.id, eventName: event.name, generatedCount, failedRounds })
   }
 
-  return NextResponse.json({ success: true, results })
+  console.log('[weekly-fill] Done', JSON.stringify(results))
 }
